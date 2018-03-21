@@ -283,6 +283,9 @@ public final class KsqlRestApplication extends Application<KsqlRestConfig> imple
     final String ksqlInstallDir = restConfig.getString(KsqlRestConfig.INSTALL_DIR_CONFIG);
 
     final KsqlConfig ksqlConfig = new KsqlConfig(restConfig.getKsqlConfigProperties());
+    Map<String, Object> ksqlAdminClientConfigProps = ksqlConfig.getKsqlAdminClientConfigProps();
+    ksqlAdminClientConfigProps.put(AdminClientConfig.STREAMS_ADMIN_DEFAULT_STREAM_CONFIG,
+            StreamsConfig.STREAMS_DEFAULT_INTERNAL_STREAM);
 
     final KsqlEngine ksqlEngine = KsqlEngine.create(ksqlConfig);
     final KafkaTopicClient topicClient = ksqlEngine.getTopicClient();
