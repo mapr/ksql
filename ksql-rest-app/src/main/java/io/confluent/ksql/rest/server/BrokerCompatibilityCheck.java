@@ -21,7 +21,6 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.UnsupportedVersionException;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.utils.Utils;
-import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.errors.StreamsException;
 
 import java.io.Closeable;
@@ -58,8 +57,7 @@ public class BrokerCompatibilityCheck implements Closeable {
       topicClient.createTopic(KSQL_COMPATIBILITY_CHECK, 1, (short) 1, false);
       topicNames = Utils.mkSet(KSQL_COMPATIBILITY_CHECK);
     }
-    final Map<String, Object> consumerConfigs = new StreamsConfig(streamsConfig)
-        .getConsumerConfigs(KSQL_COMPATIBILITY_CHECK, "ksql_server");
+    final Map<String, Object> consumerConfigs = null;
 
     // remove this otherwise it will try and instantiate the StreamsPartitionAssignor
     consumerConfigs.remove("partition.assignment.strategy");

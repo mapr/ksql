@@ -237,10 +237,11 @@ public class KsqlRestApplication extends Application<KsqlRestConfig> implements 
     KsqlEngine ksqlEngine = new KsqlEngine(ksqlConfig, new KafkaTopicClientImpl(adminClient));
     KafkaTopicClient topicClient = ksqlEngine.getTopicClient();
 
-    try (BrokerCompatibilityCheck compatibilityCheck =
-             BrokerCompatibilityCheck.create(ksqlConfig.getKsqlStreamConfigProps(), topicClient)) {
-      compatibilityCheck.checkCompatibility();
-    }
+    //    try (BrokerCompatibilityCheck compatibilityCheck =
+    //             BrokerCompatibilityCheck.
+    // create(ksqlConfig.getKsqlStreamConfigProps(), topicClient)) {
+    //      compatibilityCheck.checkCompatibility();
+    //    }
 
     String commandTopic =
         restConfig.getCommandTopic(ksqlConfig.getString(KsqlConfig.KSQL_SERVICE_ID_CONFIG));
