@@ -81,6 +81,15 @@
             <classifier>test</classifier>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>local.mapr.kafka</groupId>
+            <artifactId>private-kafka-streams</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${private-kafka-path}/private-kafka/streams/build/libs/kafka-streams-1.0.1-mapr-SNAPSHOT.jar</systemPath>
+        </dependency>
+
         <dependency>
             <groupId>io.confluent.ksql</groupId>
             <artifactId>ksql-engine</artifactId>
