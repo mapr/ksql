@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright 2017 Confluent Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -233,21 +233,7 @@ public class KafkaTopicClientImpl implements KafkaTopicClient {
             ConfigResource.Type.BROKER,
             String.valueOf(nodes.get(0).id())
         );
-
-        RetryHelper<Map<ConfigResource, Config>> retryHelper = new RetryHelper<>();
-        DescribeConfigsResult
-            describeConfigsResult = adminClient.describeConfigs(Collections.singleton(resource));
-        Map<ConfigResource, Config> config = retryHelper.executeWithRetries(
-            () -> describeConfigsResult.all()
-        );
-
-        this.isDeleteTopicEnabled = config.get(resource)
-            .entries()
-            .stream()
-            .anyMatch(configEntry -> configEntry.name().equalsIgnoreCase("delete.topic.enable")
-                                     && configEntry.value().equalsIgnoreCase("true"));
-
-
+        this.isDeleteTopicEnabled = true;
       } else {
         log.warn("No available broker found to fetch config info.");
         throw new KsqlException("Could not fetch broker information. KSQL cannot initialize "
