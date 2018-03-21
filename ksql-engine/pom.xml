@@ -96,6 +96,14 @@
             <artifactId>connect-api</artifactId>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/org.rocksdb/rocksdbjni -->
+        <dependency>
+            <groupId>org.rocksdb</groupId>
+            <artifactId>rocksdbjni</artifactId>
+            <version>5.7.3</version>
+        </dependency>
+
+
         <dependency>
             <groupId>local.mapr.kafka</groupId>
             <artifactId>private-kafka-streams</artifactId>
