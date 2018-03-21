@@ -306,7 +306,7 @@ public final class KsqlRestApplication extends Application<KsqlRestConfig> imple
         QualifiedName.of(COMMANDS_KSQL_TOPIC_NAME),
         false,
         commandTopicProperties
-    )), false);
+    )));
 
     ksqlEngine.getDdlCommandExec().execute(new CreateStreamCommand(
         "statementText",
