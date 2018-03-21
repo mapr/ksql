@@ -115,7 +115,19 @@ public class KafkaTopicClientImpl implements KafkaTopicClient {
   @Override
   public boolean isTopicExists(final String topic) {
     log.trace("Checking for existence of topic '{}'", topic);
-    return listTopicNames().contains(topic);
+    String[] streamAndTopic = topic.split(":");
+    if(streamAndTopic.length > 1) {
+      return listTopicNames(streamAndTopic[0]).contains(streamAndTopic[1]);
+    }else {
+      return listTopicNames().contains(topic);
+    }
+  }
+  private Set<String> listTopicNames(String stream) {
+    try {
+      return adminClient.listTopics(stream).names().get();
+    } catch (InterruptedException | ExecutionException e) {
+      throw new KafkaResponseGetFailedException("Failed to retrieve Kafka Topic names", e);
+    }
   }
 
   @Override

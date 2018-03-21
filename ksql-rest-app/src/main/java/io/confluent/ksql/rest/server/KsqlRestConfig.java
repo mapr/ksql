@@ -20,9 +20,15 @@ import io.confluent.common.config.ConfigDef;
 import io.confluent.ksql.util.KsqlConstants;
 import io.confluent.ksql.util.KsqlException;
 import io.confluent.rest.RestConfig;
+import org.apache.kafka.streams.StreamsConfig;
 
 import java.util.Map;
 
+// Although it would be nice to somehow extend the functionality of this class to encompass that of
+// the KsqlConfig, there is no clean way to do so since the KsqlConfig inherits from the Kafka
+// AbstractConfig class, and the RestConfig inherits from the Confluent AbstractConfig class. Making
+// the two get along and play nicely together in one class is more work than it's worth, so any and
+// all validation to be performed by the KsqlConfig class will be handled outside of this one.
 public class KsqlRestConfig extends RestConfig {
 
   public static final String COMMAND_CONSUMER_PREFIX  = "ksql.server.command.consumer.";
@@ -135,10 +141,11 @@ public class KsqlRestConfig extends RestConfig {
 
   public String getCommandTopic(String ksqlServiceId) {
     return String.format(
-        "%s%s_%s",
-        KsqlConstants.KSQL_INTERNAL_TOPIC_PREFIX,
-        ksqlServiceId,
-        COMMAND_TOPIC_SUFFIX
+        "%s:%s%s_%s",
+            StreamsConfig.STREAMS_DEFAULT_INTERNAL_STREAM,
+            KsqlConstants.KSQL_INTERNAL_TOPIC_PREFIX,
+            ksqlServiceId,
+            COMMAND_TOPIC_SUFFIX
     );
   }
 

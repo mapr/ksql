@@ -21,11 +21,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.jaxrs.base.JsonParseExceptionMapper;
 
 import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.common.config.TopicConfig;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serializer;
+import org.apache.kafka.streams.StreamsConfig;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.resource.ResourceCollection;
 import org.glassfish.jersey.server.ServerProperties;
@@ -232,8 +234,11 @@ public class KsqlRestApplication extends Application<KsqlRestConfig> implements 
     ksqlConfProperties.putAll(restConfig.getKsqlConfigProperties());
 
     KsqlConfig ksqlConfig = new KsqlConfig(ksqlConfProperties);
+    Map<String, Object> ksqlAdminClientConfigProps = ksqlConfig.getKsqlAdminClientConfigProps();
+    ksqlAdminClientConfigProps.put(AdminClientConfig.STREAMS_ADMIN_DEFAULT_STREAM_CONFIG,
+            StreamsConfig.STREAMS_DEFAULT_INTERNAL_STREAM);
 
-    adminClient = AdminClient.create(ksqlConfig.getKsqlAdminClientConfigProps());
+    adminClient = AdminClient.create(ksqlAdminClientConfigProps);
     KsqlEngine ksqlEngine = new KsqlEngine(ksqlConfig, new KafkaTopicClientImpl(adminClient));
     KafkaTopicClient topicClient = ksqlEngine.getTopicClient();
 
