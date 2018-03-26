@@ -77,6 +77,15 @@ public class KsqlConfig extends AbstractConfig implements Cloneable {
   public static final boolean defaultAvroSchemaUnionNull = true;
   public static final String KSQL_STREAMS_PREFIX      = "ksql.streams.";
 
+  /********************************* MAPR Streams specific *****************************/
+  /** <code>ksql.default.stream</code> **/
+  public static final String KSQL_DEFAULT_STREAM_CONFIG = "ksql.default.stream";
+  private static final String KSQL_DEFAULT_STREAM_DOC = "The stream that is " +
+          "used in case if topic " +
+          "is used without stream name.";
+
+  /*************************************************************************************/
+
   Map<String, Object> ksqlConfigProps;
   Map<String, Object> ksqlStreamConfigProps;
 
@@ -143,7 +152,13 @@ public class KsqlConfig extends AbstractConfig implements Cloneable {
             defaultSchemaRegistryUrl,
             ConfigDef.Importance.MEDIUM,
             "The URL for the schema registry, defaults to http://localhost:8081"
-        )
+        ).define(
+                KSQL_DEFAULT_STREAM_CONFIG,
+                ConfigDef.Type.STRING,
+                "",
+                ConfigDef.Importance.MEDIUM,
+                KSQL_DEFAULT_STREAM_DOC
+            )
     ;
   }
 
@@ -180,6 +195,8 @@ public class KsqlConfig extends AbstractConfig implements Cloneable {
             .defaultCacheMaxBytesBufferingConfig);
     ksqlStreamConfigProps.put(StreamsConfig.NUM_STREAM_THREADS_CONFIG, KsqlConstants
         .defaultNumberOfStreamsThreads);
+    ksqlStreamConfigProps.put(StreamsConfig.STREAMS_DEFAULT_STREAM_CONFIG,
+            getString(KSQL_DEFAULT_STREAM_CONFIG));
 
     final Object fail = originals().get(FAIL_ON_DESERIALIZATION_ERROR_CONFIG);
     if (fail == null || !Boolean.parseBoolean(fail.toString())) {
@@ -209,6 +226,10 @@ public class KsqlConfig extends AbstractConfig implements Cloneable {
       }
     }
     return adminClientConfigs;
+  }
+
+  public String getKsqlDefaultStream() {
+    return getString(KSQL_DEFAULT_STREAM_CONFIG);
   }
 
   public Object get(String propertyName) {

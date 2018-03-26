@@ -16,6 +16,8 @@
 
 package io.confluent.ksql.rest.server.resources.streaming;
 
+import io.confluent.ksql.util.CommonUtils;
+import io.confluent.ksql.util.KsqlConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -105,10 +107,11 @@ public class StreamedQueryResource {
     }
     Map<String, Object> properties = ksqlEngine.getKsqlConfigProperties();
     properties.putAll(clientLocalProperties);
+    String defaultStream = (String)properties.get(KsqlConfig.KSQL_DEFAULT_STREAM_CONFIG);
     TopicStreamWriter topicStreamWriter = new TopicStreamWriter(
         ksqlEngine.getSchemaRegistryClient(),
         properties,
-        topicName,
+        CommonUtils.decorateTopicWithDefaultStreamIfNeeded(topicName, defaultStream),
         interval,
         disconnectCheckInterval,
         printTopic.getFromBeginning()

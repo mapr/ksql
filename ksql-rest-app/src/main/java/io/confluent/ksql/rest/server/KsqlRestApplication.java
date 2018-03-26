@@ -239,7 +239,8 @@ public class KsqlRestApplication extends Application<KsqlRestConfig> implements 
             StreamsConfig.STREAMS_DEFAULT_INTERNAL_STREAM);
 
     adminClient = AdminClient.create(ksqlAdminClientConfigProps);
-    KsqlEngine ksqlEngine = new KsqlEngine(ksqlConfig, new KafkaTopicClientImpl(adminClient));
+    KsqlEngine ksqlEngine = new KsqlEngine(ksqlConfig,
+            new KafkaTopicClientImpl(adminClient, ksqlConfig.getKsqlDefaultStream()));
     KafkaTopicClient topicClient = ksqlEngine.getTopicClient();
 
     //    try (BrokerCompatibilityCheck compatibilityCheck =

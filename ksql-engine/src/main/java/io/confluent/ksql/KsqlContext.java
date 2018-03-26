@@ -67,7 +67,8 @@ public class KsqlContext {
       );
     }
     AdminClient adminClient = AdminClient.create(ksqlConfig.getKsqlAdminClientConfigProps());
-    KafkaTopicClient topicClient = new KafkaTopicClientImpl(adminClient);
+    KafkaTopicClient topicClient = new KafkaTopicClientImpl(adminClient,
+            ksqlConfig.getKsqlDefaultStream());
     if (schemaRegistryClient == null) {
       return new KsqlContext(adminClient, topicClient, new KsqlEngine(ksqlConfig, topicClient));
     } else {
