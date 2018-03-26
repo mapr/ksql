@@ -357,8 +357,8 @@ public class IntegrationTestHarness {
 
     this.ksqlConfig = new KsqlConfig(configMap);
     this.adminClient = AdminClient.create(ksqlConfig.getKsqlAdminClientConfigProps());
-    this.topicClient = new KafkaTopicClientImpl(
-        adminClient);
+    this.topicClient = new KafkaTopicClientImpl(adminClient, "/dummy-default-stream");
+
   }
 
   public void stop() {

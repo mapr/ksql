@@ -110,7 +110,7 @@ public class WindowingIntTest {
     assertThat(testHarness.topicClient().getTopicCleanupPolicy(streamName), equalTo(
         KafkaTopicClient.TopicCleanupPolicy.COMPACT));
   }
-  
+
   @Test
   public void shouldAggregateTumblingWindow() throws Exception {
     final String streamName = "TUMBLING_AGGTEST";

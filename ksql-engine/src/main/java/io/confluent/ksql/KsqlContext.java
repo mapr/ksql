@@ -69,7 +69,7 @@ public class KsqlContext {
     final AdminClient adminClient = clientSupplier
         .getAdminClient(ksqlConfig.getKsqlAdminClientConfigProps());
     final KafkaTopicClient kafkaTopicClient = new
-        KafkaTopicClientImpl(adminClient);
+        KafkaTopicClientImpl(adminClient, ksqlConfig.getKsqlDefaultStream());
     final MetaStore metaStore = new MetaStoreImpl(new InternalFunctionRegistry());
     final KsqlEngine engine = new KsqlEngine(
         kafkaTopicClient,

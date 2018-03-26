@@ -58,6 +58,10 @@ public class KsqlConfig extends AbstractConfig implements Cloneable {
   public static final String SINK_WINDOW_CHANGE_LOG_ADDITIONAL_RETENTION_MS_PROPERTY =
       "ksql.sink.window.change.log.additional.retention";
 
+  public static final String STREAM_INTERNAL_CHANGELOG_TOPIC_SUFFIX = "-changelog";
+
+  public static final String STREAM_INTERNAL_REPARTITION_TOPIC_SUFFIX = "-repartition";
+
   public static final String
       FAIL_ON_DESERIALIZATION_ERROR_CONFIG = "ksql.fail.on.deserialization.error";
 
@@ -109,6 +113,17 @@ public class KsqlConfig extends AbstractConfig implements Cloneable {
 
   public static final String KSQL_COLLECT_UDF_METRICS = "ksql.udf.collect.metrics";
   public static final String KSQL_UDF_SECURITY_MANAGER_ENABLED = "ksql.udf.enable.security.manager";
+  /********************************* MAPR Streams specific *****************************/
+  /** <code>ksql.default.stream</code> **/
+  public static final String KSQL_DEFAULT_STREAM_CONFIG = "ksql.default.stream";
+  private static final String KSQL_DEFAULT_STREAM_DOC = "The stream that is " +
+          "used in case if topic " +
+          "is used without stream name.";
+
+  /*************************************************************************************/
+
+  Map<String, Object> ksqlConfigProps;
+  Map<String, Object> ksqlStreamConfigProps;
 
   public static final String DEFAULT_EXT_DIR = "ext";
 
@@ -266,6 +281,12 @@ public class KsqlConfig extends AbstractConfig implements Cloneable {
             ConfigDef.Importance.LOW,
             "Enable the security manager for UDFs. Default is true and will stop UDFs from"
                + " calling System.exit or executing processes"
+        ).define(
+            KSQL_DEFAULT_STREAM_CONFIG,
+            ConfigDef.Type.STRING,
+            "",
+            ConfigDef.Importance.MEDIUM,
+            KSQL_DEFAULT_STREAM_DOC
         )
         .withClientSslSupport();
 
@@ -356,6 +377,9 @@ public class KsqlConfig extends AbstractConfig implements Cloneable {
             .defaultCacheMaxBytesBufferingConfig);
     streamsConfigDefaults.put(StreamsConfig.NUM_STREAM_THREADS_CONFIG, KsqlConstants
         .defaultNumberOfStreamsThreads);
+    ksqlStreamConfigProps.put(StreamsConfig.STREAMS_DEFAULT_STREAM_CONFIG,
+            getString(KSQL_DEFAULT_STREAM_CONFIG));
+
     final Object fail = originals().get(FAIL_ON_DESERIALIZATION_ERROR_CONFIG);
     if (fail == null || !Boolean.parseBoolean(fail.toString())) {
       streamsConfigDefaults.put(
@@ -402,6 +426,16 @@ public class KsqlConfig extends AbstractConfig implements Cloneable {
     return udfProps;
   }
 
+  public String getKsqlDefaultStream() {
+    return getString(KSQL_DEFAULT_STREAM_CONFIG);
+  }
+
+  public Object get(String propertyName) {
+    if (propertyName.toLowerCase().startsWith(KSQL_CONFIG_PROPERTY_PREFIX)) {
+      return ksqlConfigProps.get(propertyName);
+    } else {
+      return ksqlStreamConfigProps.get(propertyName);
+    }
   private Map<String, String> getKsqlConfigPropsWithSecretsObfuscated() {
     final Map<String, String> props = new HashMap<>();
 
