@@ -24,7 +24,6 @@ import io.confluent.ksql.util.KafkaConsumerGroupClientImpl;
 import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.ksql.util.KsqlConstants;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -88,17 +87,18 @@ public class KafkaTopicsList extends KsqlEntity {
     final Map<String, TopicDescription> filteredDescriptions = new TreeMap<>(
         filterKsqlInternalTopics(kafkaTopicDescriptions, ksqlConfig));
 
-    final Map<String, List<Integer>> topicConsumersAndGroupCount = getTopicConsumerAndGroupCounts(
-        consumerGroupClient);
+    //final Map<String, List<Integer>> topicConsumersAndGroupCount = getTopicConsumerAndGroupCounts(
+    //   consumerGroupClient);
 
     for (final TopicDescription desp : filteredDescriptions.values()) {
       kafkaTopicInfoList.add(new KafkaTopicInfo(
           desp.name(),
           registeredNames.contains(desp.name()),
           desp.partitions()
-              .stream().map(partition -> partition.replicas().size()).collect(Collectors.toList()),
-          topicConsumersAndGroupCount.getOrDefault(desp.name(), Arrays.asList(0, 0)).get(0),
-          topicConsumersAndGroupCount.getOrDefault(desp.name(), Arrays.asList(0, 0)).get(1)
+              .stream().map(partition -> partition.replicas().size())
+                  .collect(Collectors.toList()), -1, -1
+      //          topicConsumersAndGroupCount.getOrDefault(desp.name(), Arrays.asList(0, 0)).get(0),
+      //          topicConsumersAndGroupCount.getOrDefault(desp.name(), Arrays.asList(0, 0)).get(1)
       ));
     }
     return new KafkaTopicsList(statementText, kafkaTopicInfoList);
@@ -111,7 +111,7 @@ public class KafkaTopicsList extends KsqlEntity {
       final KafkaConsumerGroupClient consumerGroupClient
   ) {
 
-    final List<String> consumerGroups = consumerGroupClient.listGroups();
+    final List<String> consumerGroups = new ArrayList<>();//consumerGroupClient.listGroups();
 
     final Map<String, AtomicInteger> topicConsumerCount = new HashMap<>();
     final Map<String, Set<String>> topicConsumerGroupCount = new HashMap<>();

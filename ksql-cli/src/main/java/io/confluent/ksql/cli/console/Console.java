@@ -297,7 +297,7 @@ public abstract class Console implements Closeable {
           "Unexpected KsqlEntity class: '%s'", entity.getClass().getCanonicalName()
       ));
     }
-    
+
     handler.handle(this, entity);
   }
 
@@ -331,7 +331,7 @@ public abstract class Console implements Closeable {
 
     if (field.getName().equals("ROWTIME") || field.getName().equals("ROWKEY")) {
       return String.format("%-16s %s", schemaToTypeString(field.getSchema()), "(system)");
-    } else if (keyField != null && keyField.contains("." + field.getName())) {
+    } else if (keyField.contains("." + field.getName())) {
       return String.format("%-16s %s", schemaToTypeString(field.getSchema()), "(key)");
     } else {
       return schemaToTypeString(field.getSchema());
