@@ -26,7 +26,6 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.TopicPartitionInfo;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -104,9 +103,9 @@ public class KafkaTopicsList extends KsqlEntity {
           desp.name(),
           String.valueOf(registeredNames.contains(desp.name())),
           desp.partitions().size(),
-          getTopicReplicaInfo(desp.partitions()),
-          topicConsumersAndGroupCount.getOrDefault(desp.name(), Arrays.asList(0, 0)).get(0),
-          topicConsumersAndGroupCount.getOrDefault(desp.name(), Arrays.asList(0, 0)).get(1)
+          getTopicReplicaInfo(desp.partitions()), -1, -1
+      //          topicConsumersAndGroupCount.getOrDefault(desp.name(), Arrays.asList(0, 0)).get(0),
+      //          topicConsumersAndGroupCount.getOrDefault(desp.name(), Arrays.asList(0, 0)).get(1)
       ));
     }
     return new KafkaTopicsList(statementText, kafkaTopicInfoList);
@@ -119,7 +118,7 @@ public class KafkaTopicsList extends KsqlEntity {
       KafkaConsumerGroupClient consumerGroupClient
   ) {
 
-    List<String> consumerGroups = consumerGroupClient.listGroups();
+    List<String> consumerGroups = new ArrayList();//consumerGroupClient.listGroups();
 
     Map<String, AtomicInteger> topicConsumerCount = new HashMap<>();
     Map<String, Set<String>> topicConsumerGroupCount = new HashMap<>();

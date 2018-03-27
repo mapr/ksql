@@ -372,18 +372,18 @@ public abstract class Console implements Closeable {
           "Kafka Topic",
           "Registered",
           "Partitions",
-          "Partition Replicas",
-          "Consumers",
-          "Consumer Groups"
+          "Partition Replicas"
+      //          "Consumers",
+      //          "Consumer Groups"
       );
       rowValues = topicInfos.stream()
           .map(topicInfo -> Arrays.asList(
               topicInfo.getName(),
               topicInfo.getRegistered(),
               Integer.toString(topicInfo.getPartitionCount()),
-              topicInfo.getReplicaInfo(),
-              Integer.toString(topicInfo.getConsumerCount()),
-              Integer.toString(topicInfo.getConsumerGroupCount())
+              topicInfo.getReplicaInfo()
+          //              Integer.toString(topicInfo.getConsumerCount()),
+          //              Integer.toString(topicInfo.getConsumerGroupCount())
           )).collect(Collectors.toList());
     } else if (ksqlEntity instanceof ExecutionPlan) {
       ExecutionPlan executionPlan = (ExecutionPlan) ksqlEntity;
