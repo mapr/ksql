@@ -702,7 +702,16 @@ public class AstBuilder extends SqlBaseBaseVisitor<Node> {
 
   @Override
   public Node visitListTopics(final SqlBaseParser.ListTopicsContext context) {
-    return new ListTopics(Optional.ofNullable(getLocation(context)));
+    Optional<QualifiedName> streamName = Optional.ofNullable(
+            context.STRING() != null ?
+                    QualifiedName.of(unquote(context.STRING().getText(), "'"))
+                    :
+                    context.qualifiedName() != null ?
+                    getQualifiedName(context.qualifiedName())
+                            :
+                            null
+    );
+    return new ListTopics(Optional.ofNullable(getLocation(context)), streamName);
   }
 
   @Override
@@ -926,7 +935,7 @@ public class AstBuilder extends SqlBaseBaseVisitor<Node> {
         (Expression) visit(context.right)
     );
   }
-  
+
   @Override
   public Node visitDistinctFrom(final SqlBaseParser.DistinctFromContext context) {
     Expression expression = new ComparisonExpression(
@@ -1191,7 +1200,7 @@ public class AstBuilder extends SqlBaseBaseVisitor<Node> {
         (Expression) visit(context.result)
     );
   }
-  
+
   @Override
   public Node visitFunctionCall(final SqlBaseParser.FunctionCallContext context) {
     return new FunctionCall(

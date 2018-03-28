@@ -63,6 +63,7 @@ import io.confluent.ksql.parser.tree.ShowColumns;
 import io.confluent.ksql.parser.tree.ShowFunctions;
 import io.confluent.ksql.parser.tree.Statement;
 import io.confluent.ksql.parser.tree.TerminateQuery;
+import io.confluent.ksql.parser.tree.QualifiedName;
 import io.confluent.ksql.parser.tree.UnsetProperty;
 import io.confluent.ksql.query.QueryId;
 import io.confluent.ksql.rest.entity.ArgumentInfo;
@@ -108,13 +109,8 @@ import io.confluent.ksql.util.SchemaUtil;
 import io.confluent.ksql.util.StatementWithSchema;
 import io.confluent.ksql.version.metrics.ActivenessRegistrar;
 import java.time.Duration;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -258,7 +254,7 @@ public class KsqlResource {
       final Map<String, Object> streamsProperties) {
     // CHECKSTYLE_RULES.ON: CyclomaticComplexity
     if (statement instanceof ListTopics) {
-      return listTopics(statementText);
+      return listTopics(statementText, (ListTopics)statement);
     } else if (statement instanceof ListRegisteredTopics) {
       return listRegisteredTopics(statementText);
     } else if (statement instanceof ListStreams) {
@@ -350,18 +346,35 @@ public class KsqlResource {
     }
   }
 
-  private KafkaTopicsList listTopics(final String statementText) {
-    final KafkaTopicClient client = ksqlEngine.getTopicClient();
-    final KafkaConsumerGroupClient kafkaConsumerGroupClient
-        = new KafkaConsumerGroupClientImpl(ksqlEngine.getAdminClient());
-    return KafkaTopicsList.build(
-        statementText,
-        getKsqlTopics(),
-        client.describeTopics(client.listNonInternalTopicNames()),
-        ksqlConfig,
-        kafkaConsumerGroupClient
-    );
-  }
+  private KafkaTopicsList listTopics(String statementText, ListTopics statement) {
+    KafkaTopicClient client = ksqlEngine.getTopicClient();
+    try (KafkaConsumerGroupClient kafkaConsumerGroupClient = new KafkaConsumerGroupClientImpl(
+        ksqlEngine.getKsqlConfig())) {
+      Optional<QualifiedName> stream = statement.getStream();
+      Collection<String> topics = stream.isPresent() ?
+              client.listTopicNames(stream.get().toString())
+              :
+              client.listTopicNames();
+      return KafkaTopicsList.build(
+          statementText,
+          getKsqlTopics(),
+          client.describeTopics(topics),
+          ksqlEngine.getKsqlConfig(),
+          kafkaConsumerGroupClient
+      );
+    }
+//  private KafkaTopicsList listTopics(final String statementText) {
+//    final KafkaTopicClient client = ksqlEngine.getTopicClient();
+//    final KafkaConsumerGroupClient kafkaConsumerGroupClient
+//        = new KafkaConsumerGroupClientImpl(ksqlEngine.getAdminClient());
+//    return KafkaTopicsList.build(
+//        statementText,
+//        getKsqlTopics(),
+//        client.describeTopics(client.listNonInternalTopicNames()),
+//        ksqlConfig,
+//        kafkaConsumerGroupClient
+//    );
+//  }
 
   private Collection<KsqlTopic> getKsqlTopics() {
     return ksqlEngine.getMetaStore().getAllKsqlTopics().values();

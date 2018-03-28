@@ -21,18 +21,31 @@ import java.util.Optional;
 
 public class ListTopics extends Statement {
 
-  public ListTopics(final Optional<NodeLocation> location) {
+  private final Optional<QualifiedName> stream;
+
+  public ListTopics(final Optional<NodeLocation> location, Optional<QualifiedName> stream) {
     super(location);
+    this.stream = stream;
+  }
+
+  public Optional<QualifiedName> getStream() {
+    return stream;
   }
 
   @Override
-  public int hashCode() {
-    return Objects.hash("ListTopics");
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    ListTopics that = (ListTopics) o;
+    return Objects.equals(stream, that.stream);
   }
 
   @Override
   public boolean equals(final Object obj) {
     return this == obj;
+
+  public int hashCode() {
+    return Objects.hash(stream);
   }
 
   @Override

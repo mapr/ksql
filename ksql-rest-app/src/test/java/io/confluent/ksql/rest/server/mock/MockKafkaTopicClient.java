@@ -52,6 +52,11 @@ public class MockKafkaTopicClient implements KafkaTopicClient {
   }
 
   @Override
+  public Set<String> listTopicNames(String stream) {
+    return Collections.EMPTY_SET;
+  }
+
+  @Override
   public Map<String, TopicDescription> describeTopics(final Collection<String> topicNames) {
     return Collections.emptyMap();
   }

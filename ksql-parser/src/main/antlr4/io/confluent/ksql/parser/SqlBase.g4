@@ -33,7 +33,7 @@ singleExpression
 statement
     : query                                                                 #querystatement
     | (LIST | SHOW) PROPERTIES                                              #listProperties
-    | (LIST | SHOW) TOPICS                                                  #listTopics
+    | (LIST | SHOW) TOPICS (qualifiedName | STRING)?                        #listTopics
     | (LIST | SHOW) REGISTERED TOPICS                                       #listRegisteredTopics
     | (LIST | SHOW) STREAMS EXTENDED?                                   #listStreams
     | (LIST | SHOW) TABLES EXTENDED?                                    #listTables

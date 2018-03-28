@@ -101,6 +101,11 @@ public class FakeKafkaTopicClient implements KafkaTopicClient {
   }
 
   @Override
+  public Set<String> listTopicNames(String stream) {
+    return Collections.emptySet();
+  }
+
+  @Override
   public Set<String> listNonInternalTopicNames() {
     return topicMap.keySet().stream()
         .filter((topic) -> (!topic.startsWith(KsqlConstants.KSQL_INTERNAL_TOPIC_PREFIX)

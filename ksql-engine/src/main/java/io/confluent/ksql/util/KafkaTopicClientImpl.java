@@ -106,7 +106,8 @@ public class KafkaTopicClientImpl implements KafkaTopicClient {
       return listTopicNames().contains(topic);
     }
   }
-  private Set<String> listTopicNames(String stream) {
+  @Override
+  public Set<String> listTopicNames(String stream) {
     try {
       return adminClient.listTopics(stream).names().get();
     } catch (InterruptedException | ExecutionException e) {

@@ -67,9 +67,16 @@ public interface KafkaTopicClient  {
   /**
    * [warn] synchronous call to get the response
    *
-   * @return set of existing topic names
+   * @return set of existing topic names for default stream
    */
   Set<String> listTopicNames();
+
+  /**
+   * Synchronous call to get a one or more topic's description.
+   *
+   * @return set of existing topic names for given stream
+   */
+  Set<String> listTopicNames(String stream);
 
   /**
    * Synchronous call to retrieve list of internal topics
@@ -79,7 +86,7 @@ public interface KafkaTopicClient  {
   Set<String> listNonInternalTopicNames();
 
   /**
-   * Synchronous call to get a one or more topic's description.
+   * [warn] synchronous call to get the response
    *
    * @param topicNames topicNames to describe
    * @return map of topic name to description.
