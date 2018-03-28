@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
+import java.util.Optional;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -73,6 +74,7 @@ import io.confluent.ksql.parser.tree.RunScript;
 import io.confluent.ksql.parser.tree.ShowColumns;
 import io.confluent.ksql.parser.tree.Statement;
 import io.confluent.ksql.parser.tree.TerminateQuery;
+import io.confluent.ksql.parser.tree.QualifiedName;
 import io.confluent.ksql.planner.plan.KsqlStructuredDataOutputNode;
 import io.confluent.ksql.query.QueryId;
 import io.confluent.ksql.rest.entity.CommandStatus;
@@ -185,7 +187,7 @@ public class KsqlResource {
       Map<String, Object> streamsProperties
   ) throws KsqlException {
     if (statement instanceof ListTopics) {
-      return listTopics(statementText);
+      return listTopics(statementText, (ListTopics)statement);
     } else if (statement instanceof ListRegisteredTopics) {
       return listRegisteredTopics(statementText);
     } else if (statement instanceof ListStreams) {
@@ -284,14 +286,19 @@ public class KsqlResource {
     return new CommandStatusEntity(statementText, commandId, commandStatus);
   }
 
-  private KafkaTopicsList listTopics(String statementText) {
+  private KafkaTopicsList listTopics(String statementText, ListTopics statement) {
     KafkaTopicClient client = ksqlEngine.getTopicClient();
     try (KafkaConsumerGroupClient kafkaConsumerGroupClient = new KafkaConsumerGroupClientImpl(
         ksqlEngine.getKsqlConfig())) {
+      Optional<QualifiedName> stream = statement.getStream();
+      Collection<String> topics = stream.isPresent() ?
+              client.listTopicNames(stream.get().toString())
+              :
+              client.listTopicNames();
       return KafkaTopicsList.build(
           statementText,
           getKsqlTopics(),
-          client.describeTopics(client.listTopicNames()),
+          client.describeTopics(topics),
           ksqlEngine.getKsqlConfig(),
           kafkaConsumerGroupClient
       );

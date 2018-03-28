@@ -23,18 +23,28 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 
 public class ListTopics extends Statement {
 
-  public ListTopics(Optional<NodeLocation> location) {
+  private final Optional<QualifiedName> stream;
+
+  public ListTopics(Optional<NodeLocation> location, Optional<QualifiedName> stream) {
     super(location);
+    this.stream = stream;
+  }
+
+  public Optional<QualifiedName> getStream() {
+    return stream;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    ListTopics that = (ListTopics) o;
+    return Objects.equals(stream, that.stream);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash("ListTopics");
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    return this == obj;
+    return Objects.hash(stream);
   }
 
   @Override

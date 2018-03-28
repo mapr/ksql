@@ -67,9 +67,16 @@ public interface KafkaTopicClient extends Closeable {
   /**
    * [warn] synchronous call to get the response
    *
-   * @return set of existing topic names
+   * @return set of existing topic names for default stream
    */
   Set<String> listTopicNames();
+
+  /**
+   * [warn] synchronous call to get the response
+   *
+   * @return set of existing topic names for given stream
+   */
+  Set<String> listTopicNames(String stream);
 
   /**
    * [warn] synchronous call to get the response
