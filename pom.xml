@@ -95,7 +95,6 @@
         <apache.curator.version>2.9.0</apache.curator.version>
         <jackson.version>2.9.1</jackson.version>
         <kafka.version>1.0.1-mapr-SNAPSHOT</kafka.version>
-        <private-kafka-path>${env.HOME}/</private-kafka-path>
     </properties>
 
     <dependencyManagement>
