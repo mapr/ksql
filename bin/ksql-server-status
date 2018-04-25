@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# Copyright (c) 2018 & onwards. MapR Tech, Inc., All rights reserved
+
+SERVICE_NAME='KSQL Server'
+TARGET=`jps | grep KsqlRestApplication   | awk '{print $1}'`
+if [ "x$TARGET" = "x" ]; then
+  echo "${SERVICE_NAME} not running."
+  exit 1
+else
+  echo "${SERVICE_NAME} running as process ${TARGET}"
+  exit 0
+fi
