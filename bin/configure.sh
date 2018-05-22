@@ -119,7 +119,7 @@ conf_set_property() {
 }
 
 create_internal_stream_if_needed() {
-  sudo -u $MAPR_USER -E maprcli stream create -path /var/mapr/kafka-internal-stream -produceperm p -consumeperm p -topicperm p | 
+  sudo -u $MAPR_USER -E maprcli stream create -path /var/mapr/kafka-internal-stream -produceperm p -consumeperm p -topicperm p  
 }
 
 
