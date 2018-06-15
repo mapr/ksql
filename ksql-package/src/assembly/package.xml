@@ -65,10 +65,6 @@
                  dependencies happen to be missing in the assembly you may want to
                  disable transitive filtering. -->
             <useTransitiveFiltering>true</useTransitiveFiltering>
-            <excludes>
-                <exclude>io.confluent:rest-utils</exclude>
-                <exclude>io.confluent:common-*</exclude>
-            </excludes>
         </dependencySet>
     </dependencySets>
 </assembly>
