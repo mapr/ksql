@@ -351,7 +351,8 @@ public class KsqlResource {
     try (KafkaConsumerGroupClient kafkaConsumerGroupClient = new KafkaConsumerGroupClientImpl(
         ksqlEngine.getKsqlConfig())) {
       Optional<QualifiedName> stream = statement.getStream();
-      Collection<String> topics = stream.isPresent() ?
+      Collection<String> topics = stream.isPresent()
+              ?
               client.listTopicNames(stream.get().toString())
               :
               client.listTopicNames();
