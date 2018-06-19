@@ -36,8 +36,12 @@ public class ListTopics extends Statement {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()){
+      return false;
+    }
     ListTopics that = (ListTopics) o;
     return Objects.equals(stream, that.stream);
   }

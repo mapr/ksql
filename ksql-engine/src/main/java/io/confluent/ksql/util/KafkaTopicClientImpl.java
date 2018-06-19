@@ -21,7 +21,6 @@ import org.apache.kafka.clients.admin.Config;
 import org.apache.kafka.clients.admin.ConfigEntry;
 import org.apache.kafka.clients.admin.DeleteTopicsResult;
 import org.apache.kafka.clients.admin.DescribeClusterResult;
-import org.apache.kafka.clients.admin.DescribeConfigsResult;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.common.KafkaException;
@@ -140,7 +139,8 @@ public class KafkaTopicClientImpl implements KafkaTopicClient {
     try {
       RetryHelper<Set<String>> retryHelper = new RetryHelper<>();
       if(!ksqlDefaultStream.isEmpty()) {
-        return retryHelper.executeWithRetries(() -> adminClient.listTopics(ksqlDefaultStream).names());
+        return retryHelper.executeWithRetries(() ->
+                adminClient.listTopics(ksqlDefaultStream).names());
       }else {
         throw new KafkaException("Cannot get listTopicNames() without default stream name");
       }
@@ -159,7 +159,8 @@ public class KafkaTopicClientImpl implements KafkaTopicClient {
               .map(topic -> CommonUtils
                       .decorateTopicWithDefaultStreamIfNeeded(topic, ksqlDefaultStream))
               .collect(Collectors.toSet());
-      return retryHelper.executeWithRetries(() -> adminClient.describeTopics(topicNamesWithStreamName).all());
+      return retryHelper.executeWithRetries(() ->
+              adminClient.describeTopics(topicNamesWithStreamName).all());
     } catch (InterruptedException | ExecutionException e) {
       throw new KafkaResponseGetFailedException("Failed to Describe Kafka Topics", e);
     }

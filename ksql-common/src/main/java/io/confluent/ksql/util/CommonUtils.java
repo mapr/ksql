@@ -63,8 +63,8 @@ public class CommonUtils {
 
   private static String decorateTopicWithDefaultStream(String topic, String defaultStream){
     if(defaultStream.isEmpty()){
-      throw new KsqlException("Cannot decorate topic with default stream. " +
-              "Set " + KsqlConfig.KSQL_DEFAULT_STREAM_CONFIG);
+      throw new KsqlException("Cannot decorate topic with default stream. "
+              + "Set " + KsqlConfig.KSQL_DEFAULT_STREAM_CONFIG);
     }
     return String.format("%s:%s", defaultStream, topic);
   }

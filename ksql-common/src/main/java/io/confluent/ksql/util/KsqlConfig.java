@@ -80,9 +80,9 @@ public class KsqlConfig extends AbstractConfig implements Cloneable {
   /********************************* MAPR Streams specific *****************************/
   /** <code>ksql.default.stream</code> **/
   public static final String KSQL_DEFAULT_STREAM_CONFIG = "ksql.default.stream";
-  private static final String KSQL_DEFAULT_STREAM_DOC = "The stream that is " +
-          "used in case if topic " +
-          "is used without stream name.";
+  private static final String KSQL_DEFAULT_STREAM_DOC = "The stream that is "
+          + "used in case if topic "
+          + "is used without stream name.";
 
   /*************************************************************************************/
 

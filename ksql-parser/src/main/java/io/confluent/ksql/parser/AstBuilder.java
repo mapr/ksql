@@ -620,10 +620,12 @@ public class AstBuilder extends SqlBaseBaseVisitor<Node> {
   @Override
   public Node visitListTopics(SqlBaseParser.ListTopicsContext context) {
     Optional<QualifiedName> streamName = Optional.ofNullable(
-            context.STRING() != null ?
+            context.STRING() != null
+                    ?
                     QualifiedName.of(unquote(context.STRING().getText(), "'"))
                     :
-                    context.qualifiedName() != null ?
+                    context.qualifiedName() != null
+                            ?
                     getQualifiedName(context.qualifiedName())
                             :
                             null

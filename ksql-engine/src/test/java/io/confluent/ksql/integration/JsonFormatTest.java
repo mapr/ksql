@@ -91,7 +91,7 @@ public class JsonFormatTest {
 
     KsqlConfig ksqlConfig = new KsqlConfig(configMap);
     adminClient = AdminClient.create(ksqlConfig.getKsqlAdminClientConfigProps());
-    topicClient = new KafkaTopicClientImpl(adminClient);
+    topicClient = new KafkaTopicClientImpl(adminClient, "");
     ksqlEngine = new KsqlEngine(ksqlConfig, topicClient);
     metaStore = ksqlEngine.getMetaStore();
 
