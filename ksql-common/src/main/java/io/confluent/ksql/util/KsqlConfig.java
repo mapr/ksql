@@ -31,6 +31,17 @@ import io.confluent.ksql.errors.LogMetricAndContinueExceptionHandler;
 
 public class KsqlConfig extends AbstractConfig implements Cloneable {
 
+  /**
+   * MapR specific constants.
+   */
+  public static final String KSQL_SERVICES_COMMON_FOLDER = "/apps/ksql/";
+
+  private final String commandsStreamFolder =
+          KSQL_SERVICES_COMMON_FOLDER + getString(KSQL_SERVICE_ID_CONFIG) + "/";
+  private final String commandsStream = commandsStreamFolder +
+          "ksql-commands";
+
+
   public static final String KSQL_CONFIG_PROPERTY_PREFIX = "ksql.";
 
   public static final String KSQL_TIMESTAMP_COLUMN_INDEX = "ksql.timestamp.column.index";
@@ -230,6 +241,14 @@ public class KsqlConfig extends AbstractConfig implements Cloneable {
 
   public String getKsqlDefaultStream() {
     return getString(KSQL_DEFAULT_STREAM_CONFIG);
+  }
+
+  public String getCommandsStreamFolder() {
+    return commandsStreamFolder;
+  }
+
+  public String getCommandsStream() {
+    return commandsStream;
   }
 
   public Object get(String propertyName) {

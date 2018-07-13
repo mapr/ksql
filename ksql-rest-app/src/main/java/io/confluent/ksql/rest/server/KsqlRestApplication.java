@@ -236,7 +236,7 @@ public class KsqlRestApplication extends Application<KsqlRestConfig> implements 
     KsqlConfig ksqlConfig = new KsqlConfig(ksqlConfProperties);
     Map<String, Object> ksqlAdminClientConfigProps = ksqlConfig.getKsqlAdminClientConfigProps();
     ksqlAdminClientConfigProps.put(AdminClientConfig.STREAMS_ADMIN_DEFAULT_STREAM_CONFIG,
-            StreamsConfig.STREAMS_DEFAULT_INTERNAL_STREAM);
+            ksqlConfig.getCommandsStream());
 
     adminClient = AdminClient.create(ksqlAdminClientConfigProps);
     KsqlEngine ksqlEngine = new KsqlEngine(ksqlConfig,

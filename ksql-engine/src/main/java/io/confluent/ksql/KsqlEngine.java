@@ -18,6 +18,7 @@ package io.confluent.ksql;
 
 import com.google.common.collect.ImmutableSet;
 
+import io.confluent.ksql.util.*;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.misc.Interval;
 import org.apache.kafka.streams.StreamsConfig;
@@ -75,13 +76,6 @@ import io.confluent.ksql.parser.tree.Table;
 import io.confluent.ksql.planner.plan.PlanNode;
 import io.confluent.ksql.query.QueryId;
 import io.confluent.ksql.serde.DataSource;
-import io.confluent.ksql.util.DataSourceExtractor;
-import io.confluent.ksql.util.KafkaTopicClient;
-import io.confluent.ksql.util.KsqlConfig;
-import io.confluent.ksql.util.KsqlException;
-import io.confluent.ksql.util.Pair;
-import io.confluent.ksql.util.PersistentQueryMetadata;
-import io.confluent.ksql.util.QueryMetadata;
 
 public class KsqlEngine implements Closeable, QueryTerminator {
 
@@ -131,6 +125,9 @@ public class KsqlEngine implements Closeable, QueryTerminator {
     Objects.requireNonNull(ksqlConfig, "ksqlConfig can't be null");
     Objects.requireNonNull(topicClient, "topicClient can't be null");
     Objects.requireNonNull(schemaRegistryClient, "schemaRegistryClient can't be null");
+
+    MaprFSUtils.createAppDirAndInternalStreamsIfNotExist(ksqlConfig);
+
     this.ksqlConfig = ksqlConfig;
     this.metaStore = metaStore;
     this.topicClient = topicClient;
