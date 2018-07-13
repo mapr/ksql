@@ -139,7 +139,7 @@ public class KafkaTopicClientImpl implements KafkaTopicClient {
     try {
       Collection<String> topicNamesWithStreamName = topicNames
               .stream()
-              .map(topic -> CommonUtils
+              .map(topic -> MaprFSUtils
                       .decorateTopicWithDefaultStreamIfNeeded(topic, ksqlDefaultStream))
               .collect(Collectors.toSet());
       return ExecutorUtil.executeWithRetries(

@@ -51,6 +51,7 @@ import io.confluent.ksql.util.KafkaTopicClient;
 import io.confluent.ksql.util.KafkaTopicClientImpl;
 import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.ksql.util.KsqlException;
+import io.confluent.ksql.util.MaprFSUtils;
 import io.confluent.ksql.util.PersistentQueryMetadata;
 import io.confluent.ksql.util.QueryIdGenerator;
 import io.confluent.ksql.util.QueryMetadata;
@@ -73,7 +74,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.streams.KafkaClientSupplier;
-import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.processor.internals.DefaultKafkaClientSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,7 +86,6 @@ public class KsqlEngine implements Closeable {
   private static final Logger log = LoggerFactory.getLogger(KsqlEngine.class);
 
   private static final Set<String> IMMUTABLE_PROPERTIES = ImmutableSet.<String>builder()
-      .add(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG)
       .add(KsqlConfig.KSQL_EXT_DIR)
       .addAll(KsqlConfig.SSL_CONFIG_NAMES)
       .build();
@@ -113,7 +112,7 @@ public class KsqlEngine implements Closeable {
     final AdminClient adminClient = clientSupplier
         .getAdminClient(ksqlConfig.getKsqlAdminClientConfigProps());
     return new KsqlEngine(
-        new KafkaTopicClientImpl(adminClient),
+        new KafkaTopicClientImpl(adminClient, ksqlConfig.getKsqlDefaultStream()),
         (new KsqlSchemaRegistryClientFactory(ksqlConfig))::get,
         clientSupplier,
         new MetaStoreImpl(new InternalFunctionRegistry()),
@@ -136,6 +135,9 @@ public class KsqlEngine implements Closeable {
     this.schemaRegistryClientFactory =
         Objects.requireNonNull(
             schemaRegistryClientFactory, "schemaRegistryClientFactory can't be null");
+
+    MaprFSUtils.createAppDirAndInternalStreamsIfNotExist(initializationKsqlConfig);
+
     this.schemaRegistryClient =
         Objects.requireNonNull(
             this.schemaRegistryClientFactory.get(), "Schema registry can't be null");
@@ -172,6 +174,7 @@ public class KsqlEngine implements Closeable {
    * @param queriesString The ksql query string.
    * @param overriddenProperties The user-requested property overrides
    * @return List of query metadata.
+   * @throws Exception Any exception thrown here!
    */
   public List<QueryMetadata> buildMultipleQueries(
       final String queriesString,
