@@ -286,16 +286,21 @@ public class KsqlResource {
     return new CommandStatusEntity(statementText, commandId, commandStatus);
   }
 
+  private Collection<String> decorateTopicsWithStreamName(Collection<String> topics, String stream){
+    return topics.stream().map(x -> String.format("%s:%s", stream, x)).collect(Collectors.toSet());
+  }
   private KafkaTopicsList listTopics(String statementText, ListTopics statement) {
     KafkaTopicClient client = ksqlEngine.getTopicClient();
     try (KafkaConsumerGroupClient kafkaConsumerGroupClient = new KafkaConsumerGroupClientImpl(
         ksqlEngine.getKsqlConfig())) {
       Optional<QualifiedName> stream = statement.getStream();
+      String defaultStream = ksqlEngine.getKsqlConfig().getKsqlDefaultStream();
       Collection<String> topics = stream.isPresent()
               ?
-              client.listTopicNames(stream.get().toString())
+              decorateTopicsWithStreamName(client.listTopicNames(stream.get().toString()),
+                      stream.get().toString())
               :
-              client.listTopicNames();
+              decorateTopicsWithStreamName(client.listTopicNames(), defaultStream);
       return KafkaTopicsList.build(
           statementText,
           getKsqlTopics(),
