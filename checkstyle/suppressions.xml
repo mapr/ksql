@@ -18,6 +18,7 @@
     <suppress files="." checks="AbbreviationAsWordInName"/>
     <suppress files="." checks="WhitespaceAround"/>
     <suppress files="." checks="AvoidEscapedUnicodeCharacters"/>
+    <suppress files="." checks="AvoidStarImport"/>
 
     <!-- Semantics may not be well checked by rules -->
     <suppress files="." checks="ParameterNumber"/>

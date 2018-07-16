@@ -60,12 +60,6 @@ public class KsqlContext {
     if (!streamsProperties.containsKey(StreamsConfig.APPLICATION_ID_CONFIG)) {
       streamsProperties.put(StreamsConfig.APPLICATION_ID_CONFIG, APPLICATION_ID_OPTION_DEFAULT);
     }
-    if (!streamsProperties.containsKey(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG)) {
-      streamsProperties.put(
-          StreamsConfig.BOOTSTRAP_SERVERS_CONFIG,
-          KAFKA_BOOTSTRAP_SERVER_OPTION_DEFAULT
-      );
-    }
     AdminClient adminClient = AdminClient.create(ksqlConfig.getKsqlAdminClientConfigProps());
     KafkaTopicClient topicClient = new KafkaTopicClientImpl(adminClient,
             ksqlConfig.getKsqlDefaultStream());

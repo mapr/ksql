@@ -68,7 +68,6 @@ public class BrokerCompatibilityCheckTest {
     final KafkaTopicClient topicClient = EasyMock.createMock(KafkaTopicClient.class);
     final Map<String, Object> streamsConfig = new HashMap<>();
     streamsConfig.put(StreamsConfig.APPLICATION_ID_CONFIG, "app");
-    streamsConfig.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9090");
     EasyMock.expect(topicClient.listTopicNames()).andReturn(Collections.emptySet());
     topicClient.createTopic(anyString(), eq(1), eq((short)1), anyBoolean());
     EasyMock.expectLastCall();

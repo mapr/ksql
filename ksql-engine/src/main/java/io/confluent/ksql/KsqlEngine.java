@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableSet;
 import io.confluent.ksql.util.*;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.misc.Interval;
-import org.apache.kafka.streams.StreamsConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,9 +81,7 @@ public class KsqlEngine implements Closeable, QueryTerminator {
   private static final Logger log = LoggerFactory.getLogger(KsqlEngine.class);
 
   // TODO: Decide if any other properties belong in here
-  private static final Set<String> IMMUTABLE_PROPERTIES = ImmutableSet.of(
-      StreamsConfig.BOOTSTRAP_SERVERS_CONFIG
-  );
+  private static final Set<String> IMMUTABLE_PROPERTIES = ImmutableSet.of();
 
   private KsqlConfig ksqlConfig;
 

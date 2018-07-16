@@ -36,10 +36,8 @@ public class KsqlConfig extends AbstractConfig implements Cloneable {
    */
   public static final String KSQL_SERVICES_COMMON_FOLDER = "/apps/ksql/";
 
-  private final String commandsStreamFolder =
-          KSQL_SERVICES_COMMON_FOLDER + getString(KSQL_SERVICE_ID_CONFIG) + "/";
-  private final String commandsStream = commandsStreamFolder +
-          "ksql-commands";
+  private final String commandsStreamFolder;
+  private final String commandsStream;
 
 
   public static final String KSQL_CONFIG_PROPERTY_PREFIX = "ksql.";
@@ -218,6 +216,9 @@ public class KsqlConfig extends AbstractConfig implements Cloneable {
     }
 
     applyStreamsConfig(originals());
+
+    commandsStreamFolder = KSQL_SERVICES_COMMON_FOLDER + getString(KSQL_SERVICE_ID_CONFIG) + "/";
+    commandsStream = commandsStreamFolder + "ksql-commands";
   }
 
   public Map<String, Object> getKsqlConfigProps() {

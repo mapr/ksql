@@ -17,10 +17,10 @@
 package io.confluent.ksql.rest.server;
 
 import io.confluent.common.config.ConfigDef;
+import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.ksql.util.KsqlConstants;
 import io.confluent.ksql.util.KsqlException;
 import io.confluent.rest.RestConfig;
-import org.apache.kafka.streams.StreamsConfig;
 
 import java.util.Map;
 
@@ -141,8 +141,9 @@ public class KsqlRestConfig extends RestConfig {
 
   public String getCommandTopic(String ksqlServiceId) {
     return String.format(
-        "%s:%s%s_%s",
-            StreamsConfig.STREAMS_DEFAULT_INTERNAL_STREAM,
+        "%s%s/ksql-commands:%s%s_%s",
+            KsqlConfig.KSQL_SERVICES_COMMON_FOLDER,
+            ksqlServiceId,
             KsqlConstants.KSQL_INTERNAL_TOPIC_PREFIX,
             ksqlServiceId,
             COMMAND_TOPIC_SUFFIX

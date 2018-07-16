@@ -51,7 +51,6 @@ public class KsqlRestClientTest {
     final int port = TestUtils.randomFreeLocalPort();
     Map<String, Object> props = new HashMap<>();
     props.put(KsqlRestConfig.LISTENERS_CONFIG, "http://localhost:" + port);
-    props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
     props.put(StreamsConfig.APPLICATION_ID_CONFIG, "ksql_config_test");
     ksqlRestConfig = new KsqlRestConfig(props);
     mockApplication = new MockApplication(ksqlRestConfig);

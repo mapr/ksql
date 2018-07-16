@@ -235,7 +235,12 @@ public class KafkaTopicClientImpl implements KafkaTopicClient {
       return;
     }
     try {
-      Set<String> topicNames = listTopicNames(StreamsConfig.STREAMS_DEFAULT_INTERNAL_STREAM);
+      String notCompStream = StreamsConfig.STREAMS_INTERNAL_STREAM_COMMON_FOLDER
+              + applicationId + "/" + "kafka-internal-stream";
+      String compStream = StreamsConfig.STREAMS_INTERNAL_STREAM_COMMON_FOLDER
+              + applicationId + "/" + "kafka-internal-stream-compacted";
+      Set<String> topicNames = listTopicNames(notCompStream);
+      topicNames.addAll(listTopicNames(compStream));
       List<String> internalTopics = new ArrayList<>();
       for (String topicName : topicNames) {
         if (isInternalTopic(topicName, applicationId)) {
