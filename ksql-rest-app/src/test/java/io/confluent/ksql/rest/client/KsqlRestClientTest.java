@@ -71,7 +71,6 @@ public class KsqlRestClientTest {
     final Map<String, Object> props = new HashMap<>();
     final String serverAddress = "http://localhost:" + port;
     props.put(KsqlRestConfig.LISTENERS_CONFIG, serverAddress);
-    props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
     props.put(StreamsConfig.APPLICATION_ID_CONFIG, "ksql_config_test");
     final KsqlRestConfig ksqlRestConfig = new KsqlRestConfig(props);
     mockApplication = new MockApplication(ksqlRestConfig);

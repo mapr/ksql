@@ -122,8 +122,9 @@ public class KsqlRestConfig extends RestConfig {
 
   public static String getCommandTopic(final String ksqlServiceId) {
     return String.format(
-        "%s:%s%s_%s",
-            StreamsConfig.STREAMS_DEFAULT_INTERNAL_STREAM,
+        "%s%s/ksql-commands:%s%s_%s",
+            KsqlConfig.KSQL_SERVICES_COMMON_FOLDER,
+            ksqlServiceId,
             KsqlConstants.KSQL_INTERNAL_TOPIC_PREFIX,
             ksqlServiceId,
             COMMAND_TOPIC_SUFFIX

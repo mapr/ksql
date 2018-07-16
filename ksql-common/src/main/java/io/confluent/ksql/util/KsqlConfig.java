@@ -40,10 +40,8 @@ public class KsqlConfig extends AbstractConfig implements Cloneable {
    */
   public static final String KSQL_SERVICES_COMMON_FOLDER = "/apps/ksql/";
 
-  private final String commandsStreamFolder =
-          KSQL_SERVICES_COMMON_FOLDER + getString(KSQL_SERVICE_ID_CONFIG) + "/";
-  private final String commandsStream = commandsStreamFolder +
-          "ksql-commands";
+  private final String commandsStreamFolder;
+  private final String commandsStream;
 
 
   public static final String KSQL_CONFIG_PROPERTY_PREFIX = "ksql.";
@@ -132,9 +130,6 @@ public class KsqlConfig extends AbstractConfig implements Cloneable {
           + "is used without stream name.";
 
   /*************************************************************************************/
-
-  Map<String, Object> ksqlConfigProps;
-  Map<String, Object> ksqlStreamConfigProps;
 
   public static final String DEFAULT_EXT_DIR = "ext";
 
@@ -388,7 +383,7 @@ public class KsqlConfig extends AbstractConfig implements Cloneable {
             .defaultCacheMaxBytesBufferingConfig);
     streamsConfigDefaults.put(StreamsConfig.NUM_STREAM_THREADS_CONFIG, KsqlConstants
         .defaultNumberOfStreamsThreads);
-    ksqlStreamConfigProps.put(StreamsConfig.STREAMS_DEFAULT_STREAM_CONFIG,
+    streamsConfigDefaults.put(StreamsConfig.STREAMS_DEFAULT_STREAM_CONFIG,
             getString(KSQL_DEFAULT_STREAM_CONFIG));
 
     final Object fail = originals().get(FAIL_ON_DESERIALIZATION_ERROR_CONFIG);
@@ -399,6 +394,9 @@ public class KsqlConfig extends AbstractConfig implements Cloneable {
       );
     }
     this.ksqlStreamConfigProps = buildStreamingConfig(streamsConfigDefaults, originals());
+
+    commandsStreamFolder = KSQL_SERVICES_COMMON_FOLDER + getString(KSQL_SERVICE_ID_CONFIG) + "/";
+    commandsStream = commandsStreamFolder + "ksql-commands";
   }
 
   private KsqlConfig(final boolean current,
@@ -406,6 +404,9 @@ public class KsqlConfig extends AbstractConfig implements Cloneable {
                      final Map<String, ConfigValue> ksqlStreamConfigProps) {
     super(configDef(current), values);
     this.ksqlStreamConfigProps = ksqlStreamConfigProps;
+
+    commandsStreamFolder = KSQL_SERVICES_COMMON_FOLDER + getString(KSQL_SERVICE_ID_CONFIG) + "/";
+    commandsStream = commandsStreamFolder + "ksql-commands";
   }
 
   public Map<String, Object> getKsqlStreamConfigProps() {
@@ -449,12 +450,6 @@ public class KsqlConfig extends AbstractConfig implements Cloneable {
     return commandsStream;
   }
 
-  public Object get(String propertyName) {
-    if (propertyName.toLowerCase().startsWith(KSQL_CONFIG_PROPERTY_PREFIX)) {
-      return ksqlConfigProps.get(propertyName);
-    } else {
-      return ksqlStreamConfigProps.get(propertyName);
-    }
   private Map<String, String> getKsqlConfigPropsWithSecretsObfuscated() {
     final Map<String, String> props = new HashMap<>();
 
