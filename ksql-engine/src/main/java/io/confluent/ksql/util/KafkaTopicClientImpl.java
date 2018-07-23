@@ -26,6 +26,9 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.Config;
 import org.apache.kafka.clients.admin.ConfigEntry;
@@ -42,6 +45,7 @@ import org.apache.kafka.streams.StreamsConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+// CHECKSTYLE_RULES.OFF: ClassDataAbstractionCoupling
 public class KafkaTopicClientImpl implements KafkaTopicClient {
 
   private static final Logger log = LoggerFactory.getLogger(KafkaTopicClient.class);
@@ -49,12 +53,13 @@ public class KafkaTopicClientImpl implements KafkaTopicClient {
   private final AdminClient adminClient;
   private final boolean isDeleteTopicEnabled;
   private String ksqlDefaultStream;
+
   /**
    * Construct a topic client from an existing admin client.
    *
    * @param adminClient the admin client. Note: Will be closed on {@link #close()}.
    */
-  public KafkaTopicClientImpl(final AdminClient adminClient, String ksqlDefaultStream) {
+  public KafkaTopicClientImpl(final AdminClient adminClient, final String ksqlDefaultStream) {
     this.adminClient = Objects.requireNonNull(adminClient, "adminClient");
     this.ksqlDefaultStream = ksqlDefaultStream;
     this.isDeleteTopicEnabled = isTopicDeleteEnabled(adminClient);
@@ -99,15 +104,16 @@ public class KafkaTopicClientImpl implements KafkaTopicClient {
   @Override
   public boolean isTopicExists(final String topic) {
     log.trace("Checking for existence of topic '{}'", topic);
-    String[] streamAndTopic = topic.split(":");
-    if(streamAndTopic.length > 1) {
+    final String[] streamAndTopic = topic.split(":");
+    if (streamAndTopic.length > 1) {
       return listTopicNames(streamAndTopic[0]).contains(streamAndTopic[1]);
-    }else {
+    } else {
       return listTopicNames().contains(topic);
     }
   }
+
   @Override
-  public Set<String> listTopicNames(String stream) {
+  public Set<String> listTopicNames(final String stream) {
     try {
       return adminClient.listTopics(stream).names().get();
     } catch (InterruptedException | ExecutionException e) {
@@ -137,7 +143,7 @@ public class KafkaTopicClientImpl implements KafkaTopicClient {
   @Override
   public Map<String, TopicDescription> describeTopics(final Collection<String> topicNames) {
     try {
-      Collection<String> topicNamesWithStreamName = topicNames
+      final Collection<String> topicNamesWithStreamName = topicNames
               .stream()
               .map(topic -> MaprFSUtils
                       .decorateTopicWithDefaultStreamIfNeeded(topic, ksqlDefaultStream))
@@ -235,20 +241,13 @@ public class KafkaTopicClientImpl implements KafkaTopicClient {
       return;
     }
     try {
-      String notCompStream = StreamsConfig.STREAMS_INTERNAL_STREAM_COMMON_FOLDER
-              + applicationId + "/" + "kafka-internal-stream";
-      String compStream = StreamsConfig.STREAMS_INTERNAL_STREAM_COMMON_FOLDER
-              + applicationId + "/" + "kafka-internal-stream-compacted";
-      Set<String> topicNames = listTopicNames(notCompStream);
-      topicNames.addAll(listTopicNames(compStream));
-      List<String> internalTopics = Lists.newArrayList();
-      for (String topicName : topicNames) {
-        if (isInternalTopic(topicName, applicationId)) {
-          internalTopics.add(topicName);
-        }
-      }
-      if (!internalTopics.isEmpty()) {
-        deleteTopics(internalTopics);
+      final Configuration conf = new Configuration();
+      final FileSystem fs =  FileSystem.get(conf);
+      final  String appDir = StreamsConfig.STREAMS_INTERNAL_STREAM_COMMON_FOLDER + applicationId;
+
+      final Path p = new Path(appDir);
+      if (fs.exists(p)) {
+        fs.delete(p, true);
       }
     } catch (final Exception e) {
       log.error("Exception while trying to clean up internal topics for application id: {}.",
