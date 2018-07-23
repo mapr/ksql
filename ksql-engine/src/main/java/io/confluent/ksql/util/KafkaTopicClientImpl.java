@@ -16,6 +16,9 @@
 
 package io.confluent.ksql.util;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.Config;
 import org.apache.kafka.clients.admin.ConfigEntry;
@@ -235,20 +238,13 @@ public class KafkaTopicClientImpl implements KafkaTopicClient {
       return;
     }
     try {
-      String notCompStream = StreamsConfig.STREAMS_INTERNAL_STREAM_COMMON_FOLDER
-              + applicationId + "/" + "kafka-internal-stream";
-      String compStream = StreamsConfig.STREAMS_INTERNAL_STREAM_COMMON_FOLDER
-              + applicationId + "/" + "kafka-internal-stream-compacted";
-      Set<String> topicNames = listTopicNames(notCompStream);
-      topicNames.addAll(listTopicNames(compStream));
-      List<String> internalTopics = new ArrayList<>();
-      for (String topicName : topicNames) {
-        if (isInternalTopic(topicName, applicationId)) {
-          internalTopics.add(topicName);
-        }
-      }
-      if (!internalTopics.isEmpty()) {
-        deleteTopics(internalTopics);
+      final Configuration conf = new Configuration();
+      final FileSystem fs =  FileSystem.get(conf);
+      final  String appDir = StreamsConfig.STREAMS_INTERNAL_STREAM_COMMON_FOLDER + applicationId;
+
+      final Path p = new Path(appDir);
+      if(fs.exists(p)){
+        fs.delete(p, true);
       }
     } catch (Exception e) {
       log.error("Exception while trying to clean up internal topics for application id: {}.",
