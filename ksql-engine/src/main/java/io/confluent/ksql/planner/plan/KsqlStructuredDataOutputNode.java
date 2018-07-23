@@ -19,6 +19,7 @@ package io.confluent.ksql.planner.plan;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import org.apache.kafka.clients.mapr.util.MapRTopicUtils;
 import org.apache.kafka.connect.data.Field;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -27,6 +28,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.List;
+import java.util.ArrayList;
 
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.ksql.ddl.DdlConfig;
@@ -215,7 +218,13 @@ public class KsqlStructuredDataOutputNode extends OutputNode {
         (Integer) ksqlConfig.get(KsqlConfig.SINK_NUMBER_OF_PARTITIONS_PROPERTY);
     short numberOfReplications =
         (Short) ksqlConfig.get(KsqlConfig.SINK_NUMBER_OF_REPLICAS_PROPERTY);
-    kafkaTopicClient.createTopic(kafkaTopicName,
+    String defaultStream = (String) ksqlConfig.get(KsqlConfig.KSQL_DEFAULT_STREAM_CONFIG);
+    List<String> topicList = new ArrayList<String>();
+    topicList.add(kafkaTopicName);
+    String decoratedKafkaTopicName = MapRTopicUtils
+            .decorateTopicsWithDefaultStreamIfNeeded(topicList, defaultStream)
+            .get(0);
+    kafkaTopicClient.createTopic(decoratedKafkaTopicName,
                                  numberOfPartitions,
                                  numberOfReplications,
                                  isCompacted);
