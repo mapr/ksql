@@ -17,6 +17,7 @@ package io.confluent.ksql.planner.plan;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableMap;
+
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.ksql.ddl.DdlConfig;
 import io.confluent.ksql.function.FunctionRegistry;
@@ -30,12 +31,16 @@ import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.ksql.util.KsqlException;
 import io.confluent.ksql.util.SchemaUtil;
 import io.confluent.ksql.util.timestamp.TimestampExtractionPolicy;
+
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
+import org.apache.kafka.clients.mapr.util.MapRTopicUtils;
 import org.apache.kafka.common.config.TopicConfig;
 import org.apache.kafka.connect.data.Field;
 import org.apache.kafka.connect.data.Schema;
@@ -131,6 +136,7 @@ public class KsqlStructuredDataOutputNode extends OutputNode {
     if (doCreateInto) {
       createSinkTopic(
           noRowKey.getKafkaTopicName(),
+          ksqlConfig,
           kafkaTopicClient,
           shouldBeCompacted(result),
           partitions,
@@ -210,6 +216,7 @@ public class KsqlStructuredDataOutputNode extends OutputNode {
 
   private void createSinkTopic(
       final String kafkaTopicName,
+      final KsqlConfig ksqlConfig,
       final KafkaTopicClient kafkaTopicClient,
       final boolean isCompacted,
       final int numberOfPartitions,
@@ -219,7 +226,13 @@ public class KsqlStructuredDataOutputNode extends OutputNode {
         ? ImmutableMap.of(TopicConfig.CLEANUP_POLICY_CONFIG, TopicConfig.CLEANUP_POLICY_COMPACT)
         : Collections.emptyMap();
 
-    kafkaTopicClient.createTopic(kafkaTopicName,
+    final String defaultStream = ksqlConfig.getKsqlDefaultStream();
+    final List<String> topicList = new ArrayList<String>();
+    topicList.add(kafkaTopicName);
+    final String decoratedKafkaTopicName = MapRTopicUtils
+            .decorateTopicsWithDefaultStreamIfNeeded(topicList, defaultStream)
+            .get(0);
+    kafkaTopicClient.createTopic(decoratedKafkaTopicName,
                                  numberOfPartitions,
                                  numberOfReplications,
                                  config
