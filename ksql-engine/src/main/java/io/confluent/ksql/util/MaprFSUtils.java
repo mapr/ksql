@@ -17,6 +17,9 @@
 package io.confluent.ksql.util;
 
 import com.mapr.fs.MapRFileAce;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.kafka.common.KafkaException;
 import org.apache.kafka.streams.mapr.Utils;
 
@@ -27,12 +30,13 @@ public class MaprFSUtils {
 
   public static void createAppDirAndInternalStreamsIfNotExist(KsqlConfig config) {
     try {
-      if (!Utils.maprFSpathExists(KsqlConfig.KSQL_SERVICES_COMMON_FOLDER)) {
+      FileSystem fs = FileSystem.get(new Configuration());
+      String currentUser = UserGroupInformation.getCurrentUser().getUserName();
+      if (!Utils.maprFSpathExists(fs, KsqlConfig.KSQL_SERVICES_COMMON_FOLDER)) {
         throw new KsqlException(KsqlConfig.KSQL_SERVICES_COMMON_FOLDER + " doesn't exist");
       }
-      if (!Utils.maprFSpathExists(config.getCommandsStreamFolder())) {
+      if (!Utils.maprFSpathExists(fs, config.getCommandsStreamFolder())) {
         // Creation of application forler with appropriate aces
-        String currentUser = System.getProperty("user.name");
         ArrayList<MapRFileAce> aceList = new ArrayList<MapRFileAce>();
 
         MapRFileAce ace = new MapRFileAce(MapRFileAce.AccessType.READDIR);
@@ -45,7 +49,14 @@ public class MaprFSUtils {
         ace.setBooleanExpression("u:" + currentUser);
         aceList.add(ace);
 
-        Utils.maprFSpathCreate(config.getCommandsStreamFolder(), aceList);
+        Utils.maprFSpathCreate(fs, config.getCommandsStreamFolder(), aceList);
+      } else {
+        String errorMessage =
+                String.format("User: %s has no permissions to run KSQL service with ID: %s",
+                currentUser,
+                config.getString(KsqlConfig.KSQL_SERVICE_ID_CONFIG));
+        Utils.validateDirectoryPerms(fs, config.getCommandsStreamFolder(),
+                currentUser, errorMessage);
       }
       if (!Utils.streamExists(config.getCommandsStream())) {
         Utils.createStream(config.getCommandsStream(), false);
