@@ -48,6 +48,9 @@ public class MaprFSUtils {
         ace = new MapRFileAce(MapRFileAce.AccessType.LOOKUPDIR);
         ace.setBooleanExpression("u:" + currentUser);
         aceList.add(ace);
+        ace = new MapRFileAce(MapRFileAce.AccessType.DELETECHILD);
+        ace.setBooleanExpression("u:" + currentUser);
+        aceList.add(ace);
 
         Utils.maprFSpathCreate(fs, config.getCommandsStreamFolder(), aceList);
       } else {
