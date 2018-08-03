@@ -195,6 +195,11 @@ public class KsqlConfig extends AbstractConfig implements Cloneable {
 
     ksqlConfigProps.putAll(this.values());
 
+    //*************** bootstrap.servers is required but not used *******************/
+    ksqlConfigProps.put("bootstrap.servers", "localhost:0000");
+    ksqlStreamConfigProps.put("bootstrap.servers", "localhost:0000");
+    //******************************************************************************/
+
     ksqlStreamConfigProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, KsqlConstants
         .defaultAutoOffsetRestConfig);
     ksqlStreamConfigProps.put(StreamsConfig.COMMIT_INTERVAL_MS_CONFIG, KsqlConstants
