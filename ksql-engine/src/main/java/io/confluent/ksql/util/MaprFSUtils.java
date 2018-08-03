@@ -62,7 +62,7 @@ public class MaprFSUtils {
                 currentUser, errorMessage);
       }
       if (!Utils.streamExists(config.getCommandsStream())) {
-        Utils.createStream(config.getCommandsStream(), false);
+        Utils.createStream(config.getCommandsStream());
       }
     }catch (IOException e) {
       throw new KafkaException(e);
