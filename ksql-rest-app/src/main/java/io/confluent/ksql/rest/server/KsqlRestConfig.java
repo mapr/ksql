@@ -17,10 +17,10 @@ package io.confluent.ksql.rest.server;
 import io.confluent.common.config.ConfigDef;
 import io.confluent.common.config.ConfigDef.Importance;
 import io.confluent.common.config.ConfigDef.Type;
+import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.ksql.util.KsqlConstants;
 import io.confluent.ksql.util.KsqlException;
 import io.confluent.rest.RestConfig;
-import org.apache.kafka.streams.StreamsConfig;
 
 import java.util.Map;
 

@@ -105,10 +105,12 @@ public class SecureIntegrationTest {
     SECURE_CLUSTER.clearAcls();
     outputTopic = "TEST_" + COUNTER.incrementAndGet();
 
-    adminClient = AdminClient
-        .create(new KsqlConfig(getKsqlConfig(SUPER_USER)).getKsqlAdminClientConfigProps());
-    topicClient = new KafkaTopicClientImpl(
-        adminClient);
+//    adminClient = AdminClient
+//        .create(new KsqlConfig(getKsqlConfig(SUPER_USER)).getKsqlAdminClientConfigProps());
+//    topicClient = new KafkaTopicClientImpl(
+//        adminClient);
+    topicClient = new KafkaTopicClientImpl(AdminClient.create(
+        new KsqlConfig(getKsqlConfig(SUPER_USER)).getKsqlAdminClientConfigProps()), "");
 
     produceInitData();
   }

@@ -54,6 +54,7 @@ import io.confluent.ksql.parser.tree.ListStreams;
 import io.confluent.ksql.parser.tree.ListTables;
 import io.confluent.ksql.parser.tree.ListTopics;
 import io.confluent.ksql.parser.tree.PrintTopic;
+import io.confluent.ksql.parser.tree.QualifiedName;
 import io.confluent.ksql.parser.tree.Query;
 import io.confluent.ksql.parser.tree.QueryContainer;
 import io.confluent.ksql.parser.tree.RegisterTopic;
@@ -63,7 +64,6 @@ import io.confluent.ksql.parser.tree.ShowColumns;
 import io.confluent.ksql.parser.tree.ShowFunctions;
 import io.confluent.ksql.parser.tree.Statement;
 import io.confluent.ksql.parser.tree.TerminateQuery;
-import io.confluent.ksql.parser.tree.QualifiedName;
 import io.confluent.ksql.parser.tree.UnsetProperty;
 import io.confluent.ksql.query.QueryId;
 import io.confluent.ksql.rest.entity.ArgumentInfo;
@@ -110,6 +110,8 @@ import io.confluent.ksql.util.StatementWithSchema;
 import io.confluent.ksql.version.metrics.ActivenessRegistrar;
 import java.time.Duration;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -172,6 +174,7 @@ public class KsqlResource {
     }
 
     final Map<String, Object> streamsProperties = request.getStreamsProperties();
+    //updateDefaultStreamIfNeeded(streamsProperties);
 
     for (final PreparedStatement parsedStatement : parsedStatements) {
       final String statementText = parsedStatement.getStatementText();
@@ -195,6 +198,14 @@ public class KsqlResource {
     }
     return Response.ok(result).build();
   }
+
+  //private void updateDefaultStreamIfNeeded(Map<String, Object> streamsProperties){
+  //  String defStream = (String)streamsProperties.get(KsqlConfig.KSQL_DEFAULT_STREAM_CONFIG);
+  //  if(defStream != null){
+  //    ksqlConfig.put(KsqlConfig.KSQL_DEFAULT_STREAM_CONFIG,
+  //            defStream);
+  //  }
+  //}
 
   // CHECKSTYLE_RULES.OFF: CyclomaticComplexity
   private void validateStatement(
@@ -350,29 +361,34 @@ public class KsqlResource {
     }
   }
 
-  private Collection<String> decorateTopicsWithStreamName(Collection<String> topics, String stream){
+  private Collection<String> decorateTopicsWithStreamName(final Collection<String> topics,
+                                                          final String stream) {
     return topics.stream().map(x -> String.format("%s:%s", stream, x)).collect(Collectors.toSet());
   }
-  private KafkaTopicsList listTopics(String statementText, ListTopics statement) {
-    KafkaTopicClient client = ksqlEngine.getTopicClient();
-    try (KafkaConsumerGroupClient kafkaConsumerGroupClient = new KafkaConsumerGroupClientImpl(
-            ksqlEngine.getKsqlConfig())) {
-      Optional<QualifiedName> stream = statement.getStream();
-      String defaultStream = ksqlEngine.getKsqlConfig().getKsqlDefaultStream();
-      Collection<String> topics = stream.isPresent()
-              ?
-              decorateTopicsWithStreamName(client.listTopicNames(stream.get().toString()),
-                      stream.get().toString())
-              :
-              decorateTopicsWithStreamName(client.listTopicNames(), defaultStream);
-      return KafkaTopicsList.build(
-              statementText,
-              getKsqlTopics(),
-              client.describeTopics(topics),
-              ksqlEngine.getKsqlConfig(),
-              kafkaConsumerGroupClient
-      );
-    }
+
+  private KafkaTopicsList listTopics(final String statementText, final ListTopics statement) {
+    final KafkaTopicClient client = ksqlEngine.getTopicClient();
+    final KafkaConsumerGroupClient kafkaConsumerGroupClient
+            = new KafkaConsumerGroupClientImpl(ksqlEngine.getAdminClient());
+    final Optional<QualifiedName> stream = statement.getStream();
+    final String defaultStream = ksqlConfig.getKsqlDefaultStream();
+    final Collection<String> topics = stream.isPresent()
+            ?
+            decorateTopicsWithStreamName(client.listTopicNames(stream.get().toString()),
+                    stream.get().toString())
+            :
+            decorateTopicsWithStreamName(defaultStream.isEmpty()
+                    ?
+                    client.listTopicNames()
+                    :
+                    client.listTopicNames(defaultStream), defaultStream);
+    return KafkaTopicsList.build(
+            statementText,
+            getKsqlTopics(),
+            client.describeTopics(topics),
+            ksqlConfig,
+            kafkaConsumerGroupClient
+    );
   }
 
   private Collection<KsqlTopic> getKsqlTopics() {

@@ -89,7 +89,7 @@ public class KsqlEngineTest {
       () -> schemaRegistryClient;
   private final MetaStore metaStore = MetaStoreFixture.getNewMetaStore(new InternalFunctionRegistry());
   private final KsqlConfig ksqlConfig
-      = new KsqlConfig(ImmutableMap.of(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092"));
+      = new KsqlConfig(null);
   private final KafkaClientSupplier kafkaClientSupplier = new DefaultKafkaClientSupplier();
   private final AdminClient adminClient
       = kafkaClientSupplier.getAdminClient(ksqlConfig.getKsqlAdminClientConfigProps());
