@@ -12,7 +12,7 @@ then
 fi
 
 base_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )
-: "${KSQL_CONFIG_DIR:="$base_dir/config"}"
+: "${KSQL_CONFIG_DIR:="$base_dir/etc/ksql"}"
 
 : "${KSQL_LOG4J_OPTS:=""}"
 if [ -z "$KSQL_LOG4J_OPTS" ] && [ -e "$KSQL_CONFIG_DIR/log4j-silent.properties" ]; then
