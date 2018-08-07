@@ -60,9 +60,9 @@ public class KafkaTopicClientImpl implements KafkaTopicClient {
 
 
   private boolean isDeleteTopicEnabled = false;
-  private String ksqlDefaultStream;
+  private Supplier<String> ksqlDefaultStream;
 
-  public KafkaTopicClientImpl(final AdminClient adminClient, String ksqlDefaultStream) {
+  public KafkaTopicClientImpl(final AdminClient adminClient, Supplier<String> ksqlDefaultStream) {
     this.adminClient = adminClient;
     this.ksqlDefaultStream = ksqlDefaultStream;
     init();
@@ -141,9 +141,9 @@ public class KafkaTopicClientImpl implements KafkaTopicClient {
   public Set<String> listTopicNames() {
     try {
       RetryHelper<Set<String>> retryHelper = new RetryHelper<>();
-      if(!ksqlDefaultStream.isEmpty()) {
+      if(!ksqlDefaultStream.get().isEmpty()) {
         return retryHelper.executeWithRetries(() ->
-                adminClient.listTopics(ksqlDefaultStream).names());
+                adminClient.listTopics(ksqlDefaultStream.get()).names());
       }else {
         throw new KafkaException("Cannot get listTopicNames() without default stream name");
       }
@@ -160,7 +160,7 @@ public class KafkaTopicClientImpl implements KafkaTopicClient {
       Collection<String> topicNamesWithStreamName = topicNames
               .stream()
               .map(topic -> CommonUtils
-                      .decorateTopicWithDefaultStreamIfNeeded(topic, ksqlDefaultStream))
+                      .decorateTopicWithDefaultStreamIfNeeded(topic, ksqlDefaultStream.get()))
               .collect(Collectors.toSet());
       return retryHelper.executeWithRetries(() ->
               adminClient.describeTopics(topicNamesWithStreamName).all());

@@ -96,7 +96,7 @@ public class StandaloneExecutor implements Executable {
         ksqlConfig,
         new KafkaTopicClientImpl(
             AdminClient.create(ksqlConfig.getKsqlAdminClientConfigProps()),
-                ksqlConfig.getKsqlDefaultStream()));
+                ksqlConfig::getKsqlDefaultStream));
 
     return new StandaloneExecutor(
         ksqlEngine,

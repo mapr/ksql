@@ -78,7 +78,7 @@ public class KafkaTopicClientTest {
     expect(adminClient.describeConfigs(anyObject())).andReturn(getDescribeConfigsResult());
 
     replay(adminClient);
-    KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, "");
+    KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, ()->"");
     kafkaTopicClient.createTopic("test", 1, (short)1, true);
     verify(adminClient);
   }
@@ -91,7 +91,7 @@ public class KafkaTopicClientTest {
     expect(adminClient.describeConfigs(anyObject())).andReturn(getDescribeConfigsResult());
     expect(adminClient.describeTopics(anyObject())).andReturn(getDescribeTopicsResult());
     replay(adminClient);
-    KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, "");
+    KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, ()->"");
     kafkaTopicClient.createTopic(topicName1, 1, (short)1, false);
     verify(adminClient);
   }
@@ -106,7 +106,7 @@ public class KafkaTopicClientTest {
     expect(adminClient.describeConfigs(anyObject())).andReturn(getDescribeConfigsResult());
     expect(adminClient.describeTopics(anyObject())).andReturn(getDescribeTopicsResult());
     replay(adminClient);
-    KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, "");
+    KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, ()->"");
     kafkaTopicClient.createTopic(topicName1, 1, (short)2, false);
     verify(adminClient);
   }
@@ -121,7 +121,7 @@ public class KafkaTopicClientTest {
     expect(adminClient.createTopics(anyObject())).andReturn(createTopicReturningTopicExistsException());
     expect(adminClient.describeTopics(anyObject())).andReturn(getDescribeTopicsResult());
     replay(adminClient);
-    KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, "");
+    KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, ()->"");
     kafkaTopicClient.createTopic(topicName1, 1, (short)1, false);
     verify(adminClient);
   }
@@ -139,7 +139,7 @@ public class KafkaTopicClientTest {
     // The second time, return the right response.
     expect(adminClient.describeTopics(anyObject())).andReturn(getDescribeTopicsResult()).once();
     replay(adminClient);
-    KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, "");
+    KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, ()->"");
     kafkaTopicClient.createTopic(topicName1, 1, (short)1, true);
     verify(adminClient);
   }
@@ -158,7 +158,7 @@ public class KafkaTopicClientTest {
         .andReturn(describeTopicReturningUnknownPartitionException())
         .andReturn(describeTopicReturningUnknownPartitionException());
     replay(adminClient);
-    KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, "");
+    KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, ()->"");
     kafkaTopicClient.describeTopics(Collections.singleton(topicName1));
     verify(adminClient);
   }
@@ -171,7 +171,7 @@ public class KafkaTopicClientTest {
     expect(adminClient.listTopics()).andReturn(getListTopicsResult());
     expect(adminClient.describeConfigs(anyObject())).andReturn(getDescribeConfigsResult());
     replay(adminClient);
-    KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, "");
+    KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, ()->"");
     Set<String> names = kafkaTopicClient.listTopicNames();
     assertThat(names, equalTo(Utils.mkSet(topicName1, topicName2, topicName3)));
     verify(adminClient);
@@ -184,7 +184,7 @@ public class KafkaTopicClientTest {
     expect(adminClient.listTopics()).andReturn(getListTopicsResult());
     expect(adminClient.describeConfigs(anyObject())).andReturn(getDescribeConfigsResult());
     replay(adminClient);
-    KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, "");
+    KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, ()->"");
     Set<String> names = kafkaTopicClient.listTopicNames();
     assertThat(names, equalTo(Utils.mkSet(topicName1, topicName2, topicName3)));
     verify(adminClient);
@@ -197,7 +197,7 @@ public class KafkaTopicClientTest {
     expect(adminClient.describeConfigs(anyObject())).andReturn(getDescribeConfigsResult());
     expect(adminClient.deleteTopics(anyObject())).andReturn(getDeleteTopicsResult());
     replay(adminClient);
-    KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, "");
+    KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, ()->"");
     List<String> topics = Collections.singletonList(topicName2);
     kafkaTopicClient.deleteTopics(topics);
     verify(adminClient);
@@ -211,7 +211,7 @@ public class KafkaTopicClientTest {
     expect(adminClient.describeConfigs(anyObject())).andReturn(getDescribeConfigsResult());
     expect(adminClient.deleteTopics(anyObject())).andReturn(getDeleteTopicsResult());
     replay(adminClient);
-    KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, "");
+    KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, ()->"");
     kafkaTopicClient.deleteInternalTopics("ksql_query_2");
     verify(adminClient);
   }

@@ -103,7 +103,7 @@ public class WindowingIntTest {
     }, 60000, "didn't receive correct results within timeout");
 
     AdminClient adminClient = AdminClient.create(testHarness.ksqlConfig.getKsqlStreamConfigProps());
-    KafkaTopicClient topicClient = new KafkaTopicClientImpl(adminClient, "/dummy-default-stream");
+    KafkaTopicClient topicClient = new KafkaTopicClientImpl(adminClient, () -> "/dummy-default-stream");
 
     Set<String> topicBeforeCleanup = topicClient.listTopicNames();
 
@@ -151,7 +151,7 @@ public class WindowingIntTest {
     }, 60000, "didn't receive correct results within timeout");
 
     AdminClient adminClient = AdminClient.create(testHarness.ksqlConfig.getKsqlStreamConfigProps());
-    KafkaTopicClient topicClient = new KafkaTopicClientImpl(adminClient, "/dummy-default-stream");
+    KafkaTopicClient topicClient = new KafkaTopicClientImpl(adminClient, () -> "/dummy-default-stream");
 
     Set<String> topicBeforeCleanup = topicClient.listTopicNames();
 
@@ -205,7 +205,7 @@ public class WindowingIntTest {
     }, 60000, "didn't receive correct results within timeout");
 
     AdminClient adminClient = AdminClient.create(testHarness.ksqlConfig.getKsqlStreamConfigProps());
-    KafkaTopicClient topicClient = new KafkaTopicClientImpl(adminClient, "/dummy-default-stream");
+    KafkaTopicClient topicClient = new KafkaTopicClientImpl(adminClient, ()->"/dummy-default-stream");
 
     Set<String> topicBeforeCleanup = topicClient.listTopicNames();
 
@@ -254,7 +254,7 @@ public class WindowingIntTest {
     }, 60000, "didn't receive correct results within timeout");
 
     AdminClient adminClient = AdminClient.create(testHarness.ksqlConfig.getKsqlStreamConfigProps());
-    KafkaTopicClient topicClient = new KafkaTopicClientImpl(adminClient, "/dummy-default-stream");
+    KafkaTopicClient topicClient = new KafkaTopicClientImpl(adminClient, ()->"/dummy-default-stream");
 
     Set<String> topicBeforeCleanup = topicClient.listTopicNames();
 

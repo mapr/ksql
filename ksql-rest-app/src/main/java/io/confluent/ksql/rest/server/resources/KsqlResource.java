@@ -16,6 +16,7 @@
 
 package io.confluent.ksql.rest.server.resources;
 
+import io.confluent.ksql.util.*;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.misc.Interval;
 import org.slf4j.LoggerFactory;
@@ -96,14 +97,6 @@ import io.confluent.ksql.rest.server.computation.CommandId;
 import io.confluent.ksql.rest.server.computation.CommandStore;
 import io.confluent.ksql.rest.server.computation.StatementExecutor;
 import io.confluent.ksql.serde.DataSource;
-import io.confluent.ksql.util.AvroUtil;
-import io.confluent.ksql.util.KafkaConsumerGroupClient;
-import io.confluent.ksql.util.KafkaConsumerGroupClientImpl;
-import io.confluent.ksql.util.KafkaTopicClient;
-import io.confluent.ksql.util.KsqlException;
-import io.confluent.ksql.util.Pair;
-import io.confluent.ksql.util.PersistentQueryMetadata;
-import io.confluent.ksql.util.QueryMetadata;
 
 @Path("/ksql")
 @Consumes(MediaType.APPLICATION_JSON)
@@ -145,6 +138,8 @@ public class KsqlResource {
         ));
       }
 
+      updateDefaultStreamIfNeeded(streamsProperties);
+
       for (int i = 0; i < parsedStatements.size(); i++) {
         String statementText = statementStrings.get(i);
         result.add(executeStatement(statementText, parsedStatements.get(i), streamsProperties));
@@ -155,6 +150,14 @@ public class KsqlResource {
     }
 
     return Response.ok(result).build();
+  }
+
+  private void updateDefaultStreamIfNeeded(Map<String, Object> streamsProperties){
+    String defStream = (String)streamsProperties.get(KsqlConfig.KSQL_DEFAULT_STREAM_CONFIG);
+    if(defStream != null){
+      ksqlEngine.getKsqlConfig().put(KsqlConfig.KSQL_DEFAULT_STREAM_CONFIG,
+              defStream);
+    }
   }
 
   public List<String> getStatementStrings(String ksqlString) {
@@ -300,7 +303,11 @@ public class KsqlResource {
               decorateTopicsWithStreamName(client.listTopicNames(stream.get().toString()),
                       stream.get().toString())
               :
-              decorateTopicsWithStreamName(client.listTopicNames(), defaultStream);
+              decorateTopicsWithStreamName(defaultStream.isEmpty()
+                      ?
+                      client.listTopicNames()
+                      :
+                      client.listTopicNames(defaultStream), defaultStream);
       return KafkaTopicsList.build(
           statementText,
           getKsqlTopics(),

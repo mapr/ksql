@@ -92,7 +92,7 @@ public class SecureIntegrationTest {
     outputTopic = "TEST_" + COUNTER.incrementAndGet();
 
     topicClient = new KafkaTopicClientImpl(AdminClient.create(
-        new KsqlConfig(getKsqlConfig(SUPER_USER)).getKsqlAdminClientConfigProps()), "");
+        new KsqlConfig(getKsqlConfig(SUPER_USER)).getKsqlAdminClientConfigProps()), ()->"");
 
     produceInitData();
   }
@@ -338,7 +338,7 @@ public class SecureIntegrationTest {
     final KsqlConfig ksqlConfig = new KsqlConfig(ksqlConfigs);
 
     ksqlEngine = new KsqlEngine(ksqlConfig, new KafkaTopicClientImpl(
-        AdminClient.create(ksqlConfig.getKsqlAdminClientConfigProps()), ""));
+        AdminClient.create(ksqlConfig.getKsqlAdminClientConfigProps()), ()->""));
 
     execInitCreateStreamQueries();
   }

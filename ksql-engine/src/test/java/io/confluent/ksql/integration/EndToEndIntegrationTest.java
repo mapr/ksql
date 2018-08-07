@@ -81,7 +81,7 @@ public class EndToEndIntegrationTest {
 
     KsqlConfig ksqlconfig = new KsqlConfig(streamsConfig);
     AdminClient adminClient = AdminClient.create(ksqlconfig.getKsqlAdminClientConfigProps());
-    KafkaTopicClient topicClient = new KafkaTopicClientImpl(adminClient, "/dummy-default-stream");
+    KafkaTopicClient topicClient = new KafkaTopicClientImpl(adminClient, ()->"/dummy-default-stream");
 
     ksqlEngine = new KsqlEngine(ksqlconfig, topicClient);
 

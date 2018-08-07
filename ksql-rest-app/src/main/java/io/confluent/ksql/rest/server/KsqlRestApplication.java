@@ -239,7 +239,7 @@ public class KsqlRestApplication extends Application<KsqlRestConfig> implements 
 
     adminClient = AdminClient.create(ksqlAdminClientConfigProps);
     KsqlEngine ksqlEngine = new KsqlEngine(ksqlConfig,
-            new KafkaTopicClientImpl(adminClient, ksqlConfig.getKsqlDefaultStream()));
+            new KafkaTopicClientImpl(adminClient, ksqlConfig::getKsqlDefaultStream));
     KafkaTopicClient topicClient = ksqlEngine.getTopicClient();
 
     //    try (BrokerCompatibilityCheck compatibilityCheck =
