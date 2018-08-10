@@ -51,7 +51,7 @@
         </repository>
         <repository>
             <id>mapr-releases</id>
-            <url>http://repository_cv.mapr.com/maven/</url>
+            <url>http://repository.mapr.com/maven/</url>
         </repository>
     </repositories>
 
