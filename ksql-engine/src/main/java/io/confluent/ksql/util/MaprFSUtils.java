@@ -35,6 +35,10 @@ public class MaprFSUtils {
       if (!Utils.maprFSpathExists(fs, KsqlConfig.KSQL_SERVICES_COMMON_FOLDER)) {
         throw new KsqlException(KsqlConfig.KSQL_SERVICES_COMMON_FOLDER + " doesn't exist");
       }
+      String errorMessage =
+              String.format("User: %s has no permissions to run KSQL service with ID: %s",
+                      currentUser,
+                      config.getString(KsqlConfig.KSQL_SERVICE_ID_CONFIG));
       if (!Utils.maprFSpathExists(fs, config.getCommandsStreamFolder())) {
         // Creation of application forler with appropriate aces
         ArrayList<MapRFileAce> aceList = new ArrayList<MapRFileAce>();
@@ -52,18 +56,13 @@ public class MaprFSUtils {
         ace.setBooleanExpression("u:" + currentUser);
         aceList.add(ace);
 
-        Utils.maprFSpathCreate(fs, config.getCommandsStreamFolder(), aceList);
+        Utils.maprFSpathCreate(fs, config.getCommandsStreamFolder(),
+                aceList, currentUser, errorMessage);
       } else {
-        String errorMessage =
-                String.format("User: %s has no permissions to run KSQL service with ID: %s",
-                currentUser,
-                config.getString(KsqlConfig.KSQL_SERVICE_ID_CONFIG));
         Utils.validateDirectoryPerms(fs, config.getCommandsStreamFolder(),
                 currentUser, errorMessage);
       }
-      if (!Utils.streamExists(config.getCommandsStream())) {
-        Utils.createStream(config.getCommandsStream());
-      }
+      Utils.createStream(config.getCommandsStream());
     }catch (IOException e) {
       throw new KafkaException(e);
     }
