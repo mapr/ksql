@@ -33,7 +33,7 @@
         </fileSet>
         <fileSet>
             <directory>${project.parent.basedir}/config</directory>
-            <outputDirectory>etc/ksql/</outputDirectory>
+            <outputDirectory>conf.new</outputDirectory>
             <includes>
                 <include>*</include>
             </includes>
