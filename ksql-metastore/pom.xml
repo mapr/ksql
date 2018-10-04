@@ -56,6 +56,12 @@
             <version>${hamcrest.version}</version>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-streams</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>

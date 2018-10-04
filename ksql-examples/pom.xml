@@ -51,10 +51,11 @@
             <scope>test</scope>
         </dependency>
 
-	<dependency>
+	    <dependency>
             <groupId>io.confluent</groupId>
             <artifactId>monitoring-interceptors</artifactId>
-            <version>${project.version}</version>
+            <!--3 digit project version-->
+            <version>5.1.2</version>
         </dependency>
 
         <dependency>
@@ -62,6 +63,13 @@
             <artifactId>avro-random-generator</artifactId>
             <version>${avro.random.generator.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-streams</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
     </dependencies>
 
     <build>

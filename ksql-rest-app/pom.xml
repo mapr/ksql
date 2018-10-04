@@ -43,6 +43,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka_${kafka.scala.version}</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
             <groupId>com.github.rvesse</groupId>
             <artifactId>airline</artifactId>
         </dependency>
@@ -76,6 +82,7 @@
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka-streams</artifactId>
             <version>${kafka.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>

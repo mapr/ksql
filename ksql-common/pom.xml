@@ -24,22 +24,24 @@
             <artifactId>guava</artifactId>
         </dependency>
 
-	<dependency>
-	    <groupId>io.confluent</groupId>
-	    <artifactId>kafka-connect-avro-converter</artifactId>
-	    <version>${confluent.version}</version>
-	</dependency>
+	    <dependency>
+	        <groupId>io.confluent</groupId>
+	        <artifactId>kafka-connect-avro-converter</artifactId>
+	        <version>${confluent.version}</version>
+	    </dependency>
 
         <!-- admin utils dependencies -->
         <dependency>
             <groupId>com.mapr.streams</groupId>
             <artifactId>mapr-streams</artifactId>
             <version>${mapr.streams.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>connect-api</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -52,6 +54,7 @@
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka-streams</artifactId>
             <version>${kafka.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
