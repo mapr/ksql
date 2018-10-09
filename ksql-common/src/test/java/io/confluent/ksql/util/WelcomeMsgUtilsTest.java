@@ -60,7 +60,6 @@ public class WelcomeMsgUtilsTest {
         + "                  =  Streaming SQL Engine for Apache Kafka® =\n"
         + "                  ===========================================\n"
         + "\n"
-        + "Copyright 2017-2018 Confluent Inc.\n"
         + "\n")
     );
   }
@@ -71,7 +70,7 @@ public class WelcomeMsgUtilsTest {
     WelcomeMsgUtils.displayWelcomeMessage(35, realPrintWriter);
 
     // Then:
-    assertThat(stringWriter.toString(), is("KSQL, Copyright 2017-2018 Confluent Inc.\n\n"));
+    assertThat(stringWriter.toString(), is("KSQL.\n\n"));
   }
 
   @Test

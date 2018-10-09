@@ -48,7 +48,6 @@ public final class WelcomeMsgUtils {
         "==========================================="
     };
 
-    final String copyrightMsg = "Copyright 2017-2018 Confluent Inc.";
 
     final Integer logoWidth = Arrays.stream(lines)
         .map(String::length)
@@ -56,7 +55,7 @@ public final class WelcomeMsgUtils {
 
     // Don't want to display the logo if it'll just end up getting wrapped and looking hideous
     if (consoleWidth < logoWidth) {
-      writer.println("KSQL, " + copyrightMsg);
+      writer.println("KSQL:");
     } else {
       final int paddingChars = (consoleWidth - logoWidth) / 2;
       final String leftPadding = IntStream.range(0, paddingChars)
@@ -67,7 +66,6 @@ public final class WelcomeMsgUtils {
           .forEach(line -> writer.println(leftPadding + line));
 
       writer.println();
-      writer.println(copyrightMsg);
     }
 
     writer.println();
