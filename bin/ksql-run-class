@@ -173,6 +173,13 @@ KSQL_CLASSPATH=$KSQL_CLASSPATH:$KAFKA_CONNECT_API
 KAFKA_CONNECT_JSON=/opt/mapr/kafka/kafka-1.1.1/libs/connect-json-1.1.1-mapr-1808.jar
 KSQL_CLASSPATH=$KSQL_CLASSPATH:$KAFKA_CONNECT_JSON
 
+PID="/dev/null"
+if [[ $MAIN == *"KsqlServerMain" ]]; then
+    PID="${BASEMAPR:-/opt/mapr}/pid/ksql.pid"
+fi
+
+echo $$ > $PID
+
 # Launch mode
 if [ "x$DAEMON_MODE" = "xtrue" ]; then
   DAEMON_STDOUT_FILE="$LOG_DIR/ksql.out"

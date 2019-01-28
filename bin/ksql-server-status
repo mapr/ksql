@@ -2,6 +2,13 @@
 
 # Copyright (c) 2018 & onwards. MapR Tech, Inc., All rights reserved
 
+PID="${BASEMAPR:-/opt/mapr}/pid/ksql.pid"
+
+if [ -e $PID ]
+then
+    TARGET=`cat "$PID"`
+fi
+
 SERVICE_NAME='KSQL Server'
 TARGET=`jps | grep KsqlRestApplication   | awk '{print $1}'`
 if [ "x$TARGET" = "x" ]; then

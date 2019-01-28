@@ -39,6 +39,13 @@
             </includes>
         </fileSet>
         <fileSet>
+            <directory>${project.parent.basedir}/warden</directory>
+            <outputDirectory>warden</outputDirectory>
+            <includes>
+                <include>*</include>
+            </includes>
+        </fileSet>
+        <fileSet>
             <directory>${project.parent.basedir}/ext</directory>
             <outputDirectory>ext</outputDirectory>
             <includes>
