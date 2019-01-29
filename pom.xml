@@ -14,7 +14,7 @@
     <artifactId>ksql-parent</artifactId>
     <packaging>pom</packaging>
     <name>ksql-parent</name>
-    <version>5.1.2</version>
+    <version>5.1.2.0</version>
     <licenses>
         <license>
             <name>Confluent Community License</name>
@@ -96,6 +96,7 @@
         <jackson.version>2.9.1</jackson.version>
         <kafka.version>1.1.1-mapr-1808</kafka.version>
         <mapr.streams.version>6.1.0-mapr</mapr.streams.version>
+        <version.3digit>5.1.2</version.3digit>
     </properties>
 
     <dependencyManagement>
