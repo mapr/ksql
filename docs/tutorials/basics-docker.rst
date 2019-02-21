@@ -66,7 +66,7 @@ Download the Tutorial and Start KSQL
 
        docker run --network tutorials_default --rm --interactive --tty \
           confluentinc/cp-ksql-cli:|release| \
-          http://ksql-server:8088
+          http://ksql-server:8084
 
    .. include:: ../includes/ksql-includes.rst
         :start-after: CLI_welcome_start
@@ -95,7 +95,7 @@ Download the Tutorial and Start KSQL
           format=avro \
           topic=orders \
           bootstrap-server=kafka:39092 \
-          schemaRegistryUrl=http://schema-registry:8081
+          schemaRegistryUrl=http://schema-registry:8087
 
 .. include:: ../includes/ksql-includes.rst
     :start-after: struct_support_02_start
@@ -187,7 +187,7 @@ Download the Tutorial and Start KSQL
           format=avro \
           topic=orders_local \
           bootstrap-server=kafka:39092 \
-          schemaRegistryUrl=http://schema-registry:8081
+          schemaRegistryUrl=http://schema-registry:8087
 
 .. codewithvars:: bash
 
@@ -198,7 +198,7 @@ Download the Tutorial and Start KSQL
           format=avro \
           topic=orders_3rdparty \
           bootstrap-server=kafka:39092 \
-          schemaRegistryUrl=http://schema-registry:8081
+          schemaRegistryUrl=http://schema-registry:8087
 
 .. include:: ../includes/ksql-includes.rst
     :start-after: insert-into_02_start
@@ -311,8 +311,8 @@ environment is properly setup.
                 Name                        Command            State                 Ports
         ----------------------------------------------------------------------------------------------------
         tutorials_kafka_1             /etc/confluent/docker/run   Up      0.0.0.0:39092->39092/tcp, 9092/tcp
-        tutorials_ksql-server_1       /etc/confluent/docker/run   Up      8088/tcp
-        tutorials_schema-registry_1   /etc/confluent/docker/run   Up      8081/tcp
+        tutorials_ksql-server_1       /etc/confluent/docker/run   Up      8084/tcp
+        tutorials_schema-registry_1   /etc/confluent/docker/run   Up      8087/tcp
         tutorials_zookeeper_1         /etc/confluent/docker/run   Up      2181/tcp, 2888/tcp, 3888/tcp
 
 2. Earlier steps in this quickstart started two data generators that pre-populate 

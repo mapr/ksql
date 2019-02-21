@@ -116,7 +116,7 @@ public class KsqlConfig extends AbstractConfig implements Cloneable {
       + " and the last argument is the length of the substring to extract.";
 
   public static final String
-      defaultSchemaRegistryUrl = "http://localhost:8081";
+      defaultSchemaRegistryUrl = "http://localhost:8087";
 
   public static final String KSQL_STREAMS_PREFIX = "ksql.streams.";
 
@@ -259,7 +259,7 @@ public class KsqlConfig extends AbstractConfig implements Cloneable {
             ConfigDef.Type.STRING,
             defaultSchemaRegistryUrl,
             ConfigDef.Importance.MEDIUM,
-            "The URL for the schema registry, defaults to http://localhost:8081"
+            "The URL for the schema registry, defaults to http://localhost:8087"
         ).define(
             KSQL_ENABLE_UDFS,
             ConfigDef.Type.BOOLEAN,

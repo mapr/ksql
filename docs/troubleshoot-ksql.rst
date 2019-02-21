@@ -155,7 +155,7 @@ In both cases, the CLI is not able to connect to the KSQL server. Review the fol
 Verify that the KSQL CLI is using the correct port
 ==================================================
 
-By default, the server listens on port ``8088``. See
+By default, the server listens on port ``8084``. See
 :ref:`Starting the KSQL CLI <install_ksql-cli>` for more information.
 
 
@@ -168,7 +168,7 @@ setting in the file and verify it is set correctly.
 
 .. code:: text
 
-    listeners=http://localhost:8088
+    listeners=http://localhost:8084
 
 See :ref:`Starting KSQL Server <start_ksql-server>` for more information.
 
@@ -178,20 +178,20 @@ Verify that there are no port conflicts
 
 There may be another process running on the port that the KSQL server listens
 on. Use the following command to get the Process ID (PID) for the process running on the port
-assigned to the KSQL server. The command below checks the default ``8088`` port.
+assigned to the KSQL server. The command below checks the default ``8084`` port.
 
 .. code:: bash
 
-    netstat -anv | egrep -w .*8088.*LISTEN
+    netstat -anv | egrep -w .*8084.*LISTEN
 
 Example output:
 
 .. code:: text
 
-    tcp4  0 0  *.8088       *.*    LISTEN      131072 131072    46314      0
+    tcp4  0 0  *.8084       *.*    LISTEN      131072 131072    46314      0
 
 In this example, ``46314`` is the PID of the process that is listening on port
-``8088``. Run the following command to get information about process ``46314``.
+``8084``. Run the following command to get information about process ``46314``.
 
 .. code:: bash
 
@@ -252,7 +252,7 @@ The solution is to register Avro schemas manually against the replicated subject
 
     # Original topic name = pageviews
     # Replicated topic name = pageviews.replica
-    curl -X POST -H "Content-Type: application/vnd.schemaregistry.v1+json" --data "{\"schema\": $(curl -s http://localhost:8081/subjects/pageviews-value/versions/latest | jq '.schema')}" http://localhost:8081/subjects/pageviews.replica-value/versions
+    curl -X POST -H "Content-Type: application/vnd.schemaregistry.v1+json" --data "{\"schema\": $(curl -s http://localhost:8087/subjects/pageviews-value/versions/latest | jq '.schema')}" http://localhost:8087/subjects/pageviews.replica-value/versions
 
 .. _ksql-check-server-logs:
 

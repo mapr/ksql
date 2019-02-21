@@ -44,7 +44,7 @@ import org.junit.runner.RunWith;
 public class RemoteCliSpecificCommandTest {
 
   private static final String INITIAL_SERVER_ADDRESS = "http://192.168.0.1:8080";
-  private static final String VALID_SERVER_ADDRESS = "http://localhost:8088";
+  private static final String VALID_SERVER_ADDRESS = "http://localhost:8084";
   private static final ServerInfo SERVER_INFO =
       new ServerInfo("1.x", "myClusterId", "myKsqlServiceId");
 
@@ -74,11 +74,11 @@ public class RemoteCliSpecificCommandTest {
 
   @Test(expected = KsqlRestClientException.class)
   public void shouldThrowIfRestClientThrowsOnSet() {
-    restClient.setServerAddress("localhost:8088");
+    restClient.setServerAddress("localhost:8084");
     expectLastCall().andThrow(new KsqlRestClientException("Boom"));
     replay(restClient);
 
-    command.execute("localhost:8088");
+    command.execute("localhost:8084");
   }
 
   @Test

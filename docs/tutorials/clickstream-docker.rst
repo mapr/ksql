@@ -64,9 +64,9 @@ are quite large and depending on your network connection may take
         kafka-connect     /etc/confluent/docker/run        Up      0.0.0.0:8083->8083/tcp, 9092/tcp
         kafkacat          /bin/sh                          Up
         ksql-cli          /bin/sh                          Up
-        ksql-server       /etc/confluent/docker/run        Up      0.0.0.0:8088->8088/tcp
-        schema-registry   /etc/confluent/docker/run        Up      8081/tcp
-        zookeeper         /etc/confluent/docker/run        Up      2181/tcp, 2888/tcp, 3888/tcp
+        ksql-server       /etc/confluent/docker/run        Up      0.0.0.0:8084->8084/tcp
+        schema-registry   /etc/confluent/docker/run        Up      8087/tcp
+        zookeeper         /etc/confluent/docker/run        Up      5181/tcp, 2888/tcp, 3888/tcp
 
 ---------------------------
 Create the Clickstream Data
@@ -84,7 +84,7 @@ using a console consumer such as ``kafkacat``:
 
 *If you get the message `Broker: Leader not available`, try again after a moment, as the demo is still starting up.*
 
-This will stop after ten messages, and your output should resemble: 
+This will stop after ten messages, and your output should resemble:
 
 ::
 
@@ -100,7 +100,7 @@ stream of all messages on the topic. If you do run this, press Ctrl-C to cancel 
 return to the command prompt.
 
 There are two other sets of data in Kafka topics that have been automatically
-populated. They hold information about the HTTP status codes, and users. 
+populated. They hold information about the HTTP status codes, and users.
 
 #.  View the status codes data
 
@@ -148,7 +148,7 @@ Load the Streaming Data to KSQL
 
     .. code:: bash
 
-        docker-compose exec ksql-cli ksql http://ksql-server:8088
+        docker-compose exec ksql-cli ksql http://ksql-server:8084
 
     You should now be in the KSQL CLI.
 

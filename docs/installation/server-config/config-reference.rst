@@ -190,10 +190,10 @@ bind to the default interface. For example:
 ::
 
     # Bind to all interfaces.
-    listeners=http://0.0.0.0:8088
+    listeners=http://0.0.0.0:8084
 
     # Bind only to localhost.
-    listeners=http://localhost:8088
+    listeners=http://localhost:8084
 
 .. _ksql-c3-settings:
 

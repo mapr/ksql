@@ -33,7 +33,7 @@ public class KafkaTopicsListTest {
     final Collection<KsqlTopic> ksqlTopics = Collections.emptyList();
     // represent the full list of topics
     final Map<String, TopicDescription> topicDescriptions = new HashMap<>();
-    final TopicPartitionInfo topicPartitionInfo = new TopicPartitionInfo(1, new Node(1, "", 8088),
+    final TopicPartitionInfo topicPartitionInfo = new TopicPartitionInfo(1, new Node(1, "", 8084),
                                                                    Collections.emptyList(), Collections.emptyList());
     topicDescriptions.put("test-topic", new TopicDescription("test-topic", false, Collections.singletonList(topicPartitionInfo)));
 

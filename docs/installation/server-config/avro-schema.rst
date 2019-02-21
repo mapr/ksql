@@ -24,7 +24,7 @@ The following functionality is not supported:
 Configuring KSQL for Avro
 *************************
 
-You must configure the REST endpoint of |sr| by setting ``ksql.schema.registry.url`` (default: ``http://localhost:8081``)
+You must configure the REST endpoint of |sr| by setting ``ksql.schema.registry.url`` (default: ``http://localhost:8087``)
 in the KSQL server configuration file (``<path-to-confluent>/etc/ksql/ksql-server.properties``). For more information,
 see :ref:`install_ksql-server`.
 
@@ -34,7 +34,7 @@ Using Avro in KSQL
 ******************
 
 Before using Avro in KSQL, make sure that |sr| is up and running and that ``ksql.schema.registry.url`` is set correctly
-in the KSQL properties file (defaults to ``http://localhost:8081``). |sr| is :ref:`included by default <quickstart>` with
+in the KSQL properties file (defaults to ``http://localhost:8087``). |sr| is :ref:`included by default <quickstart>` with
 |cp|.
 
 Here's what you can do with Avro in KSQL:

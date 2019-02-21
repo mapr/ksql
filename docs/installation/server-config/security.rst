@@ -102,7 +102,7 @@ the ``--user`` and ``--password`` command-line arguments, for example:
 
 .. code:: bash
 
-    <ksql-install>bin/ksql --user fred --password letmein http://localhost:8088
+    <ksql-install>bin/ksql --user fred --password letmein http://localhost:8084
 
 Configuring KSQL for |ccloud|
 -----------------------------

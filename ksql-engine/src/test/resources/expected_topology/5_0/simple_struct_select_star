@@ -2,7 +2,7 @@
   "ksql.extension.dir" : "ext",
   "ksql.streams.cache.max.bytes.buffering" : "0",
   "ksql.transient.prefix" : "transient_",
-  "ksql.schema.registry.url" : "http://localhost:8081",
+  "ksql.schema.registry.url" : "http://localhost:8087",
   "ssl.secure.random.implementation" : null,
   "ksql.streams.default.deserialization.exception.handler" : "io.confluent.ksql.errors.LogMetricAndContinueExceptionHandler",
   "ksql.output.topic.name.prefix" : "",

@@ -33,7 +33,7 @@ ksql-server-stop
 Healthchecks
 ============
 
-- The KSQL REST API supports a "server info" request at ``http://<server>:8088/info``.
+- The KSQL REST API supports a "server info" request at ``http://<server>:8084/info``.
 - Check runtime stats for the KSQL server that you are connected to via ``DESCRIBE EXTENDED <stream or table>`` and
   ``EXPLAIN <name of query>``.
 - Run ``ksql-print-metrics`` on a KSQL server. For example, see this `blog post <https://www.confluent.io/blog/ksql-january-release-streaming-sql-apache-kafka/>`_.
@@ -146,7 +146,7 @@ Check the port that KSQL CLI is using
 -------------------------------------
 
 Ensure that the KSQL CLI is configured with the correct KSQL server port.
-By default, the server listens on port ``8088``. For more info, see 
+By default, the server listens on port ``8084``. For more info, see
 :ref:`Starting the KSQL CLI <install_ksql-cli>`.
 
 Check the KSQL server configuration
@@ -158,7 +158,7 @@ setting:
 
 .. code:: bash
 
-    listeners=http://localhost:8088
+    listeners=http://localhost:8084
 
 For more info, see :ref:`Starting KSQL Server <start_ksql-server>`.
 
@@ -168,20 +168,20 @@ Check for a port conflict
 There may be another process running on the port that the KSQL server listens
 on. Use the following command to check the process that's running on the port
 assigned to the KSQL server. This example checks the default port, which is
-``8088``.  
+``8084``.
 
 .. code:: bash
 
-    netstat -anv | egrep -w .*8088.*LISTEN
+    netstat -anv | egrep -w .*8084.*LISTEN
 
 Your output should resemble:
 
 .. code:: bash
 
-    tcp4  0 0  *.8088       *.*    LISTEN      131072 131072    46314      0
+    tcp4  0 0  *.8084       *.*    LISTEN      131072 131072    46314      0
 
 In this example, ``46314`` is the PID of the process that's listening on port
-``8088``. Run the following command to get info on the process.
+``8084``. Run the following command to get info on the process.
 
 .. code:: bash
 
@@ -225,7 +225,7 @@ The solution is to register schemas manually against the replicated subject name
 
     # Original topic name = pageviews
     # Replicated topic name = pageviews.replica
-    curl -X POST -H "Content-Type: application/vnd.schemaregistry.v1+json" --data "{\"schema\": $(curl -s http://localhost:8081/subjects/pageviews-value/versions/latest | jq '.schema')}" http://localhost:8081/subjects/pageviews.replica-value/versions
+    curl -X POST -H "Content-Type: application/vnd.schemaregistry.v1+json" --data "{\"schema\": $(curl -s http://localhost:8087/subjects/pageviews-value/versions/latest | jq '.schema')}" http://localhost:8087/subjects/pageviews.replica-value/versions
 
 ----------------------
 Check KSQL server logs 

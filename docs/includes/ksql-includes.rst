@@ -50,7 +50,7 @@ Learn More
 
         Copyright 2018 Confluent Inc.
 
-        CLI v|release|, Server v|release| located at http://localhost:8088
+        CLI v|release|, Server v|release| located at http://localhost:8084
 
         Having trouble? Type 'help' (case-insensitive) for a rundown of how things work!
 
@@ -87,7 +87,7 @@ Create and produce data to the Kafka topics ``pageviews`` and ``users``. These s
 Launch the KSQL CLI
 -------------------
 To launch the CLI, run the following command. It will route the CLI logs to the ``./ksql_logs`` directory, relative to
-your current directory. By default, the CLI will look for a KSQL Server running at ``http://localhost:8088``.
+your current directory. By default, the CLI will look for a KSQL Server running at ``http://localhost:8084``.
 
 .. code:: bash
 

@@ -42,7 +42,7 @@ For example:
 .. code:: bash
 
     bootstrap.servers=localhost:9092
-    listeners=http://localhost:8088
+    listeners=http://localhost:8084
 
 After you have updated the server configuration file, you can start the KSQL server with the configuration file
 specified.

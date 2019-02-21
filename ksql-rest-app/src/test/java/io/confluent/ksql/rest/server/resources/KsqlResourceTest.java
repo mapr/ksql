@@ -880,7 +880,7 @@ public class KsqlResourceTest {
     configMap.put("cache.max.bytes.buffering", 0);
     configMap.put("auto.offset.reset", "earliest");
     configMap.put("ksql.command.topic.suffix", "commands");
-    configMap.put(RestConfig.LISTENERS_CONFIG, "http://localhost:8088");
+    configMap.put(RestConfig.LISTENERS_CONFIG, "http://localhost:8084");
 
     final Properties properties = new Properties();
     properties.putAll(configMap);

@@ -38,7 +38,7 @@ public class KsqlRestApplicationTest {
   private final KsqlRestConfig restConfig =
       new KsqlRestConfig(
           Collections.singletonMap(RestConfig.LISTENERS_CONFIG,
-          "http://localhost:8088"));
+          "http://localhost:8084"));
 
   @Test
   public void shouldCreateCommandTopicIfItDoesNotExist() {

@@ -28,7 +28,7 @@ Notable changes in 4.1:
 
 * KSQL server:
 
-    * The default ``listeners`` address was changed to ``http://localhost:8088`` (KSQL 0.x used
+    * The default ``listeners`` address was changed to ``http://localhost:8084`` (KSQL 0.x used
       ``http://localhost:8080``).
     * Assigning KSQL servers to a specific KSQL cluster has been simplified and is now done with the
       ``ksql.service.id`` setting.  See :ref:`ksql-server-config` for details.

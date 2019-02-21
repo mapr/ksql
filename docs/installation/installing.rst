@@ -72,7 +72,7 @@ Follow these instructions to start KSQL server using the ``ksql-server-start`` s
     ::
 
         bootstrap.servers=localhost:9092
-        listeners=http://localhost:8088
+        listeners=http://localhost:8084
 
     For more information, see :ref:`ksql-server-config`.
 
@@ -126,7 +126,7 @@ You can start the KSQL CLI by providing the connection information to the KSQL s
 
 .. code:: bash
 
-    $ LOG_DIR=./ksql_logs <path-to-confluent>/bin/ksql http://localhost:8088
+    $ LOG_DIR=./ksql_logs <path-to-confluent>/bin/ksql http://localhost:8084
 
 .. include:: ../includes/ksql-includes.rst
     :start-after: log_limitations_start

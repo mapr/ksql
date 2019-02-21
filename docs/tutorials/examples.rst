@@ -350,7 +350,7 @@ The following examples show common usage:
 
     .. code:: bash
 
-        ksql http://localhost:8088 <<< "SHOW TOPICS;
+        ksql http://localhost:8084 <<< "SHOW TOPICS;
         SHOW STREAMS;
         exit"
 
@@ -364,7 +364,7 @@ The following examples show common usage:
 
     .. code:: bash
 
-        ksql http://localhost:8088 <<EOF
+        ksql http://localhost:8084 <<EOF
         > RUN SCRIPT '/path/to/local/application.sql';
         > exit
         > EOF

@@ -6,7 +6,7 @@ KSQL REST API Reference
 REST Endpoint
 ---------------------
 
-The default REST API endpoint is ``http://localhost:8088/``. 
+The default REST API endpoint is ``http://localhost:8084/``.
 
 Change the server configuration that controls the REST API endpoint by setting
 the ``listeners`` parameter in the KSQL server config file. For more info, see
@@ -32,7 +32,7 @@ command:
 
 .. code:: bash
 
-   curl -X "POST" "http://localhost:8088/ksql" \
+   curl -X "POST" "http://localhost:8084/ksql" \
         -H "Content-Type: application/vnd.ksql.v1+json; charset=utf-8" \
         -d $'{
      "ksql": "LIST STREAMS;",
@@ -43,7 +43,7 @@ Here's an example request that retrieves streaming data from ``TEST_STREAM``:
 
 .. code:: bash
 
-   curl -X "POST" "http://localhost:8088/query" \
+   curl -X "POST" "http://localhost:8084/query" \
         -H "Content-Type: application/vnd.ksql.v1+json; charset=utf-8" \
         -d $'{
      "ksql": "SELECT * FROM TEST_STREAM;",
@@ -77,7 +77,7 @@ use the ``curl`` command to query the ``/info`` endpoint:
 
 .. code:: bash
 
-   curl -sX GET "http://localhost:8088/info" | jq '.'
+   curl -sX GET "http://localhost:8084/info" | jq '.'
 
 Your output should resemble:
 

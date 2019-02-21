@@ -44,7 +44,7 @@ For more information, see :ref:`ksql-rest-api`.
 
 .. code:: bash
 
-   curl -sX GET "http://localhost:8088/info"
+   curl -sX GET "http://localhost:8084/info"
 
 Your output should resemble:
 

@@ -51,8 +51,8 @@ Your output should resemble:
               Name                        Command            State                 Ports
     ----------------------------------------------------------------------------------------------------
     tutorials_kafka_1             /etc/confluent/docker/run   Up      0.0.0.0:39092->39092/tcp, 9092/tcp
-    tutorials_ksql-server_1       /etc/confluent/docker/run   Up      8088/tcp
-    tutorials_schema-registry_1   /etc/confluent/docker/run   Up      8081/tcp
+    tutorials_ksql-server_1       /etc/confluent/docker/run   Up      8084/tcp
+    tutorials_schema-registry_1   /etc/confluent/docker/run   Up      8087/tcp
     tutorials_zookeeper_1         /etc/confluent/docker/run   Up      2181/tcp, 2888/tcp, 3888/tcp
 
 The KSQL environment is ready for you to develop real-time streaming
@@ -109,7 +109,7 @@ Start the KSQL CLI:
 
   docker run --network tutorials_default --rm --interactive --tty \
       confluentinc/cp-ksql-cli:|release| \
-      http://ksql-server:8088
+      http://ksql-server:8084
 
 In the KSQL CLI, ensure that ``raw-topic`` is available: 
 

@@ -92,7 +92,7 @@ public final class DataGen {
         + "[quickstart=<quickstart preset> (case-insensitive; one of 'orders', 'users', or "
         + "'pageviews')] "
         + "schema=<avro schema file> "
-        + "[schemaRegistryUrl=<url for Confluent Schema Registry> (defaults to http://localhost:8081)] "
+        + "[schemaRegistryUrl=<url for Confluent Schema Registry> (defaults to http://localhost:8087)] "
         + "format=<message format> (case-insensitive; one of 'avro', 'json', or 'delimited') "
         + "topic=<kafka topic name> "
         + "key=<name of key column> "
@@ -189,7 +189,7 @@ public final class DataGen {
         keyName = null;
         iterations = 1000000;
         maxInterval = -1;
-        schemaRegistryUrl = "http://localhost:8081";
+        schemaRegistryUrl = "http://localhost:8087";
         propertiesFile = null;
       }
 
