@@ -15,7 +15,6 @@
 package io.confluent.ksql.rest.server;
 
 import com.fasterxml.jackson.jaxrs.base.JsonParseExceptionMapper;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -415,13 +414,15 @@ public final class KsqlRestApplication extends Application<KsqlRestConfig> imple
                                  final String commandTopic) {
     final long requiredTopicRetention = Long.MAX_VALUE;
     if (topicClient.isTopicExists(commandTopic)) {
-      final ImmutableMap<String, Object> requiredConfig =
-          ImmutableMap.of(TopicConfig.RETENTION_MS_CONFIG, requiredTopicRetention);
+      //Workaround for not implemented method MarlinAdminClientImpl.describeConfigs
 
-      if (topicClient.addTopicConfig(commandTopic, requiredConfig)) {
-        log.info("Corrected retention.ms on command topic. topic:{}, retention.ms:{}",
-                 commandTopic, requiredTopicRetention);
-      }
+      //final ImmutableMap<String, Object> requiredConfig =
+      //  ImmutableMap.of(TopicConfig.RETENTION_MS_CONFIG, requiredTopicRetention);
+
+      //if (topicClient.addTopicConfig(commandTopic, requiredConfig)) {
+      //  log.info("Corrected retention.ms on command topic. topic:{}, retention.ms:{}",
+      //           commandTopic, requiredTopicRetention);
+      //}
 
       return;
     }

@@ -62,7 +62,9 @@ public class KafkaTopicClientImpl implements KafkaTopicClient {
   public KafkaTopicClientImpl(final AdminClient adminClient, final String ksqlDefaultStream) {
     this.adminClient = Objects.requireNonNull(adminClient, "adminClient");
     this.ksqlDefaultStream = ksqlDefaultStream;
-    this.isDeleteTopicEnabled = isTopicDeleteEnabled(adminClient);
+    //Workaround for not implemented method MarlinAdminClientImpl.describeConfigs
+    //this.isDeleteTopicEnabled = isTopicDeleteEnabled(adminClient);
+    this.isDeleteTopicEnabled = false;
   }
 
   @Override
