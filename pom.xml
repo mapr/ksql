@@ -14,7 +14,7 @@
     <artifactId>ksql-parent</artifactId>
     <packaging>pom</packaging>
     <name>ksql-parent</name>
-    <version>5.1.2.0</version>
+    <version>5.1.2.0-mapr-SNAPSHOT</version>
     <licenses>
         <license>
             <name>Confluent Community License</name>
@@ -53,7 +53,7 @@
         </repository>
         <repository>
             <id>mapr-releases</id>
-            <url>http://repository_cv.mapr.com/maven/</url>
+            <url>${env.MAPR_MAVEN_REPO}</url>
         </repository>
     </repositories>
 
@@ -94,7 +94,7 @@
         <avro.random.generator.version>0.2.1</avro.random.generator.version>
         <apache.curator.version>2.9.0</apache.curator.version>
         <jackson.version>2.9.1</jackson.version>
-        <kafka.version>2.1.0-mapr-SNAPSHOT</kafka.version>
+        <kafka.version>2.1.1.0-mapr-SNAPSHOT</kafka.version>
         <mapr.streams.version>6.1.0-mapr</mapr.streams.version>
         <version.3digit>5.1.2</version.3digit>
     </properties>
