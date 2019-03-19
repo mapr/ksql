@@ -89,6 +89,11 @@ copyFilesToTargetConfigDir() {
     cp -n $KSQL_TEMPLATE_CONF_DIR/*.properties $KSQL_CONF_DIR
 }
 
+createSymlink() {
+    rm -f  /usr/bin/ksql
+    ln -sf "$KSQL_BIN"/ksql-cli-start.sh /usr/bin/ksql
+}
+
 #
 # main
 #
@@ -138,6 +143,7 @@ fi
 copyFilesToTargetConfigDir
 changeKSQLPermission
 setupWardenConfFile
+createSymlink
 
 # remove state file and start files
 if [ -f "$KSQL_CONF_DIR/.not_configured_yet" ]; then
