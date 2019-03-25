@@ -87,6 +87,11 @@ function getProperty() {
 copyFilesToTargetConfigDir() {
     mkdir -p $KSQL_CONF_DIR
     cp -n $KSQL_TEMPLATE_CONF_DIR/*.properties $KSQL_CONF_DIR
+    if [ $secureCluster == 1 ]; then
+        cp -n $KSQL_TEMPLATE_CONF_DIR/secure/ksql-server-secure.properties $KSQL_CONF_DIR/ksql-server.properties
+    else
+        cp -n $KSQL_TEMPLATE_CONF_DIR/unsecure/ksql-server.properties $KSQL_CONF_DIR/ksql-server.properties
+    fi
 }
 
 createSymlink() {

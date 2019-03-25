@@ -168,10 +168,12 @@ OPTIONS+=($KSQL_GC_LOG_OPTS)
 
 MAPR_CLIENT_CLASSPATH=$(mapr clientclasspath)
 KSQL_CLASSPATH=$KSQL_CLASSPATH:$MAPR_CLIENT_CLASSPATH
-KAFKA_CONNECT_API=/opt/mapr/kafka/kafka-1.1.1/libs/connect-api-1.1.1-mapr-1808.jar
-KSQL_CLASSPATH=$KSQL_CLASSPATH:$KAFKA_CONNECT_API
-KAFKA_CONNECT_JSON=/opt/mapr/kafka/kafka-1.1.1/libs/connect-json-1.1.1-mapr-1808.jar
-KSQL_CLASSPATH=$KSQL_CLASSPATH:$KAFKA_CONNECT_JSON
+KAFKA_VERSION=$(cat "/opt/mapr/kafka/kafkaversion")
+KSQL_CLASSPATH=$KSQL_CLASSPATH:/opt/mapr/kafka/kafka-$KAFKA_VERSION/libs/*
+
+# To enable PAM:
+JAVA_LIB_PATH="-Djava.library.path=${BASEMAPR:-/opt/mapr}/lib/"
+KSQL_CLASSPATH=$KSQL_CLASSPATH:${BASEMAPR:-/opt/mapr}/lib/JPam-1.1.jar
 
 PID="/dev/null"
 if [[ $MAIN == *"KsqlServerMain" ]]; then
@@ -184,7 +186,7 @@ echo $$ > $PID
 if [ "x$DAEMON_MODE" = "xtrue" ]; then
   DAEMON_STDOUT_FILE="$LOG_DIR/ksql.out"
   echo "Writing console output to $DAEMON_STDOUT_FILE"
-  nohup "$JAVA" -cp "$KSQL_CLASSPATH" "${OPTIONS[@]}" "$MAIN" "$@" 2>&1 < /dev/null > "$DAEMON_STDOUT_FILE" &
+  nohup "$JAVA" $JAVA_LIB_PATH -cp "$KSQL_CLASSPATH" "${OPTIONS[@]}" "$MAIN" "$@" 2>&1 < /dev/null > "$DAEMON_STDOUT_FILE" &
 else
-  exec "$JAVA" -cp "$KSQL_CLASSPATH" "${OPTIONS[@]}" "$MAIN" "$@"
+  exec "$JAVA" $JAVA_LIB_PATH -cp "$KSQL_CLASSPATH" "${OPTIONS[@]}" "$MAIN" "$@"
 fi

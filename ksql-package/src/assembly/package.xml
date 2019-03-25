@@ -36,6 +36,8 @@
             <outputDirectory>conf.new</outputDirectory>
             <includes>
                 <include>*</include>
+                <include>secure/*</include>
+                <include>unsecure/*</include>
             </includes>
         </fileSet>
         <fileSet>
