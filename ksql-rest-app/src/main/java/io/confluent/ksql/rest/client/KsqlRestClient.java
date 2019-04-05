@@ -46,6 +46,7 @@ import java.util.Properties;
 import java.util.Scanner;
 import java.util.function.Function;
 import javax.naming.AuthenticationException;
+import javax.net.ssl.SSLContext;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
@@ -85,7 +86,16 @@ public class KsqlRestClient implements Closeable {
   }
 
   public KsqlRestClient(final String serverAddress, final Map<String, Object> localProperties) {
-    this(buildClient(), serverAddress, localProperties);
+    this(buildClient(initializeSslContext(serverAddress, localProperties)),
+            serverAddress, localProperties);
+  }
+
+  private static SSLContext initializeSslContext(final String serverAddress,
+                                                 final Map<String, Object> localProperties) {
+    if (serverAddress.trim().startsWith("https://")) {
+      return new SslContextFactory(localProperties).sslContext();
+    }
+    return null;
   }
 
   // Visible for testing
@@ -354,12 +364,16 @@ public class KsqlRestClient implements Closeable {
     }
   }
 
-  private static Client buildClient() {
+  private static Client buildClient(final SSLContext sslContext) {
     final ObjectMapper objectMapper = JsonMapper.INSTANCE.mapper;
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     objectMapper.configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false);
     objectMapper.registerModule(new Jdk8Module());
     final JacksonMessageBodyProvider jsonProvider = new JacksonMessageBodyProvider(objectMapper);
-    return ClientBuilder.newBuilder().register(jsonProvider).build();
+    final ClientBuilder cb = ClientBuilder.newBuilder();
+    if (sslContext == null) {
+      return cb.register(jsonProvider).build();
+    }
+    return cb.sslContext(sslContext).register(jsonProvider).build();
   }
 }
