@@ -40,7 +40,7 @@ public class RootDocumentTest {
     final UriInfo uriInfo = uriInfo("http://some/proxy");
 
     // When:
-    final Response response = doc.get(uriInfo);
+    final Response response = doc.get(uriInfo, "", "");
 
     // Then:
     assertThat(response.getStatus(), is(HttpStatus.TEMPORARY_REDIRECT_307));

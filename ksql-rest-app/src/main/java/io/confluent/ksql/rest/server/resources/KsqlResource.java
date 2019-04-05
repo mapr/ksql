@@ -108,6 +108,7 @@ import io.confluent.ksql.util.QueryMetadata;
 import io.confluent.ksql.util.SchemaUtil;
 import io.confluent.ksql.util.StatementWithSchema;
 import io.confluent.ksql.version.metrics.ActivenessRegistrar;
+import io.confluent.rest.impersonation.ImpersonationUtils;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
@@ -121,9 +122,11 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import org.slf4j.LoggerFactory;
@@ -160,7 +163,14 @@ public class KsqlResource {
   }
 
   @POST
-  public Response handleKsqlStatements(final KsqlRequest request) {
+  public Response handleKsqlStatements(final KsqlRequest request,
+                                       @HeaderParam(HttpHeaders.AUTHORIZATION) final String auth,
+                                       @HeaderParam(HttpHeaders.COOKIE) final String cookie) {
+    return ImpersonationUtils.runAsUserIfImpersonationEnabled(()
+        -> handleKsqlStatements(request), auth, cookie);
+  }
+
+  private Response handleKsqlStatements(final KsqlRequest request) {
     final List<PreparedStatement> parsedStatements;
     final KsqlEntityList result = new KsqlEntityList();
 

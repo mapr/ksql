@@ -698,7 +698,7 @@ public class KsqlResourceTest {
     EasyMock.replay(activenessRegistrar);
 
     // When:
-    ksqlResource.handleKsqlStatements(new KsqlRequest("foo", Collections.emptyMap()));
+    ksqlResource.handleKsqlStatements(new KsqlRequest("foo", Collections.emptyMap()), "", "");
 
     // Then:
     EasyMock.verify(activenessRegistrar);
@@ -760,7 +760,7 @@ public class KsqlResourceTest {
   private KsqlErrorMessage makeFailingRequest(final String ksql, final Code errorCode) {
     try {
       final Response response = ksqlResource.handleKsqlStatements(
-          new KsqlRequest(ksql, Collections.emptyMap()));
+          new KsqlRequest(ksql, Collections.emptyMap()), "", "");
       assertThat(response.getStatus(), is(errorCode.getCode()));
       assertThat(response.getEntity(), instanceOf(KsqlErrorMessage.class));
       return (KsqlErrorMessage) response.getEntity();
@@ -779,7 +779,7 @@ public class KsqlResourceTest {
       final KsqlRequest ksqlRequest,
       final Class<T> expectedEntityType) {
 
-    final Response response = ksqlResource.handleKsqlStatements(ksqlRequest);
+    final Response response = ksqlResource.handleKsqlStatements(ksqlRequest, "", "");
 
     assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
     assertThat(response.getEntity(), instanceOf(KsqlEntityList.class));

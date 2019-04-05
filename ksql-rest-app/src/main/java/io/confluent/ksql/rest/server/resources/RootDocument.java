@@ -15,11 +15,15 @@
 package io.confluent.ksql.rest.server.resources;
 
 import io.confluent.ksql.rest.entity.Versions;
+import io.confluent.rest.impersonation.ImpersonationUtils;
+
 import java.net.URI;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
@@ -36,10 +40,17 @@ public class RootDocument {
   }
 
   @GET
-  public Response get(@Context final UriInfo uriInfo) {
+  public Response get(@Context final UriInfo uriInfo,
+                      @HeaderParam(HttpHeaders.AUTHORIZATION) final String auth,
+                      @HeaderParam(HttpHeaders.COOKIE) final String cookie) {
+    return ImpersonationUtils.runAsUserIfImpersonationEnabled(()
+        -> get(uriInfo), auth, cookie);
+  }
+
+  private Response get(final UriInfo uriInfo) {
     final URI uri = UriBuilder.fromUri(uriInfo.getAbsolutePath())
-        .path(postFix)
-        .build();
+            .path(postFix)
+            .build();
 
     return Response.temporaryRedirect(uri).build();
   }

@@ -15,6 +15,7 @@
 package io.confluent.ksql.rest.server;
 
 import io.confluent.ksql.version.metrics.KsqlVersionCheckerAgent;
+import io.confluent.rest.impersonation.ImpersonationUtils;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
@@ -77,6 +78,7 @@ public class KsqlServerMain {
       properties.put(StreamsConfig.APPLICATION_ID_CONFIG, KSQL_REST_SERVER_DEFAULT_APP_ID);
     }
     final KsqlRestConfig restConfig = new KsqlRestConfig(properties);
+    ImpersonationUtils.initialize(restConfig);
     return KsqlRestApplication.buildApplication(
         restConfig,
         KsqlVersionCheckerAgent::new

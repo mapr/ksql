@@ -77,7 +77,7 @@ public class StatusResourceTest {
   public void testGetAllStatuses() {
     final StatusResource testResource = getTestStatusResource();
 
-    final Object statusesEntity = testResource.getAllStatuses().getEntity();
+    final Object statusesEntity = testResource.getAllStatuses("", "").getEntity();
     assertThat(statusesEntity, instanceOf(CommandStatuses.class));
     final CommandStatuses testCommandStatuses = (CommandStatuses) statusesEntity;
 
@@ -95,7 +95,7 @@ public class StatusResourceTest {
       final CommandId commandId = commandEntry.getKey();
       final CommandStatus expectedCommandStatus = commandEntry.getValue();
 
-      final Object statusEntity = testResource.getStatus(commandId.getType().name(), commandId.getEntity(), commandId.getAction().name()).getEntity();
+      final Object statusEntity = testResource.getStatus(commandId.getType().name(), commandId.getEntity(), commandId.getAction().name(), "", "").getEntity();
       assertThat(statusEntity, instanceOf(CommandStatus.class));
       final CommandStatus testCommandStatus = (CommandStatus) statusEntity;
 
@@ -107,7 +107,7 @@ public class StatusResourceTest {
   public void testGetStatusNotFound() throws Exception {
     final StatusResource testResource = getTestStatusResource();
     final Response response = testResource.getStatus(
-        CommandId.Type.STREAM.name(), "foo", CommandId.Action.CREATE.name());
+        CommandId.Type.STREAM.name(), "foo", CommandId.Action.CREATE.name(), "", "");
     assertThat(response.getStatus(), equalTo(Response.Status.NOT_FOUND.getStatusCode()));
     assertThat(response.getEntity(), instanceOf(KsqlErrorMessage.class));
     final KsqlErrorMessage errorMessage = (KsqlErrorMessage)response.getEntity();

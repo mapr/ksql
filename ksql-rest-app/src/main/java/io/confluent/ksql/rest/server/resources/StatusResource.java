@@ -19,11 +19,15 @@ import io.confluent.ksql.rest.entity.CommandStatuses;
 import io.confluent.ksql.rest.entity.Versions;
 import io.confluent.ksql.rest.server.computation.CommandId;
 import io.confluent.ksql.rest.server.computation.StatementExecutor;
+import io.confluent.rest.impersonation.ImpersonationUtils;
+
 import java.util.Optional;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -38,7 +42,13 @@ public class StatusResource {
   }
 
   @GET
-  public Response getAllStatuses() {
+  public Response getAllStatuses(@HeaderParam(HttpHeaders.AUTHORIZATION) final String auth,
+                                 @HeaderParam(HttpHeaders.COOKIE) final String cookie) {
+    return ImpersonationUtils.runAsUserIfImpersonationEnabled(()
+        -> getAllStatuses(), auth, cookie);
+  }
+
+  private Response getAllStatuses() {
     return Response.ok(CommandStatuses.fromFullStatuses(statementExecutor.getStatuses())).build();
   }
 
@@ -47,7 +57,15 @@ public class StatusResource {
   public Response getStatus(
       @PathParam("type") final String type,
       @PathParam("entity") final String entity,
-      @PathParam("action") final String action) {
+      @PathParam("action") final String action,
+      @HeaderParam(HttpHeaders.AUTHORIZATION) final String auth,
+      @HeaderParam(HttpHeaders.COOKIE) final String cookie) {
+    return ImpersonationUtils.runAsUserIfImpersonationEnabled(()
+        -> getStatus(type, entity, action), auth, cookie);
+  }
+
+  private Response getStatus(final String type, final String entity,
+                                     final String action) {
     final CommandId commandId = new CommandId(type, entity, action);
 
     final Optional<CommandStatus> commandStatus = statementExecutor.getStatus(commandId);

@@ -15,9 +15,13 @@
 package io.confluent.ksql.rest.server.resources;
 
 import io.confluent.ksql.rest.entity.Versions;
+import io.confluent.rest.impersonation.ImpersonationUtils;
+
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -32,7 +36,13 @@ public class ServerInfoResource {
   }
 
   @GET
-  public Response get() {
+  public Response get(@HeaderParam(HttpHeaders.AUTHORIZATION) final String auth,
+                      @HeaderParam(HttpHeaders.COOKIE) final String cookie) {
+    return ImpersonationUtils.runAsUserIfImpersonationEnabled(()
+        -> get(), auth, cookie);
+  }
+
+  private Response get() {
     return Response.ok(serverInfo).build();
   }
 }
