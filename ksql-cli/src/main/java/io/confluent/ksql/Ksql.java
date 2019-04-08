@@ -21,8 +21,10 @@ import io.confluent.ksql.rest.client.KsqlRestClient;
 import io.confluent.ksql.util.ErrorMessageUtil;
 import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.ksql.util.KsqlException;
+import io.confluent.ksql.util.Pair;
 import io.confluent.ksql.version.metrics.KsqlVersionCheckerAgent;
 import io.confluent.ksql.version.metrics.collector.KsqlModuleType;
+import java.io.Console;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Optional;
@@ -45,13 +47,16 @@ public final class Ksql {
     }
 
     try {
-
       final Properties properties = loadProperties(options.getConfigFile());
       final KsqlRestClient restClient = new KsqlRestClient(options.getServer(), properties);
+      Optional<String> authMethod = options.getAuthMethod();
 
-      options.getUserNameAndPassword().ifPresent(
-          creds -> restClient.setupAuthenticationCredentials(creds.left, creds.right)
-      );
+      authMethod.ifPresent(method -> {
+        if (method.equals("basic")) {
+          Pair<String, String> credentials = readUsernameAndPassword();
+          restClient.setupAuthenticationCredentials(credentials.left, credentials.right);
+        }
+      });
 
       final KsqlVersionCheckerAgent versionChecker = new KsqlVersionCheckerAgent(() -> false);
       versionChecker.start(KsqlModuleType.CLI, properties);
@@ -88,5 +93,18 @@ public final class Ksql {
       }
     });
     return properties;
+  }
+
+  private static Pair<String, String> readUsernameAndPassword() {
+    Console console = System.console();
+
+    console.printf("Username: ");
+    String username = console.readLine();
+
+    console.printf("Password: ");
+    char[] passwordChars = console.readPassword();
+    String password = new String(passwordChars);
+
+    return new Pair<>(username, password);
   }
 }
