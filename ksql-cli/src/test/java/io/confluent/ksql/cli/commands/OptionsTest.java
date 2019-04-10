@@ -26,25 +26,25 @@ public class OptionsTest {
   @Test(expected = ConfigException.class)
   public void shouldThrowConfigExceptionIfOnlyUsernameIsProvided() throws Exception {
     final Options options = Options.parse("http://foobar", "-u", "joe");
-    options.getUserNameAndPassword();
+    options.getAuthMethod();
   }
 
   @Test(expected = ConfigException.class)
   public void shouldThrowConfigExceptionIfOnlyPasswordIsProvided() throws Exception {
     final Options options = Options.parse("http://foobar", "-p", "joe");
-    options.getUserNameAndPassword();
+    options.getAuthMethod();
   }
 
   @Test
   public void shouldReturnUserPasswordPairWhenBothProvided() throws Exception {
     final Options options = Options.parse("http://foobar", "-u", "joe", "-p", "joe");
-    assertTrue(options.getUserNameAndPassword().isPresent());
+    assertTrue(options.getAuthMethod().isPresent());
   }
 
   @Test
   public void shouldReturnEmptyOptionWhenUserAndPassNotPresent() throws Exception {
     final Options options = Options.parse("http://foobar");
-    assertFalse(options.getUserNameAndPassword().isPresent());
+    assertFalse(options.getAuthMethod().isPresent());
   }
 
 }

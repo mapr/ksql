@@ -33,6 +33,7 @@ import org.apache.kafka.streams.StreamsConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+// CHECKSTYLE_RULES.OFF: ClassDataAbstractionCoupling
 public final class Ksql {
   private static final Logger LOGGER = LoggerFactory.getLogger(Ksql.class);
 
@@ -49,11 +50,11 @@ public final class Ksql {
     try {
       final Properties properties = loadProperties(options.getConfigFile());
       final KsqlRestClient restClient = new KsqlRestClient(options.getServer(), properties);
-      Optional<String> authMethod = options.getAuthMethod();
+      final Optional<String> authMethod = options.getAuthMethod();
 
       authMethod.ifPresent(method -> {
         if (method.equals("basic")) {
-          Pair<String, String> credentials = readUsernameAndPassword();
+          final Pair<String, String> credentials = readUsernameAndPassword();
           restClient.setupAuthenticationCredentials(credentials.left, credentials.right);
         }
       });
@@ -96,14 +97,14 @@ public final class Ksql {
   }
 
   private static Pair<String, String> readUsernameAndPassword() {
-    Console console = System.console();
+    final Console console = System.console();
 
     console.printf("Username: ");
-    String username = console.readLine();
+    final String username = console.readLine();
 
     console.printf("Password: ");
-    char[] passwordChars = console.readPassword();
-    String password = new String(passwordChars);
+    final char[] passwordChars = console.readPassword();
+    final String password = new String(passwordChars);
 
     return new Pair<>(username, password);
   }
