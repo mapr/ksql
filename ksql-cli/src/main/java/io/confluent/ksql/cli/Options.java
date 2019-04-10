@@ -116,4 +116,9 @@ public class Options {
   public Optional<String> getAuthMethod() {
     return Optional.ofNullable(authMethod);
   }
+
+  public void setAuthMethod(final String authMethod) {
+    this.authMethod = authMethod;
+  }
+
 }

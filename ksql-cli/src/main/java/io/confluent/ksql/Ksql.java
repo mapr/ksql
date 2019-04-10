@@ -17,6 +17,7 @@ package io.confluent.ksql;
 import io.confluent.ksql.cli.Cli;
 import io.confluent.ksql.cli.Options;
 import io.confluent.ksql.cli.console.JLineTerminal;
+import io.confluent.ksql.rest.client.AuthenticationUtils;
 import io.confluent.ksql.rest.client.KsqlRestClient;
 import io.confluent.ksql.util.ErrorMessageUtil;
 import io.confluent.ksql.util.KsqlConfig;
@@ -24,11 +25,13 @@ import io.confluent.ksql.util.KsqlException;
 import io.confluent.ksql.util.Pair;
 import io.confluent.ksql.version.metrics.KsqlVersionCheckerAgent;
 import io.confluent.ksql.version.metrics.collector.KsqlModuleType;
-import java.io.Console;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.Properties;
+
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.kafka.streams.StreamsConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,8 +44,14 @@ public final class Ksql {
   }
 
   public static void main(final String[] args) throws IOException {
-    final Options options = args.length == 0 ? Options.parse("http://localhost:8084")
+    final boolean secureCluster = UserGroupInformation.isSecurityEnabled();
+    final String defaultKsqlServerUrl = secureCluster ? "https://localhost:8084"
+                                                      : "http://localhost:8084";
+    final Options options = args.length == 0 ? Options.parse(defaultKsqlServerUrl)
                                              : Options.parse(args);
+    if (secureCluster && !options.getAuthMethod().isPresent()) {
+      options.setAuthMethod("maprsasl");
+    }
     if (options == null) {
       System.exit(-1);
     }
@@ -54,8 +63,12 @@ public final class Ksql {
 
       authMethod.ifPresent(method -> {
         if (method.equals("basic")) {
-          final Pair<String, String> credentials = readUsernameAndPassword();
+          final Pair<String, String> credentials = AuthenticationUtils.readUsernameAndPassword();
           restClient.setupAuthenticationCredentials(credentials.left, credentials.right);
+        }
+        if (method.equals("maprsasl")) {
+          final String readChallangeString = AuthenticationUtils.readChallengeString();
+          restClient.setChallengeStringForAuthentication(readChallangeString);
         }
       });
 
@@ -96,16 +109,4 @@ public final class Ksql {
     return properties;
   }
 
-  private static Pair<String, String> readUsernameAndPassword() {
-    final Console console = System.console();
-
-    console.printf("Username: ");
-    final String username = console.readLine();
-
-    console.printf("Password: ");
-    final char[] passwordChars = console.readPassword();
-    final String password = new String(passwordChars);
-
-    return new Pair<>(username, password);
-  }
 }

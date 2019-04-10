@@ -53,6 +53,7 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+
 import org.apache.commons.compress.utils.IOUtils;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 
@@ -76,6 +77,8 @@ public class KsqlRestClient implements Closeable {
   private URI serverAddress;
 
   private final LocalProperties localProperties;
+
+  private String maprSaslAuthHeader;
 
   public KsqlRestClient(final String serverAddress) {
     this(serverAddress, Collections.emptyMap());
@@ -161,10 +164,14 @@ public class KsqlRestClient implements Closeable {
 
   private <T> RestResponse<T> getRequest(final String path, final Class<T> type) {
 
-    try (Response response = client.target(serverAddress)
-        .path(path)
-        .request(MediaType.APPLICATION_JSON_TYPE)
-        .get()) {
+    final javax.ws.rs.client.Invocation.Builder requestBuilder =
+            client.target(serverAddress).path(path)
+                    .request(MediaType.APPLICATION_JSON_TYPE);
+    if (maprSaslAuthHeader != null) {
+      requestBuilder.header("Authorization", maprSaslAuthHeader);
+    }
+
+    try (Response response = requestBuilder.get()) {
 
       return response.getStatus() == Response.Status.OK.getStatusCode()
           ? RestResponse.successful(response.readEntity(type))
@@ -181,13 +188,17 @@ public class KsqlRestClient implements Closeable {
       final boolean closeResponse,
       final Function<Response, T> mapper) {
 
+    final javax.ws.rs.client.Invocation.Builder requestBuilder =  client.target(serverAddress)
+            .path(path)
+            .request(MediaType.APPLICATION_JSON_TYPE);
+    if (maprSaslAuthHeader != null) {
+      requestBuilder.header("Authorization", maprSaslAuthHeader);
+    }
+
     Response response = null;
 
     try {
-      response = client.target(serverAddress)
-          .path(path)
-          .request(MediaType.APPLICATION_JSON_TYPE)
-          .post(Entity.json(jsonEntity));
+      response = requestBuilder.post(Entity.json(jsonEntity));
 
       return response.getStatus() == Response.Status.OK.getStatusCode()
           ? RestResponse.successful(mapper.apply(response))
@@ -226,6 +237,10 @@ public class KsqlRestClient implements Closeable {
 
     return RestResponse.erroneous(
         Errors.toErrorCode(response.getStatus()), "The server returned an unexpected error.");
+  }
+
+  public void setChallengeStringForAuthentication(final String challangeString) {
+    maprSaslAuthHeader = String.format("MAPR-Negotiate %s", challangeString);
   }
 
   public static final class QueryStream implements Closeable, Iterator<StreamedRow> {
