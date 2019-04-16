@@ -51,6 +51,7 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -79,6 +80,8 @@ public class KsqlRestClient implements Closeable {
   private final LocalProperties localProperties;
 
   private String maprSaslAuthHeader;
+
+  private NewCookie hadoopAuth;
 
   public KsqlRestClient(final String serverAddress) {
     this(serverAddress, Collections.emptyMap());
@@ -167,11 +170,10 @@ public class KsqlRestClient implements Closeable {
     final javax.ws.rs.client.Invocation.Builder requestBuilder =
             client.target(serverAddress).path(path)
                     .request(MediaType.APPLICATION_JSON_TYPE);
-    if (maprSaslAuthHeader != null) {
-      requestBuilder.header("Authorization", maprSaslAuthHeader);
-    }
+    setMapRAuthentication(requestBuilder);
 
     try (Response response = requestBuilder.get()) {
+      extractAuthCookieFromResponse(response);
 
       return response.getStatus() == Response.Status.OK.getStatusCode()
           ? RestResponse.successful(response.readEntity(type))
@@ -191,14 +193,13 @@ public class KsqlRestClient implements Closeable {
     final javax.ws.rs.client.Invocation.Builder requestBuilder =  client.target(serverAddress)
             .path(path)
             .request(MediaType.APPLICATION_JSON_TYPE);
-    if (maprSaslAuthHeader != null) {
-      requestBuilder.header("Authorization", maprSaslAuthHeader);
-    }
+    setMapRAuthentication(requestBuilder);
 
     Response response = null;
 
     try {
       response = requestBuilder.post(Entity.json(jsonEntity));
+      extractAuthCookieFromResponse(response);
 
       return response.getStatus() == Response.Status.OK.getStatusCode()
           ? RestResponse.successful(mapper.apply(response))
@@ -241,6 +242,23 @@ public class KsqlRestClient implements Closeable {
 
   public void setChallengeStringForAuthentication(final String challangeString) {
     maprSaslAuthHeader = String.format("MAPR-Negotiate %s", challangeString);
+  }
+
+  private void extractAuthCookieFromResponse(Response response) {
+    final NewCookie hadoopAuth = response.getCookies().get("hadoop.auth");
+    if (hadoopAuth != null) {
+      this.hadoopAuth = hadoopAuth;
+    }
+  }
+
+  private void setMapRAuthentication(javax.ws.rs.client.Invocation.Builder requestBuilder) {
+    if (hadoopAuth != null) {
+      requestBuilder.cookie(hadoopAuth.toCookie());
+      return;
+    }
+    if (maprSaslAuthHeader != null) {
+      requestBuilder.header("Authorization", maprSaslAuthHeader);
+    }
   }
 
   public static final class QueryStream implements Closeable, Iterator<StreamedRow> {
