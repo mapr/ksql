@@ -19,7 +19,9 @@ import com.google.common.collect.Maps;
 import io.confluent.ksql.parser.tree.Statement;
 import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.ksql.util.KsqlException;
+import io.confluent.rest.impersonation.ImpersonationUtils;
 import java.io.Closeable;
+import java.io.IOException;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
@@ -27,6 +29,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -94,11 +97,22 @@ public class CommandStore implements ReplayableCommandQueue, Closeable {
       final Statement statement,
       final KsqlConfig ksqlConfig,
       final Map<String, Object> overwriteProperties) {
+    final String userName;
+    if (ImpersonationUtils.isImpersonationEnabled()) {
+      try {
+        userName = UserGroupInformation.getCurrentUser().getUserName();
+      } catch (IOException e) {
+        throw io.confluent.rest.impersonation.Errors.serverLoginException(e);
+      }
+    } else {
+      userName = "mapr";
+    }
     final CommandId commandId = commandIdAssigner.getCommandId(statement);
     final Command command = new Command(
         statementString,
         overwriteProperties,
-        ksqlConfig.getAllConfigPropsWithSecretsObfuscated());
+        ksqlConfig.getAllConfigPropsWithSecretsObfuscated(),
+        userName);
     final QueuedCommandStatus status = new QueuedCommandStatus(commandId);
     this.commandStatusMap.compute(
         commandId,

@@ -124,7 +124,8 @@ public class RecoveryTest {
               new Command(
                   statementString,
                   Collections.emptyMap(),
-                  ksqlConfig.getAllConfigPropsWithSecretsObfuscated()),
+                  ksqlConfig.getAllConfigPropsWithSecretsObfuscated(),
+                  null),
               Optional.empty()));
       return new QueuedCommandStatus(commandId);
     }
@@ -578,7 +579,7 @@ public class RecoveryTest {
                     "CREATE STREAM A (COLUMN STRING) "
                         + "WITH (KAFKA_TOPIC='A', VALUE_FORMAT='JSON');",
                     Collections.emptyMap(),
-                    null
+                    null, null
                 )
             ),
             new QueuedCommand(
@@ -586,7 +587,7 @@ public class RecoveryTest {
                 new Command(
                     "CREATE STREAM B AS SELECT * FROM A;",
                     Collections.emptyMap(),
-                    null
+                    null, null
                 )
             )
         )
@@ -599,7 +600,7 @@ public class RecoveryTest {
     commands.add(
         new QueuedCommand(
             new CommandId(Type.STREAM, "B", Action.DROP),
-            new Command("DROP STREAM B;", Collections.emptyMap(), null)
+            new Command("DROP STREAM B;", Collections.emptyMap(), null, null)
         )
     );
     final KsqlServer recovered = new KsqlServer(commands);

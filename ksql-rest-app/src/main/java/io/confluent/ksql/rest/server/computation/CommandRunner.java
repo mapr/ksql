@@ -14,11 +14,15 @@
 
 package io.confluent.ksql.rest.server.computation;
 
+import io.confluent.rest.impersonation.ImpersonationUtils;
 import java.io.Closeable;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.security.PrivilegedAction;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.kafka.common.errors.WakeupException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,7 +94,17 @@ public class CommandRunner implements Runnable, Closeable {
   private void executeStatement(final QueuedCommand queuedCommand) {
     log.info("Executing statement: " + queuedCommand.getCommand().getStatement());
     try {
-      statementExecutor.handleStatement(queuedCommand);
+      final String user = queuedCommand.getCommand().getUser();
+      if (ImpersonationUtils.isImpersonationEnabled() && user != null) {
+        final UserGroupInformation ugi =
+                UserGroupInformation.createProxyUser(user, UserGroupInformation.getLoginUser());
+        ugi.doAs((PrivilegedAction<Object>) () -> {
+          statementExecutor.handleStatement(queuedCommand);
+          return null;
+        });
+      } else {
+        statementExecutor.handleStatement(queuedCommand);
+      }
     } catch (final WakeupException wue) {
       throw wue;
     } catch (final Exception exception) {

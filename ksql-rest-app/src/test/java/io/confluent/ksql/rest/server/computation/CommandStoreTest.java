@@ -83,7 +83,7 @@ public class CommandStoreTest {
   private final Statement statement = mock(Statement.class);
   private final Future<RecordMetadata> future = niceMock(Future.class);
   private final Command command =
-      new Command(statementText, Collections.emptyMap(), Collections.emptyMap());
+      new Command(statementText, Collections.emptyMap(), Collections.emptyMap(), null);
   private final Node node = mock(Node.class);
 
   @Test
@@ -92,11 +92,11 @@ public class CommandStoreTest {
     final CommandId dropId = new CommandId(CommandId.Type.TABLE, "one", CommandId.Action.DROP);
     final KsqlConfig ksqlConfig = new KsqlConfig(Collections.emptyMap());
     final Command originalCommand = new Command(
-        "some statement", Collections.emptyMap(), ksqlConfig.getAllConfigPropsWithSecretsObfuscated());
+        "some statement", Collections.emptyMap(), ksqlConfig.getAllConfigPropsWithSecretsObfuscated(), null);
     final Command dropCommand = new Command(
-        "drop", Collections.emptyMap(), ksqlConfig.getAllConfigPropsWithSecretsObfuscated());
+        "drop", Collections.emptyMap(), ksqlConfig.getAllConfigPropsWithSecretsObfuscated(), null);
     final Command latestCommand = new Command(
-        "a new statement", Collections.emptyMap(), ksqlConfig.getAllConfigPropsWithSecretsObfuscated());
+        "a new statement", Collections.emptyMap(), ksqlConfig.getAllConfigPropsWithSecretsObfuscated(), null);
 
     final ConsumerRecords<CommandId, Command> records = buildRecords(
       createId, originalCommand,
@@ -218,7 +218,7 @@ public class CommandStoreTest {
     // Given:
     final CommandId id = new CommandId(CommandId.Type.TABLE, "one", CommandId.Action.CREATE);
     final Command command = new Command(
-        "some statement", Collections.emptyMap(), Collections.emptyMap());
+        "some statement", Collections.emptyMap(), Collections.emptyMap(), null);
     final ConsumerRecords<CommandId, Command> records = buildRecords(
         id, null,
         id, command);
@@ -239,7 +239,7 @@ public class CommandStoreTest {
     // Given:
     final CommandId id = new CommandId(CommandId.Type.TABLE, "one", CommandId.Action.CREATE);
     final Command command = new Command(
-        "some statement", Collections.emptyMap(), Collections.emptyMap());
+        "some statement", Collections.emptyMap(), Collections.emptyMap(), null);
     final ConsumerRecords<CommandId, Command> records = buildRecords(
         id, null,
         id, command);

@@ -26,17 +26,20 @@ public class Command {
   private final String statement;
   private final Map<String, Object> overwriteProperties;
   private final Map<String, String> originalProperties;
+  private final String user;
   private final boolean preVersion5;
 
   @JsonCreator
   public Command(@JsonProperty("statement") final String statement,
                  @JsonProperty("streamsProperties") final Map<String, Object> overwriteProperties,
-                 @JsonProperty("originalProperties") final Map<String, String> originalProperties) {
+                 @JsonProperty("originalProperties") final Map<String, String> originalProperties,
+                 @JsonProperty("user") final String user) {
     this.statement = statement;
     this.overwriteProperties = Collections.unmodifiableMap(overwriteProperties);
     this.preVersion5 = originalProperties == null;
     this.originalProperties =
         originalProperties == null ? Collections.emptyMap() : originalProperties;
+    this.user = user;
   }
 
   @JsonProperty("statement")
@@ -54,6 +57,11 @@ public class Command {
     return originalProperties;
   }
 
+  @JsonProperty("user")
+  public String getUser() {
+    return user;
+  }
+
   boolean isPreVersion5() {
     return this.preVersion5;
   }
@@ -64,12 +72,13 @@ public class Command {
         o instanceof Command
         && Objects.equals(statement, ((Command)o).statement)
         && Objects.equals(overwriteProperties, ((Command)o).overwriteProperties)
-        && Objects.equals(originalProperties, ((Command)o).originalProperties);
+        && Objects.equals(originalProperties, ((Command)o).originalProperties)
+        && Objects.equals(user, ((Command)o).user);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(statement, overwriteProperties, originalProperties);
+    return Objects.hash(statement, overwriteProperties, originalProperties, user);
   }
 
   @Override

@@ -40,6 +40,8 @@ import io.confluent.ksql.util.KsqlConstants;
 import io.confluent.ksql.util.KsqlException;
 import io.confluent.ksql.util.PersistentQueryMetadata;
 import io.confluent.ksql.util.QueryMetadata;
+
+import java.security.PrivilegedAction;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -47,6 +49,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
+import io.confluent.rest.impersonation.ImpersonationUtils;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.kafka.common.errors.WakeupException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,12 +89,28 @@ public class StatementExecutor {
         command -> {
           log.info("Executing prior statement: '{}'", command);
           try {
-            handleStatementWithTerminatedQueries(
-                command.getCommand(),
-                command.getCommandId(),
-                Optional.empty(),
-                Mode.RESTORE
-            );
+            final String user = command.getCommand().getUser();
+            if (ImpersonationUtils.isImpersonationEnabled() && user != null) {
+              final UserGroupInformation ugi =
+                      UserGroupInformation.createProxyUser(user,
+                              UserGroupInformation.getLoginUser());
+              ugi.doAs((PrivilegedAction<Object>) () -> {
+                handleStatementWithTerminatedQueries(
+                        command.getCommand(),
+                        command.getCommandId(),
+                        Optional.empty(),
+                        Mode.RESTORE
+                );
+                return null;
+              });
+            } else {
+              handleStatementWithTerminatedQueries(
+                      command.getCommand(),
+                      command.getCommandId(),
+                      Optional.empty(),
+                      Mode.RESTORE
+              );
+            }
           } catch (final Exception exception) {
             log.warn(
                 "Failed to execute statement due to exception",
