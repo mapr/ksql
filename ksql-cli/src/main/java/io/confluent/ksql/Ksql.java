@@ -17,12 +17,10 @@ package io.confluent.ksql;
 import io.confluent.ksql.cli.Cli;
 import io.confluent.ksql.cli.Options;
 import io.confluent.ksql.cli.console.JLineTerminal;
-import io.confluent.ksql.rest.client.AuthenticationUtils;
 import io.confluent.ksql.rest.client.KsqlRestClient;
 import io.confluent.ksql.util.ErrorMessageUtil;
 import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.ksql.util.KsqlException;
-import io.confluent.ksql.util.Pair;
 import io.confluent.ksql.version.metrics.KsqlVersionCheckerAgent;
 import io.confluent.ksql.version.metrics.collector.KsqlModuleType;
 
@@ -58,20 +56,9 @@ public final class Ksql {
 
     try {
       final Properties properties = loadProperties(options.getConfigFile());
-      final KsqlRestClient restClient = new KsqlRestClient(options.getServer(), properties);
-      final Optional<String> authMethod = options.getAuthMethod();
-
-      authMethod.ifPresent(method -> {
-        if (method.equals("basic")) {
-          final Pair<String, String> credentials = AuthenticationUtils.readUsernameAndPassword();
-          restClient.setupAuthenticationCredentials(credentials.left, credentials.right);
-        }
-        if (method.equals("maprsasl")) {
-          final String readChallangeString = AuthenticationUtils.readChallengeString();
-          restClient.setChallengeStringForAuthentication(readChallangeString);
-        }
-      });
-
+      final KsqlRestClient restClient = new KsqlRestClient(options.getServer(),
+              properties,
+              options.getAuthMethod());
       final KsqlVersionCheckerAgent versionChecker = new KsqlVersionCheckerAgent(() -> false);
       versionChecker.start(KsqlModuleType.CLI, properties);
 

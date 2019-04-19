@@ -141,10 +141,6 @@ public class BasicAuthFunctionalTest {
   private int canMakeCliRequest(final String username, final String password) {
     try (KsqlRestClient restClient = new KsqlRestClient(REST_APP.getHttpListener().toString())) {
 
-      if (!username.isEmpty()) {
-        restClient.setupAuthenticationCredentials(username, password);
-      }
-
       final RestResponse<ServerInfo> response = restClient.getServerInfo();
       if (response.isSuccessful()) {
         return Code.OK.getCode();

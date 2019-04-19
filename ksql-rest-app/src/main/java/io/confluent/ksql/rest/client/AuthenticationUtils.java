@@ -9,9 +9,12 @@ import java.io.Console;
 
 public class AuthenticationUtils {
 
-  public static Pair<String, String> readUsernameAndPassword() {
+  public static Pair<String, String> readUsernameAndPassword(boolean sesssionExpired) {
     Console console = System.console();
 
+    if (sesssionExpired) {
+      console.printf("Session is expired. Please, relogin...\n");
+    }
     console.printf("Username: ");
     String username = console.readLine();
 

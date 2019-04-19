@@ -28,20 +28,24 @@ import io.confluent.ksql.rest.entity.ServerInfo;
 import io.confluent.ksql.rest.entity.StreamedRow;
 import io.confluent.ksql.rest.server.resources.Errors;
 import io.confluent.ksql.rest.util.JsonMapper;
+import io.confluent.ksql.util.Pair;
 import io.confluent.rest.validation.JacksonMessageBodyProvider;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.Scanner;
 import java.util.function.Function;
@@ -50,13 +54,12 @@ import javax.net.ssl.SSLContext;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.compress.utils.IOUtils;
-import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 
 // CHECKSTYLE_RULES.OFF: ClassDataAbstractionCoupling
 public class KsqlRestClient implements Closeable {
@@ -79,21 +82,24 @@ public class KsqlRestClient implements Closeable {
 
   private final LocalProperties localProperties;
 
-  private String maprSaslAuthHeader;
-
-  private NewCookie hadoopAuth;
+  private final String authMethod;
+  private String authHeader;
 
   public KsqlRestClient(final String serverAddress) {
-    this(serverAddress, Collections.emptyMap());
+    this(serverAddress, Collections.emptyMap(), Optional.ofNullable(null));
   }
 
-  public KsqlRestClient(final String serverAddress, final Properties properties) {
-    this(serverAddress, propertiesToMap(properties));
+  public KsqlRestClient(final String serverAddress,
+                        final Properties properties,
+                        final Optional<String> authMethod) {
+    this(serverAddress, propertiesToMap(properties), authMethod);
   }
 
-  public KsqlRestClient(final String serverAddress, final Map<String, Object> localProperties) {
+  public KsqlRestClient(final String serverAddress,
+                        final Map<String, Object> localProperties,
+                        final Optional<String> authMethod) {
     this(buildClient(initializeSslContext(serverAddress, localProperties)),
-            serverAddress, localProperties);
+            serverAddress, localProperties, authMethod);
   }
 
   private static SSLContext initializeSslContext(final String serverAddress,
@@ -107,18 +113,30 @@ public class KsqlRestClient implements Closeable {
   // Visible for testing
   KsqlRestClient(final Client client,
                  final String serverAddress,
-                 final Map<String, Object> localProperties) {
+                 final Map<String, Object> localProperties,
+                 final Optional<String> authMethod) {
     this.client = Objects.requireNonNull(client, "client");
     this.serverAddress = parseServerAddress(serverAddress);
     this.localProperties = new LocalProperties(localProperties);
+    if (authMethod.isPresent()) {
+      this.authMethod = authMethod.get();
+      setupAuthenticationCredentials(false);
+    } else {
+      this.authMethod = "None";
+    }
   }
 
-  public void setupAuthenticationCredentials(final String userName, final String password) {
-    final HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(
-        Objects.requireNonNull(userName),
-        Objects.requireNonNull(password)
-    );
-    client.register(feature);
+  private void setupAuthenticationCredentials(boolean sessionExpired) {
+    if (authMethod.equalsIgnoreCase("basic")) {
+      final Pair<String, String> credentials = AuthenticationUtils
+              .readUsernameAndPassword(sessionExpired);
+      this.setBasicAuthHeader(Objects.requireNonNull(credentials.left),
+              Objects.requireNonNull(credentials.right));
+    }
+    if (authMethod.equalsIgnoreCase("maprsasl")) {
+      final String readChallangeString = AuthenticationUtils.readChallengeString();
+      this.setMapRSaslAuthHeader(readChallangeString);
+    }
   }
 
   public URI getServerAddress() {
@@ -170,10 +188,18 @@ public class KsqlRestClient implements Closeable {
     final javax.ws.rs.client.Invocation.Builder requestBuilder =
             client.target(serverAddress).path(path)
                     .request(MediaType.APPLICATION_JSON_TYPE);
-    setMapRAuthentication(requestBuilder);
+    setAuthHeaderOrCookieIfNeeded(requestBuilder);
 
-    try (Response response = requestBuilder.get()) {
+    Response response = null;
+
+    try {
+      response = requestBuilder.get();
       extractAuthCookieFromResponse(response);
+      final boolean retry = reAuthenticateIfNeeded(response);
+      if (retry) {
+        response.close();
+        response = requestBuilder.get();
+      }
 
       return response.getStatus() == Response.Status.OK.getStatusCode()
           ? RestResponse.successful(response.readEntity(type))
@@ -181,6 +207,10 @@ public class KsqlRestClient implements Closeable {
 
     } catch (final Exception e) {
       throw new KsqlRestClientException("Error issuing GET to KSQL server. path:" + path, e);
+    } finally {
+      if (response != null) {
+        response.close();
+      }
     }
   }
 
@@ -193,13 +223,18 @@ public class KsqlRestClient implements Closeable {
     final javax.ws.rs.client.Invocation.Builder requestBuilder =  client.target(serverAddress)
             .path(path)
             .request(MediaType.APPLICATION_JSON_TYPE);
-    setMapRAuthentication(requestBuilder);
+    setAuthHeaderOrCookieIfNeeded(requestBuilder);
 
     Response response = null;
 
     try {
       response = requestBuilder.post(Entity.json(jsonEntity));
       extractAuthCookieFromResponse(response);
+      final boolean retry = reAuthenticateIfNeeded(response);
+      if (retry) {
+        response.close();
+        response = requestBuilder.get();
+      }
 
       return response.getStatus() == Response.Status.OK.getStatusCode()
           ? RestResponse.successful(mapper.apply(response))
@@ -240,24 +275,60 @@ public class KsqlRestClient implements Closeable {
         Errors.toErrorCode(response.getStatus()), "The server returned an unexpected error.");
   }
 
-  public void setChallengeStringForAuthentication(final String challangeString) {
-    maprSaslAuthHeader = String.format("MAPR-Negotiate %s", challangeString);
+  private void setMapRSaslAuthHeader(final String challangeString) {
+    authHeader = String.format("MAPR-Negotiate %s", challangeString);
+  }
+
+  private void setBasicAuthHeader(final String user,
+                                  final String password) {
+    final byte[] userPass;
+    try {
+      userPass = String.format("%s:%s",user, password).getBytes("UTF-8");
+    } catch (UnsupportedEncodingException e) {
+      throw new RuntimeException(e);
+    }
+    final String encoding = Base64.getEncoder().encodeToString(userPass);
+    authHeader = String.format("Basic %s", encoding);
   }
 
   private void extractAuthCookieFromResponse(Response response) {
-    final NewCookie hadoopAuth = response.getCookies().get("hadoop.auth");
-    if (hadoopAuth != null) {
-      this.hadoopAuth = hadoopAuth;
-    }
-  }
-
-  private void setMapRAuthentication(javax.ws.rs.client.Invocation.Builder requestBuilder) {
-    if (hadoopAuth != null) {
-      requestBuilder.cookie(hadoopAuth.toCookie());
+    if (authHeader == null) {
       return;
     }
-    if (maprSaslAuthHeader != null) {
-      requestBuilder.header("Authorization", maprSaslAuthHeader);
+
+    final Optional<String> hadoopAuth = Optional.ofNullable(response.getHeaderString("Set-Cookie"));
+    hadoopAuth.ifPresent((value) -> {
+      if (value.startsWith("hadoop.auth")) {
+        authHeader = value;
+      }
+    });
+  }
+
+  private boolean reAuthenticateIfNeeded(Response response) {
+    if (authHeader == null) {
+      return false;
+    }
+
+    if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()
+        &&
+        authHeader.startsWith("hadoop.auth")) {
+
+      setupAuthenticationCredentials(true);
+      return true;
+    }
+
+    return false;
+  }
+
+  private void setAuthHeaderOrCookieIfNeeded(javax.ws.rs.client.Invocation.Builder requestBuilder) {
+    if (authHeader == null) {
+      return;
+    }
+
+    if (authHeader.startsWith("hadoop.auth")) {
+      requestBuilder.header(HttpHeaders.COOKIE, authHeader);
+    } else {
+      requestBuilder.header(HttpHeaders.AUTHORIZATION, authHeader);
     }
   }
 

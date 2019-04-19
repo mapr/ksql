@@ -403,7 +403,7 @@ public class KsqlRestClientTest {
 
     EasyMock.replay(client, target, builder, response);
 
-    ksqlRestClient = new KsqlRestClient(client, "http://0.0.0.0", Collections.emptyMap());
+    ksqlRestClient = new KsqlRestClient(client, "http://0.0.0.0", Collections.emptyMap(), null);
   }
 
   private static Thread givenStreamWillBeClosedIn(final Duration duration, final Closeable stream) {
