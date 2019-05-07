@@ -33,7 +33,6 @@ import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.TopicPartition;
@@ -53,19 +52,19 @@ public class CommandStore implements ReplayableCommandQueue, Closeable {
 
   private final String commandTopic;
   private final Consumer<CommandId, Command> commandConsumer;
-  private final Producer<CommandId, Command> commandProducer;
+  private final ProducerPool commandProducerPool;
   private final CommandIdAssigner commandIdAssigner;
   private final Map<CommandId, QueuedCommandStatus> commandStatusMap;
 
   public CommandStore(
       final String commandTopic,
       final Consumer<CommandId, Command> commandConsumer,
-      final Producer<CommandId, Command> commandProducer,
+      final ProducerPool commandProducerPool,
       final CommandIdAssigner commandIdAssigner
   ) {
     this.commandTopic = commandTopic;
     this.commandConsumer = commandConsumer;
-    this.commandProducer = commandProducer;
+    this.commandProducerPool = commandProducerPool;
     this.commandIdAssigner = commandIdAssigner;
     this.commandStatusMap = Maps.newConcurrentMap();
 
@@ -78,7 +77,7 @@ public class CommandStore implements ReplayableCommandQueue, Closeable {
   @Override
   public void close() {
     commandConsumer.wakeup();
-    commandProducer.close();
+    commandProducerPool.close();
   }
 
   /**
@@ -130,7 +129,7 @@ public class CommandStore implements ReplayableCommandQueue, Closeable {
         }
     );
     try {
-      commandProducer.send(new ProducerRecord<>(commandTopic, commandId, command)).get();
+      commandProducerPool.send(new ProducerRecord<>(commandTopic, commandId, command)).get();
     } catch (final Exception e) {
       commandStatusMap.remove(commandId);
       throw new KsqlException(

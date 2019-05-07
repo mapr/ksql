@@ -41,6 +41,7 @@ import io.confluent.ksql.rest.server.computation.CommandId;
 import io.confluent.ksql.rest.server.computation.CommandIdAssigner;
 import io.confluent.ksql.rest.server.computation.CommandRunner;
 import io.confluent.ksql.rest.server.computation.CommandStore;
+import io.confluent.ksql.rest.server.computation.ProducerPool;
 import io.confluent.ksql.rest.server.computation.StatementExecutor;
 import io.confluent.ksql.rest.server.resources.KsqlExceptionMapper;
 import io.confluent.ksql.rest.server.resources.KsqlResource;
@@ -83,7 +84,6 @@ import javax.websocket.server.ServerEndpointConfig.Configurator;
 import javax.ws.rs.core.Configurable;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.common.config.TopicConfig;
 import org.apache.kafka.common.errors.UnsupportedVersionException;
 import org.apache.kafka.common.serialization.Deserializer;
@@ -332,7 +332,7 @@ public final class KsqlRestApplication extends Application<KsqlRestConfig> imple
         getJsonDeserializer(Command.class, false)
     );
 
-    final KafkaProducer<CommandId, Command> commandProducer = new KafkaProducer<>(
+    final ProducerPool commandProducerPool = new ProducerPool(
         restConfig.getCommandProducerProperties(),
         getJsonSerializer(true),
         getJsonSerializer(false)
@@ -349,7 +349,7 @@ public final class KsqlRestApplication extends Application<KsqlRestConfig> imple
     final CommandStore commandStore = new CommandStore(
         commandTopic,
         commandConsumer,
-        commandProducer,
+        commandProducerPool,
         new CommandIdAssigner(ksqlEngine.getMetaStore()));
 
     final CommandRunner commandRunner = new CommandRunner(

@@ -315,7 +315,7 @@ public class CommandStoreTest {
     return new CommandStore(
         COMMAND_TOPIC,
         commandConsumer,
-        commandProducer,
+        new ProducerPool(null, null, null),
         commandIdAssigner);
   }
 
