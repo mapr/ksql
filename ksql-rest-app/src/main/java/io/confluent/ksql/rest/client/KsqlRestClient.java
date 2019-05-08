@@ -194,12 +194,12 @@ public class KsqlRestClient implements Closeable {
 
     try {
       response = requestBuilder.get();
-      extractAuthCookieFromResponse(response);
       final boolean retry = reAuthenticateIfNeeded(response);
       if (retry) {
         response.close();
         response = requestBuilder.get();
       }
+      extractAuthCookieFromResponse(response);
 
       return response.getStatus() == Response.Status.OK.getStatusCode()
           ? RestResponse.successful(response.readEntity(type))
@@ -229,12 +229,12 @@ public class KsqlRestClient implements Closeable {
 
     try {
       response = requestBuilder.post(Entity.json(jsonEntity));
-      extractAuthCookieFromResponse(response);
       final boolean retry = reAuthenticateIfNeeded(response);
       if (retry) {
         response.close();
         response = requestBuilder.get();
       }
+      extractAuthCookieFromResponse(response);
 
       return response.getStatus() == Response.Status.OK.getStatusCode()
           ? RestResponse.successful(mapper.apply(response))
@@ -292,7 +292,9 @@ public class KsqlRestClient implements Closeable {
   }
 
   private void extractAuthCookieFromResponse(Response response) {
-    if (authHeader == null) {
+    if (authHeader == null
+         ||
+        response.getStatus() != Response.Status.OK.getStatusCode()) {
       return;
     }
 
