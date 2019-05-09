@@ -25,6 +25,7 @@ import io.confluent.ksql.parser.SqlBaseParser;
 import io.confluent.ksql.parser.SqlBaseParser.SingleStatementContext;
 import io.confluent.ksql.rest.client.KsqlRestClient;
 import io.confluent.ksql.rest.client.RestResponse;
+import io.confluent.ksql.rest.client.exception.AuthorizationException;
 import io.confluent.ksql.rest.entity.CommandStatus;
 import io.confluent.ksql.rest.entity.CommandStatusEntity;
 import io.confluent.ksql.rest.entity.KsqlEntity;
@@ -100,6 +101,8 @@ public class Cli implements Closeable {
     while (!eof) {
       try {
         handleLine(readLine());
+      } catch (final AuthorizationException e) {
+        throw e;
       } catch (final EndOfFileException exception) {
         // EOF is fine, just terminate the REPL
         terminal.writer().println("Exiting KSQL.");

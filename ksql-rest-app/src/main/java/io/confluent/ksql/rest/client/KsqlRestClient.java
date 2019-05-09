@@ -17,6 +17,7 @@ package io.confluent.ksql.rest.client;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import io.confluent.ksql.rest.client.exception.AuthorizationException;
 import io.confluent.ksql.rest.client.exception.KsqlRestClientException;
 import io.confluent.ksql.rest.client.properties.LocalProperties;
 import io.confluent.ksql.rest.entity.CommandStatus;
@@ -61,6 +62,9 @@ import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.compress.utils.IOUtils;
 
+import static javax.ws.rs.core.Response.Status.FORBIDDEN;
+import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
+
 // CHECKSTYLE_RULES.OFF: ClassDataAbstractionCoupling
 public class KsqlRestClient implements Closeable {
   // CHECKSTYLE_RULES.ON: ClassDataAbstractionCoupling
@@ -68,7 +72,7 @@ public class KsqlRestClient implements Closeable {
   private static final KsqlErrorMessage UNAUTHORIZED_ERROR_MESSAGE = new KsqlErrorMessage(
       Errors.ERROR_CODE_UNAUTHORIZED,
       new AuthenticationException(
-          "Could not authenticate successfully with the supplied credentials.")
+          "Could not authenticate successfully with the supplied credentials or ticket.")
   );
 
   private static final KsqlErrorMessage FORBIDDEN_ERROR_MESSAGE = new KsqlErrorMessage(
@@ -121,6 +125,7 @@ public class KsqlRestClient implements Closeable {
     if (authMethod.isPresent()) {
       this.authMethod = authMethod.get();
       setupAuthenticationCredentials(false);
+      authenticate();
     } else {
       this.authMethod = "None";
     }
@@ -136,6 +141,24 @@ public class KsqlRestClient implements Closeable {
     if (authMethod.equalsIgnoreCase("maprsasl")) {
       final String readChallangeString = AuthenticationUtils.readChallengeString();
       this.setMapRSaslAuthHeader(readChallangeString);
+    }
+  }
+
+  private void authenticate() {
+    final RestResponse<ServerInfo> response = getServerInfo();
+    if (response.isErroneous()) {
+      final KsqlErrorMessage ksqlError = response.getErrorMessage();
+      final int errorCode = Errors.toStatusCode(ksqlError.getErrorCode());
+      if (errorCode == FORBIDDEN.getStatusCode()
+              ||
+              errorCode == UNAUTHORIZED.getStatusCode()) {
+        final String errorMsg = String.format("%s%n%s%n%s%n",
+                "**************** ERROR ********************",
+                "Could not authenticate successfully with the supplied credentials or ticket.",
+                "*******************************************");
+
+        throw new AuthorizationException(errorMsg);
+      }
     }
   }
 
@@ -205,6 +228,8 @@ public class KsqlRestClient implements Closeable {
           ? RestResponse.successful(response.readEntity(type))
           : createErrorResponse(path, response);
 
+    } catch (final AuthorizationException e) {
+      throw e;
     } catch (final Exception e) {
       throw new KsqlRestClientException("Error issuing GET to KSQL server. path:" + path, e);
     } finally {
@@ -240,6 +265,8 @@ public class KsqlRestClient implements Closeable {
           ? RestResponse.successful(mapper.apply(response))
           : createErrorResponse(path, response);
 
+    } catch (final AuthorizationException e) {
+      throw e;
     } catch (final Exception e) {
       throw new KsqlRestClientException("Error issuing POST to KSQL server. path:" + path, e);
     } finally {
@@ -316,6 +343,8 @@ public class KsqlRestClient implements Closeable {
         authHeader.startsWith("hadoop.auth")) {
 
       setupAuthenticationCredentials(true);
+      authenticate();
+
       return true;
     }
 
