@@ -36,6 +36,7 @@ import io.confluent.ksql.parser.tree.StringLiteral;
 import io.confluent.ksql.parser.tree.TableElement;
 import io.confluent.ksql.parser.tree.Type;
 import io.confluent.ksql.rest.entity.ServerInfo;
+import io.confluent.ksql.rest.filter.AuthorizationFilter;
 import io.confluent.ksql.rest.server.computation.Command;
 import io.confluent.ksql.rest.server.computation.CommandId;
 import io.confluent.ksql.rest.server.computation.CommandIdAssigner;
@@ -156,6 +157,11 @@ public final class KsqlRestApplication extends Application<KsqlRestConfig> imple
     config.register(ksqlResource);
     config.register(streamedQueryResource);
     config.register(new KsqlExceptionMapper());
+
+    if (appConfig.getString(KsqlRestConfig.AUTHENTICATION_METHOD_CONFIG)
+            .equals(KsqlRestConfig.AUTHENTICATION_METHOD_MULTIAUTH)) {
+      config.register(new AuthorizationFilter(appConfig));
+    }
   }
 
 
