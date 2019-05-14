@@ -14,6 +14,7 @@
 
 package io.confluent.ksql.rest.filter;
 
+import com.google.common.io.ByteStreams;
 import io.confluent.ksql.rest.client.exception.AuthorizationException;
 import io.confluent.ksql.rest.entity.KsqlErrorMessage;
 import io.confluent.ksql.rest.filter.util.ByteConsumerPool;
@@ -21,12 +22,14 @@ import io.confluent.ksql.rest.filter.util.ByteProducerPool;
 import io.confluent.ksql.rest.server.KsqlRestConfig;
 import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.rest.impersonation.ImpersonationUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.KafkaException;
 import org.glassfish.jersey.server.ContainerRequest;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +37,7 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
@@ -67,7 +71,7 @@ public class AuthorizationFilter implements ContainerRequestFilter {
     final String cookie = retrieveCookie(requestContext);
     try {
       ImpersonationUtils.runAsUser(() -> {
-        checkPermissions();
+        checkPermissions(requestContext);
         return null;
       }, authentication, cookie);
     } catch (Exception e) {
@@ -90,13 +94,32 @@ public class AuthorizationFilter implements ContainerRequestFilter {
     }
   }
 
-  private void checkPermissions() {
+  private void checkPermissions(ContainerRequestContext requestContext) {
     try {
-      checkReadingPermissions();
-      checkWritingPermissions();
+      final String path = ((ContainerRequest) requestContext).getPath(true);
+      if (path.equals("ksql")) {
+        final byte[] inputStream = ByteStreams.toByteArray(requestContext.getEntityStream());
+        requestContext.setEntityStream(new ByteArrayInputStream(inputStream));
+        final String jsonRequest = IOUtils.toString(new ByteArrayInputStream(inputStream));
+        final JSONObject obj = new JSONObject(jsonRequest);
+        final String request = obj.getString("ksql").toUpperCase();
+        final boolean commandSet1 = request.startsWith("CREATE")
+                || request.startsWith("RUN")
+                || request.startsWith("DROP");
+        final boolean commandSet2 = request.startsWith("TERMINATE") || request.startsWith("INSERT");
+        if (commandSet1 || commandSet2) {
+          checkWritingPermissions();
+        } else {
+          checkReadingPermissions();
+        }
+      } else {
+        checkReadingPermissions();
+      }
     } catch (InterruptedException | ExecutionException e) {
       throw new AuthorizationException(
             "Access denied. This operation is not permitted for current user\n");
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 
