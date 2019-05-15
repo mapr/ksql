@@ -117,7 +117,7 @@ public class StreamedQueryResourceTest {
     replay(mockStatementParser);
 
     // When:
-    final Response response = testResource.streamQuery(new KsqlRequest("query", Collections.emptyMap()));
+    final Response response = testResource.streamQuery(new KsqlRequest("query", Collections.emptyMap()), null, null);
 
     // Then:
     verify(mockStatementParser);
@@ -207,7 +207,7 @@ public class StreamedQueryResourceTest {
         mockKsqlConfig, mockKsqlEngine, mockStatementParser, DISCONNECT_CHECK_INTERVAL, ()->{});
 
     final Response response =
-        testResource.streamQuery(new KsqlRequest(queryString, requestStreamsProperties));
+        testResource.streamQuery(new KsqlRequest(queryString, requestStreamsProperties), null, null);
     final PipedOutputStream responseOutputStream = new EOFPipedOutputStream();
     final PipedInputStream responseInputStream = new PipedInputStream(responseOutputStream, 1);
     final StreamingOutput responseStream = (StreamingOutput) response.getEntity();
@@ -332,7 +332,7 @@ public class StreamedQueryResourceTest {
     EasyMock.replay(activenessRegistrar);
 
     // When:
-    testResource.streamQuery(new KsqlRequest(queryString, Collections.emptyMap()));
+    testResource.streamQuery(new KsqlRequest(queryString, Collections.emptyMap()), null, null);
 
     // Then:
     EasyMock.verify(activenessRegistrar);

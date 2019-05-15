@@ -28,12 +28,15 @@ import io.confluent.ksql.rest.util.JsonMapper;
 import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.ksql.util.KsqlException;
 import io.confluent.ksql.version.metrics.ActivenessRegistrar;
+import io.confluent.rest.impersonation.ImpersonationUtils;
 import java.time.Duration;
 import java.util.Objects;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import org.slf4j.Logger;
@@ -71,7 +74,14 @@ public class StreamedQueryResource {
   }
 
   @POST
-  public Response streamQuery(final KsqlRequest request) throws Exception {
+  public Response streamQuery(final KsqlRequest request,
+                              @HeaderParam(HttpHeaders.AUTHORIZATION) final String auth,
+                              @HeaderParam(HttpHeaders.COOKIE) final String cookie) {
+    return ImpersonationUtils.runAsUserIfImpersonationEnabled(()
+        -> streamQuery(request), auth, cookie);
+  }
+
+  private Response streamQuery(final KsqlRequest request) {
     final String ksql = request.getKsql();
     final Statement statement;
     if (ksql.isEmpty()) {
@@ -94,7 +104,7 @@ public class StreamedQueryResource {
             ksql,
             request.getStreamsProperties(),
             objectMapper);
-      } catch (final KsqlException e) {
+      } catch (final Exception e) {
         return Errors.badRequest(e);
       }
       log.info("Streaming query '{}'", ksql);
