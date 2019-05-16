@@ -23,11 +23,11 @@ import io.confluent.ksql.rest.server.KsqlRestConfig;
 import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.rest.impersonation.ImpersonationUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.KafkaException;
 import org.glassfish.jersey.server.ContainerRequest;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -41,7 +41,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
-import java.util.concurrent.ExecutionException;
 
 // CHECKSTYLE_RULES.OFF: ClassDataAbstractionCoupling
 public class AuthorizationFilter implements ContainerRequestFilter {
@@ -77,62 +76,88 @@ public class AuthorizationFilter implements ContainerRequestFilter {
     } catch (Exception e) {
       final int errorCode = Response.Status.FORBIDDEN.getStatusCode();
       requestContext.abortWith(Response.status(Response.Status.FORBIDDEN)
-              .entity(new KsqlErrorMessage(errorCode, e).toString())
+              .entity(new KsqlErrorMessage(errorCode, e))
               .build());
     }
   }
 
   private void initializeInternalTopicWithDummyRecord() {
-    try {
-      /** The method below is used to write initial record to INTERNAL_TOPIC.
-       * It will not fail because authorization filter is created as cluster admin user.
-       * Cluster admin user has appropriate permissions to send records to internal stream.
-       */
-      this.checkWritingPermissions();
-    } catch (ExecutionException | InterruptedException e) {
-      throw new KafkaException(e);
-    }
+    /** The method below is used to write initial record to INTERNAL_TOPIC.
+     * It will not fail because authorization filter is created as cluster admin user.
+     * Cluster admin user has appropriate permissions to send records to internal stream.
+     */
+    this.checkWritingPermissions();
   }
 
   private void checkPermissions(ContainerRequestContext requestContext) {
+    final String path = ((ContainerRequest) requestContext).getPath(true);
     try {
-      final String path = ((ContainerRequest) requestContext).getPath(true);
       if (path.equals("ksql")) {
         final byte[] inputStream = ByteStreams.toByteArray(requestContext.getEntityStream());
         requestContext.setEntityStream(new ByteArrayInputStream(inputStream));
         final String jsonRequest = IOUtils.toString(new ByteArrayInputStream(inputStream));
         final JSONObject obj = new JSONObject(jsonRequest);
-        final String request = obj.getString("ksql").toUpperCase();
-        final boolean commandSet1 = request.startsWith("CREATE")
-                || request.startsWith("RUN")
-                || request.startsWith("DROP");
-        final boolean commandSet2 = request.startsWith("TERMINATE") || request.startsWith("INSERT");
-        if (commandSet1 || commandSet2) {
+        final String command = obj.getString("ksql").toUpperCase().trim();
+
+        if (commandRequiresWritingPerms(command)) {
           checkWritingPermissions();
         } else {
           checkReadingPermissions();
         }
-      } else {
-        checkReadingPermissions();
       }
-    } catch (InterruptedException | ExecutionException e) {
-      throw new AuthorizationException(
-            "Access denied. This operation is not permitted for current user\n");
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
 
-  private void checkWritingPermissions() throws ExecutionException, InterruptedException {
-    final ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(internalTopic, new byte[0]);
-    byteProducerPool.send(record).get();
+  private boolean commandRequiresWritingPerms(String command) {
+    final boolean commandSet1 = command.startsWith("CREATE")
+            || command.startsWith("RUN")
+            || command.startsWith("DROP");
+    final boolean commandSet2 = command.startsWith("TERMINATE") || command.startsWith("INSERT");
+
+    return commandSet1 || commandSet2;
+  }
+
+  private void checkWritingPermissions() {
+    String currentUser = "<not available>";
+    try {
+      currentUser = UserGroupInformation.getCurrentUser().getUserName();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    try {
+      final ProducerRecord<byte[], byte[]> record =
+              new ProducerRecord<>(internalTopic, new byte[0]);
+      byteProducerPool.send(record).get();
+    } catch (Exception e) {
+      throw new AuthorizationException(
+              "FORBIDDEN. User "
+                      + currentUser
+                      + " doesn't have permission to run this command.\n");
+    }
   }
 
   private void checkReadingPermissions() {
-    final ConsumerRecords<byte[], byte[]> records = byteConsumerPool.poll();
-    if (records.count() < 1) {
-      throw new AuthorizationException(
-              "Access denied. This operation is not permitted for current user\n");
+    String currentUser = "<not available>";
+    try {
+      currentUser = UserGroupInformation.getCurrentUser().getUserName();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    final AuthorizationException excp = new AuthorizationException(
+            "FORBIDDEN. User: "
+                    + currentUser
+                    + " doesn't have perimissions to execute the operation.\n");
+    ConsumerRecords<byte[], byte[]> records = null;
+    try {
+      records = byteConsumerPool.poll();
+    } catch (Exception e) {
+      throw excp;
+    }
+
+    if (records == null || records.count() < 1) {
+      throw excp;
     }
   }
 
