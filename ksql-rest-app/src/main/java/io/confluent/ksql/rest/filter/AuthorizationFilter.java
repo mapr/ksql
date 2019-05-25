@@ -92,6 +92,9 @@ public class AuthorizationFilter implements ContainerRequestFilter {
   private void checkPermissions(ContainerRequestContext requestContext) {
     final String path = ((ContainerRequest) requestContext).getPath(true);
     try {
+      if (path.equals("info")) {
+        return;
+      }
       if (path.equals("ksql")) {
         final byte[] inputStream = ByteStreams.toByteArray(requestContext.getEntityStream());
         requestContext.setEntityStream(new ByteArrayInputStream(inputStream));
@@ -104,6 +107,8 @@ public class AuthorizationFilter implements ContainerRequestFilter {
         } else {
           checkReadingPermissions();
         }
+      } else {
+        checkReadingPermissions();
       }
     } catch (IOException e) {
       throw new RuntimeException(e);
