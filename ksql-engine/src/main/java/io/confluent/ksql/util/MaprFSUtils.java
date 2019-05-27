@@ -62,7 +62,7 @@ public class MaprFSUtils {
         Utils.validateDirectoryPerms(fs, config.getCommandsStreamFolder(),
                 currentUser, errorMessage);
       }
-      Utils.createStream(config.getCommandsStream());
+      Utils.createStreamWithPublicPerms(config.getCommandsStream());
     }catch (IOException e) {
       throw new KafkaException(e);
     }
