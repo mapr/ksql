@@ -170,6 +170,10 @@ MAPR_CLIENT_CLASSPATH=$(mapr clientclasspath)
 KSQL_CLASSPATH=$KSQL_CLASSPATH:$MAPR_CLIENT_CLASSPATH
 KAFKA_VERSION=$(cat "/opt/mapr/kafka/kafkaversion")
 KSQL_CLASSPATH=$KSQL_CLASSPATH:/opt/mapr/kafka/kafka-$KAFKA_VERSION/libs/*
+if [ -d "/opt/mapr/schema-registry" ]; then
+   SR_VERSION=$(cat "/opt/mapr/schema-registry/schema-registryversion")
+   KSQL_CLASSPATH=$KSQL_CLASSPATH:/opt/mapr/schema-registry/schema-registry-$SR_VERSION/share/java/schema-registry/*
+fi
 
 # To enable PAM:
 JAVA_LIB_PATH="-Djava.library.path=${BASEMAPR:-/opt/mapr}/lib/"
