@@ -95,6 +95,7 @@
         <apache.curator.version>2.9.0</apache.curator.version>
         <jackson.version>2.9.1</jackson.version>
         <kafka.version>2.1.1.0-mapr-SNAPSHOT</kafka.version>
+        <schema.registry.version>5.1.2.0-mapr-SNAPSHOT</schema.registry.version>
         <mapr.streams.version>6.2.0-mapr-SNAPSHOT</mapr.streams.version>
         <version.3digit>5.1.2</version.3digit>
     </properties>
@@ -174,8 +175,7 @@
             <dependency>
                 <groupId>io.confluent</groupId>
                 <artifactId>kafka-connect-avro-converter</artifactId>
-                <version>${project.version}</version>
-                <scope>provided</scope>
+                <version>${schema.registry.version}</version>
             </dependency>
 
             <dependency>
@@ -193,15 +193,13 @@
             <dependency>
                 <groupId>io.confluent</groupId>
                 <artifactId>kafka-avro-serializer</artifactId>
-                <version>${project.version}</version>
-                <scope>provided</scope>
+                <version>${schema.registry.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>io.confluent</groupId>
                 <artifactId>kafka-schema-registry-client</artifactId>
-                <version>${project.version}</version>
-                <scope>provided</scope>
+                <version>${schema.registry.version}</version>
             </dependency>
 
             <dependency>
