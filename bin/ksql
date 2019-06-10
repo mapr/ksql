@@ -45,7 +45,8 @@ while [ ${#} -gt 0 ] ; do
         *) : ;;
       esac
       shopt -u nocasematch
-      shift 2;;
+      break
+      ;;
     *)
       shift 1;;
   esac

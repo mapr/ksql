@@ -18,9 +18,13 @@ import com.github.rvesse.airline.HelpOption;
 import com.github.rvesse.airline.annotations.Arguments;
 import com.github.rvesse.airline.annotations.Command;
 import com.github.rvesse.airline.annotations.Option;
+import com.github.rvesse.airline.annotations.Parser;
 import com.github.rvesse.airline.annotations.restrictions.Once;
 import com.github.rvesse.airline.annotations.restrictions.Required;
+import com.github.rvesse.airline.annotations.restrictions.global.NoMissingOptionValues;
+import com.github.rvesse.airline.annotations.restrictions.global.NoUnexpectedArguments;
 import com.github.rvesse.airline.annotations.restrictions.ranges.LongRange;
+import com.github.rvesse.airline.parser.options.StandardOptionParser;
 import io.confluent.ksql.cli.console.OutputFormat;
 import io.confluent.ksql.rest.util.OptionsParser;
 import java.io.IOException;
@@ -28,6 +32,9 @@ import java.util.Optional;
 import javax.inject.Inject;
 
 @Command(name = "ksql", description = "KSQL CLI")
+@NoUnexpectedArguments
+@NoMissingOptionValues
+@Parser(useDefaultOptionParsers = false, optionParsers = { StandardOptionParser.class })
 public class Options {
 
   private static final String STREAMED_QUERY_ROW_LIMIT_OPTION_NAME = "--query-row-limit";

@@ -47,11 +47,13 @@ public final class Ksql {
                                                       : "http://localhost:8084";
     final Options options = args.length == 0 ? Options.parse(defaultKsqlServerUrl)
                                              : Options.parse(args);
-    if (secureCluster && !options.getAuthMethod().isPresent()) {
-      options.setAuthMethod("maprsasl");
-    }
+
     if (options == null) {
       System.exit(-1);
+    }
+
+    if (secureCluster && !options.getAuthMethod().isPresent()) {
+      options.setAuthMethod("maprsasl");
     }
 
     try {
