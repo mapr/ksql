@@ -23,6 +23,7 @@ import io.confluent.ksql.rest.server.KsqlRestConfig;
 import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.rest.impersonation.ImpersonationUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -48,6 +49,8 @@ public class AuthorizationFilter implements ContainerRequestFilter {
   private static final Logger logger = LoggerFactory.getLogger(AuthorizationFilter.class);
 
   private static final String INTERNAL_TOPIC = "ksql-authorization-auxiliary-topic";
+  private static final String [] commandWithWritePermsPrefixes =
+      {"CREATE", "DROP", "RUN", "TERMINATE", "INSERT"};
 
   private final ByteConsumerPool byteConsumerPool;
   private final ByteProducerPool byteProducerPool;
@@ -73,10 +76,15 @@ public class AuthorizationFilter implements ContainerRequestFilter {
         checkPermissions(requestContext);
         return null;
       }, authentication, cookie);
+    } catch (NotImplementedException e) {
+      final int errorCode = Response.Status.NOT_IMPLEMENTED.getStatusCode();
+      requestContext.abortWith(Response.status(Response.Status.NOT_IMPLEMENTED)
+              .entity(new KsqlErrorMessage(errorCode, e.getMessage()))
+              .build());
     } catch (Exception e) {
       final int errorCode = Response.Status.FORBIDDEN.getStatusCode();
       requestContext.abortWith(Response.status(Response.Status.FORBIDDEN)
-              .entity(new KsqlErrorMessage(errorCode, e))
+              .entity(new KsqlErrorMessage(errorCode, e.getMessage()))
               .build());
     }
   }
@@ -91,22 +99,33 @@ public class AuthorizationFilter implements ContainerRequestFilter {
 
   private void checkPermissions(ContainerRequestContext requestContext) {
     final String path = ((ContainerRequest) requestContext).getPath(true);
-    try {
-      if (path.equals("info")) {
-        return;
-      }
-      if (path.equals("ksql")) {
-        final byte[] inputStream = ByteStreams.toByteArray(requestContext.getEntityStream());
-        requestContext.setEntityStream(new ByteArrayInputStream(inputStream));
-        final String jsonRequest = IOUtils.toString(new ByteArrayInputStream(inputStream));
-        final JSONObject obj = new JSONObject(jsonRequest);
-        final String command = obj.getString("ksql").toUpperCase().trim();
 
-        if (commandRequiresWritingPerms(command)) {
-          checkWritingPermissions();
-        } else {
-          checkReadingPermissions();
-        }
+    if (path.equals("info")) {
+      return;
+    } else if (path.startsWith("ksql")) {
+      checkPermsForKsqlPath(requestContext);
+    } else if (path.equals("")
+            || path.startsWith("query")
+            || path.startsWith("status")) {
+      checkReadingPermissions();
+    } else {
+      throw new NotImplementedException(
+              "KSQL Authorization Filter internal error: path /"
+                      + path
+                      + " is not supported by authorization filter\n");
+    }
+  }
+
+  private void checkPermsForKsqlPath(ContainerRequestContext requestContext) {
+    try {
+      final byte[] inputStream = ByteStreams.toByteArray(requestContext.getEntityStream());
+      requestContext.setEntityStream(new ByteArrayInputStream(inputStream));
+      final String jsonRequest = IOUtils.toString(new ByteArrayInputStream(inputStream));
+      final JSONObject obj = new JSONObject(jsonRequest);
+      final String command = obj.getString("ksql").toUpperCase().trim();
+
+      if (commandRequiresWritingPerms(command)) {
+        checkWritingPermissions();
       } else {
         checkReadingPermissions();
       }
@@ -116,12 +135,12 @@ public class AuthorizationFilter implements ContainerRequestFilter {
   }
 
   private boolean commandRequiresWritingPerms(String command) {
-    final boolean commandSet1 = command.startsWith("CREATE")
-            || command.startsWith("RUN")
-            || command.startsWith("DROP");
-    final boolean commandSet2 = command.startsWith("TERMINATE") || command.startsWith("INSERT");
-
-    return commandSet1 || commandSet2;
+    for (String commandWithWritePermsPrefix : commandWithWritePermsPrefixes) {
+      if (command.startsWith(commandWithWritePermsPrefix)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private void checkWritingPermissions() {
