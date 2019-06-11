@@ -158,8 +158,9 @@ public final class KsqlRestApplication extends Application<KsqlRestConfig> imple
     config.register(streamedQueryResource);
     config.register(new KsqlExceptionMapper());
 
-    if (appConfig.getString(KsqlRestConfig.AUTHENTICATION_METHOD_CONFIG)
-            .equals(KsqlRestConfig.AUTHENTICATION_METHOD_MULTIAUTH)) {
+    boolean enableAuthorization = appConfig.getBoolean(KsqlRestConfig.ENABLE_AUTHORIZATION_CONFIG);
+    String authenticationMethod = appConfig.getString(KsqlRestConfig.AUTHENTICATION_METHOD_CONFIG);
+    if (enableAuthorization && authenticationMethod.equals(KsqlRestConfig.AUTHENTICATION_METHOD_MULTIAUTH)) {
       config.register(new AuthorizationFilter(appConfig));
     }
   }
