@@ -159,12 +159,14 @@ public final class KsqlRestApplication extends Application<KsqlRestConfig> imple
     config.register(new KsqlExceptionMapper());
 
     if (appConfig.getBoolean(KsqlRestConfig.ENABLE_AUTHORIZATION_CONFIG)) {
-      String authenticationMethod = appConfig.getString(KsqlRestConfig.AUTHENTICATION_METHOD_CONFIG);
-      if (authenticationMethod.equals(KsqlRestConfig.AUTHENTICATION_METHOD_MULTIAUTH)) {
+      final String authMethod = appConfig.getString(KsqlRestConfig.AUTHENTICATION_METHOD_CONFIG);
+      if (authMethod.equals(KsqlRestConfig.AUTHENTICATION_METHOD_MULTIAUTH)) {
         config.register(new AuthorizationFilter(appConfig));
       } else {
-        throw new KsqlException(String.format("Authorization is not allowed without authentication. Configure %s=%s",
-            KsqlRestConfig.AUTHENTICATION_METHOD_CONFIG, KsqlRestConfig.AUTHENTICATION_METHOD_MULTIAUTH));
+        throw new KsqlException(String.format(
+            "Authorization is not allowed without authentication. Configure %s=%s",
+            KsqlRestConfig.AUTHENTICATION_METHOD_CONFIG,
+            KsqlRestConfig.AUTHENTICATION_METHOD_MULTIAUTH));
       }
     }
   }
