@@ -61,9 +61,9 @@ public class KsqlRestConfig extends RestConfig {
 
 
   static final String ENABLE_AUTHORIZATION_CONFIG =
-          "authorization.enable";
+      "authorization.enable";
   private static final String ENABLE_AUTHORIZATION_DOC =
-          "Set 'true' or 'false' to enable or disable authorization for HTTP connection";
+      "Set 'true' or 'false' to enable or disable authorization for KSQL service";
 
   private static final ConfigDef CONFIG_DEF;
 
