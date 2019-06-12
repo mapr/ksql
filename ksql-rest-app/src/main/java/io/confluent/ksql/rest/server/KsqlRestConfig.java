@@ -59,6 +59,12 @@ public class KsqlRestConfig extends RestConfig {
   private static final String KSQL_WEBSOCKETS_NUM_THREADS_DOC =
       "The number of websocket threads to handle query results";
 
+
+  static final String ENABLE_AUTHORIZATION_CONFIG =
+      "authorization.enable";
+  private static final String ENABLE_AUTHORIZATION_DOC =
+      "Set 'true' or 'false' to enable or disable authorization for KSQL service";
+
   private static final ConfigDef CONFIG_DEF;
 
   static {
@@ -86,6 +92,12 @@ public class KsqlRestConfig extends RestConfig {
         5,
         Importance.LOW,
         KSQL_WEBSOCKETS_NUM_THREADS_DOC
+    ).define(
+        ENABLE_AUTHORIZATION_CONFIG,
+        Type.BOOLEAN,
+        false,
+        Importance.LOW,
+        ENABLE_AUTHORIZATION_DOC
     );
   }
 
