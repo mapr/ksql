@@ -44,13 +44,13 @@ public class MaprFSUtils {
         ArrayList<MapRFileAce> aceList = new ArrayList<MapRFileAce>();
 
         MapRFileAce ace = new MapRFileAce(MapRFileAce.AccessType.READDIR);
-        ace.setBooleanExpression("u:" + currentUser);
+        ace.setBooleanExpression("p");
         aceList.add(ace);
         ace = new MapRFileAce(MapRFileAce.AccessType.ADDCHILD);
         ace.setBooleanExpression("u:" + currentUser);
         aceList.add(ace);
         ace = new MapRFileAce(MapRFileAce.AccessType.LOOKUPDIR);
-        ace.setBooleanExpression("u:" + currentUser);
+        ace.setBooleanExpression("p");
         aceList.add(ace);
         ace = new MapRFileAce(MapRFileAce.AccessType.DELETECHILD);
         ace.setBooleanExpression("u:" + currentUser);
