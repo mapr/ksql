@@ -159,8 +159,7 @@ public final class KsqlRestApplication extends Application<KsqlRestConfig> imple
     config.register(new KsqlExceptionMapper());
 
     if (appConfig.getBoolean(KsqlRestConfig.ENABLE_AUTHORIZATION_CONFIG)) {
-      final boolean isAuthenticationEnabled = appConfig.getBoolean(KsqlRestConfig.ENABLE_AUTHENTICATION_CONFIG);
-      if (isAuthenticationEnabled) {
+      if (appConfig.getBoolean(KsqlRestConfig.ENABLE_AUTHENTICATION_CONFIG)) {
         config.register(new AuthorizationFilter(appConfig));
       } else {
         throw new KsqlException(String.format(
