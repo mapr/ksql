@@ -119,6 +119,11 @@
             <artifactId>kafka-streams</artifactId>
             <scope>provided</scope>
         </dependency>
+
+        <dependency>
+            <groupId>com.mapr.streams</groupId>
+            <artifactId>mapr-streams</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

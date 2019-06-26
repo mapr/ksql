@@ -188,6 +188,11 @@
             <groupId>io.confluent</groupId>
             <artifactId>kafka-avro-serializer</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>com.mapr.streams</groupId>
+            <artifactId>mapr-streams</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
