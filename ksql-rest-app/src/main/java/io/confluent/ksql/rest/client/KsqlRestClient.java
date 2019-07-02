@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -382,30 +383,23 @@ public class KsqlRestClient implements Closeable {
           StandardCharsets.UTF_8
       );
       this.responseScanner = new Scanner((buf) -> {
-        int wait = 1;
-        // poll the input stream's readiness between interruptable sleeps
-        // this ensures we cannot block indefinitely on read()
         while (true) {
-          if (closed) {
-            throw closedIllegalStateException("hasNext()");
-          }
-          if (isr.ready()) {
-            break;
-          }
-          synchronized (this) {
+          try {
+            return isr.read(buf);
+          } catch (final SocketTimeoutException e) {
+            // Read timeout:
             if (closed) {
-              throw closedIllegalStateException("hasNext()");
+              return -1;
             }
-            try {
-              wait = java.lang.Math.min(wait * 2, 200);
-              wait(wait);
-            } catch (final InterruptedException e) {
-              // this is expected
-              // just check the closed flag
+          } catch (final IOException e) {
+            // Can occur if isr closed:
+            if (closed) {
+              return -1;
             }
+
+            throw e;
           }
         }
-        return isr.read(buf);
       });
 
       this.bufferedRow = null;
