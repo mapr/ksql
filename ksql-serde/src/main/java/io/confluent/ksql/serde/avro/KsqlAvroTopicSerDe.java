@@ -51,7 +51,7 @@ public class KsqlAvroTopicSerDe extends KsqlTopicSerDe {
     avroConverter.configure(
         ImmutableMap.of(
             AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG,
-            ksqlConfig.getString(KsqlConfig.SCHEMA_REGISTRY_URL_PROPERTY),
+            ksqlConfig.getSchemaRegistryUrl(),
             AvroDataConfig.CONNECT_META_DATA_CONFIG,
             false
         ),

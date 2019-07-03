@@ -43,13 +43,13 @@ public class KsqlSchemaRegistryClientFactory {
 
   public KsqlSchemaRegistryClientFactory(final KsqlConfig config) {
     this(config,
-        () -> new RestService(config.getString(KsqlConfig.SCHEMA_REGISTRY_URL_PROPERTY)),
+        () -> new RestService(config.getSchemaRegistryUrl()),
         new SslFactory(Mode.CLIENT),
         CachedSchemaRegistryClient::new
     );
 
     // Force config exception now:
-    config.getString(KsqlConfig.SCHEMA_REGISTRY_URL_PROPERTY);
+    //config.getSchemaRegistryUrl();
   }
 
   KsqlSchemaRegistryClientFactory(final KsqlConfig config,

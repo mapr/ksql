@@ -30,12 +30,12 @@ public class AvroProducer extends DataGenProducer {
   private final SchemaRegistryClient schemaRegistryClient;
 
   public AvroProducer(final KsqlConfig ksqlConfig) {
-    if (ksqlConfig.getString(KsqlConfig.SCHEMA_REGISTRY_URL_PROPERTY) == null) {
+    if (ksqlConfig.getSchemaRegistryUrl() == null) {
       throw new KsqlException("Schema registry url is not set.");
     }
     this.ksqlConfig = ksqlConfig;
     this.schemaRegistryClient = new CachedSchemaRegistryClient(
-        ksqlConfig.getString(KsqlConfig.SCHEMA_REGISTRY_URL_PROPERTY),
+        ksqlConfig.getSchemaRegistryUrl(),
         100
     );
   }

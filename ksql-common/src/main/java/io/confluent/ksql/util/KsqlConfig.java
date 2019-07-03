@@ -16,9 +16,11 @@ package io.confluent.ksql.util;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import io.confluent.kafka.schemaregistry.client.rest.utils.UrlUtils;
 import io.confluent.ksql.config.ConfigItem;
 import io.confluent.ksql.config.KsqlConfigResolver;
 import io.confluent.ksql.errors.LogMetricAndContinueExceptionHandler;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -43,6 +45,7 @@ public class KsqlConfig extends AbstractConfig implements Cloneable {
   private final String commandsStreamFolder;
   private final String commandsStream;
 
+  private final String schemaRegistryUrl;
 
   public static final String KSQL_CONFIG_PROPERTY_PREFIX = "ksql.";
 
@@ -57,6 +60,18 @@ public class KsqlConfig extends AbstractConfig implements Cloneable {
   public static final String SINK_NUMBER_OF_REPLICAS_PROPERTY = "ksql.sink.replicas";
 
   public static final String KSQL_SCHEMA_REGISTRY_PREFIX = "ksql.schema.registry.";
+
+  public static final String
+          KSQL_SCHEMA_REGISTRY_SERVICE_ID_CONFIG = "ksql.schema.registry.service.id";
+  public static final String
+          KSQL_SCHEMA_REGISTRY_SERVICE_ID_DEFAULT = "default_";
+
+  public static final String KAFKASTORE_INIT_TIMEOUT_CONFIG =
+          "ksql.schema.registry.zookeeper.init.timeout.ms";
+
+  public static final String ZOOKEEPER_SET_ACL_CONFIG = "ksql.schema.registry.zookeeper.set.acl";
+
+  private static final boolean ZOOKEEPER_SET_ACL_DEFAULT = false;
 
   public static final String SCHEMA_REGISTRY_URL_PROPERTY = "ksql.schema.registry.url";
 
@@ -255,9 +270,30 @@ public class KsqlConfig extends AbstractConfig implements Cloneable {
             + "data is not deleted from the log prematurely. Allows for clock drift. "
             + "Default is 1 day"
         ).define(
+            KSQL_SCHEMA_REGISTRY_SERVICE_ID_CONFIG,
+            ConfigDef.Type.STRING,
+            KSQL_SCHEMA_REGISTRY_SERVICE_ID_DEFAULT,
+            ConfigDef.Importance.MEDIUM,
+            "Indicates the ID of the schema registry service."
+        ).define(
+            KAFKASTORE_INIT_TIMEOUT_CONFIG,
+            ConfigDef.Type.INT,
+            60000,
+            ConfigDef.Importance.MEDIUM,
+            "The timeout for initialization of the Kafka store, including creation of "
+            + "the Kafka topic that stores schema data."
+        ).define(
+            ZOOKEEPER_SET_ACL_CONFIG,
+            ConfigDef.Type.BOOLEAN,
+            ZOOKEEPER_SET_ACL_DEFAULT,
+            ConfigDef.Importance.MEDIUM,
+            "Whether or not to set an ACL in ZooKeeper when znodes are created "
+            + "and ZooKeeper SASL authentication is configured. IMPORTANT: "
+            + "if set to `true`, the SASL principal must be the same as the Kafka brokers."
+        ).define(
             SCHEMA_REGISTRY_URL_PROPERTY,
             ConfigDef.Type.STRING,
-            defaultSchemaRegistryUrl,
+            null,
             ConfigDef.Importance.MEDIUM,
             "The URL for the schema registry, defaults to http://localhost:8087"
         ).define(
@@ -373,7 +409,10 @@ public class KsqlConfig extends AbstractConfig implements Cloneable {
   public KsqlConfig(final boolean current, final Map<?, ?> props) {
     super(configDef(current), props);
 
+    this.schemaRegistryUrl = initSchemaRegistryUrl();
+
     final Map<String, Object> streamsConfigDefaults = new HashMap<>();
+
     streamsConfigDefaults.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, KsqlConstants
         .defaultAutoOffsetRestConfig);
     streamsConfigDefaults.put(StreamsConfig.COMMIT_INTERVAL_MS_CONFIG, KsqlConstants
@@ -403,6 +442,9 @@ public class KsqlConfig extends AbstractConfig implements Cloneable {
                      final Map<String, ?> values,
                      final Map<String, ConfigValue> ksqlStreamConfigProps) {
     super(configDef(current), values);
+
+    this.schemaRegistryUrl = initSchemaRegistryUrl();
+
     this.ksqlStreamConfigProps = ksqlStreamConfigProps;
 
     commandsStreamFolder = KSQL_SERVICES_COMMON_FOLDER + getString(KSQL_SERVICE_ID_CONFIG) + "/";
@@ -520,5 +562,24 @@ public class KsqlConfig extends AbstractConfig implements Cloneable {
     final ConfigDef sslConfig = new ConfigDef();
     SslConfigs.addClientSslSupport(sslConfig);
     return sslConfig.names();
+  }
+
+  public String getSchemaRegistryUrl() {
+    return schemaRegistryUrl;
+  }
+
+  private String initSchemaRegistryUrl() {
+    if (getString(SCHEMA_REGISTRY_URL_PROPERTY) != null) {
+      return getString(SCHEMA_REGISTRY_URL_PROPERTY);
+    } else {
+      try {
+        return UrlUtils.extractSchemaRegistryUrlFromZk(
+                getString(KSQL_SCHEMA_REGISTRY_SERVICE_ID_CONFIG),
+                getInt(KAFKASTORE_INIT_TIMEOUT_CONFIG),
+                getBoolean(ZOOKEEPER_SET_ACL_CONFIG));
+      } catch (IOException e) {
+        return defaultSchemaRegistryUrl;
+      }
+    }
   }
 }
