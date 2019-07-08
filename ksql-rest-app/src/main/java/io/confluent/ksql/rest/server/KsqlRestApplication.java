@@ -167,6 +167,14 @@ public final class KsqlRestApplication extends Application<KsqlRestConfig> imple
             KsqlRestConfig.ENABLE_AUTHENTICATION_CONFIG));
       }
     }
+
+    if (appConfig.getBoolean(KsqlRestConfig.IMPERSONATION)) {
+      if (!appConfig.getBoolean(KsqlRestConfig.ENABLE_AUTHENTICATION_CONFIG)) {
+        throw new KsqlException(String.format(
+            "Impersonation is not allowed without authentication. Configure %s=true",
+            KsqlRestConfig.ENABLE_AUTHENTICATION_CONFIG));
+      }
+    }
   }
 
 
