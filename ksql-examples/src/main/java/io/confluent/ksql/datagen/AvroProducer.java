@@ -35,8 +35,9 @@ public class AvroProducer extends DataGenProducer {
     }
     this.ksqlConfig = ksqlConfig;
     this.schemaRegistryClient = new CachedSchemaRegistryClient(
-        ksqlConfig.getSchemaRegistryUrl(),
-        100
+            ksqlConfig.getSchemaRegistryUrl(),
+            100,
+            ksqlConfig.originalsWithPrefix(KsqlConfig.KSQL_SCHEMA_REGISTRY_PREFIX, true)
     );
   }
 
