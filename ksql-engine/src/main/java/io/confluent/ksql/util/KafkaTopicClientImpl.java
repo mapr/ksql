@@ -51,7 +51,6 @@ public class KafkaTopicClientImpl implements KafkaTopicClient {
   private static final Logger log = LoggerFactory.getLogger(KafkaTopicClient.class);
 
   private final AdminClient adminClient;
-  private final boolean isDeleteTopicEnabled;
   private String ksqlDefaultStream;
 
   /**
@@ -62,9 +61,6 @@ public class KafkaTopicClientImpl implements KafkaTopicClient {
   public KafkaTopicClientImpl(final AdminClient adminClient, final String ksqlDefaultStream) {
     this.adminClient = Objects.requireNonNull(adminClient, "adminClient");
     this.ksqlDefaultStream = ksqlDefaultStream;
-    //Workaround for not implemented method MarlinAdminClientImpl.describeConfigs
-    //this.isDeleteTopicEnabled = isTopicDeleteEnabled(adminClient);
-    this.isDeleteTopicEnabled = false;
   }
 
   @Override
@@ -215,10 +211,6 @@ public class KafkaTopicClientImpl implements KafkaTopicClient {
 
   @Override
   public void deleteTopics(final List<String> topicsToDelete) {
-    if (!isDeleteTopicEnabled) {
-      log.info("Cannot delete topics since 'delete.topic.enable' is false. ");
-      return;
-    }
     final DeleteTopicsResult deleteTopicsResult = adminClient.deleteTopics(topicsToDelete);
     final Map<String, KafkaFuture<Void>> results = deleteTopicsResult.values();
     final List<String> failList = Lists.newArrayList();
@@ -238,10 +230,6 @@ public class KafkaTopicClientImpl implements KafkaTopicClient {
 
   @Override
   public void deleteInternalTopics(final String applicationId) {
-    if (!isDeleteTopicEnabled) {
-      log.warn("Cannot delete topics since 'delete.topic.enable' is false. ");
-      return;
-    }
     try {
       final Configuration conf = new Configuration();
       final FileSystem fs =  FileSystem.get(conf);
