@@ -18,6 +18,8 @@ import io.confluent.ksql.version.metrics.KsqlVersionCheckerAgent;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
+
+import io.confluent.rest.impersonation.ImpersonationUtils;
 import org.apache.kafka.streams.StreamsConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,6 +79,7 @@ public class KsqlServerMain {
       properties.put(StreamsConfig.APPLICATION_ID_CONFIG, KSQL_REST_SERVER_DEFAULT_APP_ID);
     }
     final KsqlRestConfig restConfig = new KsqlRestConfig(properties);
+    ImpersonationUtils.initialize(restConfig);
     return KsqlRestApplication.buildApplication(
         restConfig,
         KsqlVersionCheckerAgent::new

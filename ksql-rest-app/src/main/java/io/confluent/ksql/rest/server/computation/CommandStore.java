@@ -19,7 +19,6 @@ import com.google.common.collect.Maps;
 import io.confluent.ksql.parser.tree.Statement;
 import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.ksql.util.KsqlException;
-import io.confluent.rest.impersonation.ImpersonationUtils;
 import java.io.Closeable;
 import java.io.IOException;
 import java.time.Duration;
@@ -97,14 +96,10 @@ public class CommandStore implements ReplayableCommandQueue, Closeable {
       final KsqlConfig ksqlConfig,
       final Map<String, Object> overwriteProperties) {
     final String userName;
-    if (ImpersonationUtils.isImpersonationEnabled()) {
-      try {
-        userName = UserGroupInformation.getCurrentUser().getUserName();
-      } catch (IOException e) {
-        throw io.confluent.rest.impersonation.Errors.serverLoginException(e);
-      }
-    } else {
-      userName = "mapr";
+    try {
+      userName = UserGroupInformation.getCurrentUser().getUserName();
+    } catch (IOException e) {
+      throw io.confluent.rest.impersonation.Errors.serverLoginException(e);
     }
     final CommandId commandId = commandIdAssigner.getCommandId(statement);
     final Command command = new Command(
