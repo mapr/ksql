@@ -221,7 +221,11 @@ public class KsqlRestClient implements Closeable {
       final boolean retry = reAuthenticateIfNeeded(response);
       if (retry) {
         response.close();
-        response = requestBuilder.get();
+        final javax.ws.rs.client.Invocation.Builder newRequestBuilder =
+                client.target(serverAddress).path(path)
+                .request(MediaType.APPLICATION_JSON_TYPE);
+        setAuthHeaderOrCookieIfNeeded(newRequestBuilder);
+        response = newRequestBuilder.get();
       }
       extractAuthCookieFromResponse(response);
 
@@ -258,7 +262,11 @@ public class KsqlRestClient implements Closeable {
       final boolean retry = reAuthenticateIfNeeded(response);
       if (retry) {
         response.close();
-        response = requestBuilder.get();
+        final javax.ws.rs.client.Invocation.Builder newRequestBuilder =
+                client.target(serverAddress).path(path)
+                .request(MediaType.APPLICATION_JSON_TYPE);
+        setAuthHeaderOrCookieIfNeeded(newRequestBuilder);
+        response = newRequestBuilder.post(Entity.json(jsonEntity));
       }
       extractAuthCookieFromResponse(response);
 
