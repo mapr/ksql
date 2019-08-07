@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.util.Optional;
 import java.util.Properties;
 
+import io.confluent.rest.RestConfig;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.kafka.streams.StreamsConfig;
 import org.slf4j.Logger;
@@ -57,7 +58,9 @@ public final class Ksql {
     }
 
     try {
-      final Properties properties = loadProperties(options.getConfigFile());
+      final Properties properties = updatePropertiesWithSslTrustore(options.getSslTrustore(),
+              options.getSslTrustorePassword(),
+              loadProperties(options.getConfigFile()));
       final KsqlRestClient restClient = new KsqlRestClient(options.getServer(),
               properties,
               options.getAuthMethod());
@@ -96,6 +99,20 @@ public final class Ksql {
       }
     });
     return properties;
+  }
+
+  private static Properties updatePropertiesWithSslTrustore(Optional<String> sslTrustoreFile,
+                                                            Optional<String> sslTrustorePassword,
+                                                            Properties initial) {
+    if (sslTrustoreFile.isPresent()) {
+      initial.setProperty(RestConfig.SSL_TRUSTSTORE_LOCATION_CONFIG, sslTrustoreFile.get());
+    }
+
+    if (sslTrustorePassword.isPresent()) {
+      initial.setProperty(RestConfig.SSL_TRUSTSTORE_PASSWORD_CONFIG, sslTrustorePassword.get());
+    }
+
+    return initial;
   }
 
 }

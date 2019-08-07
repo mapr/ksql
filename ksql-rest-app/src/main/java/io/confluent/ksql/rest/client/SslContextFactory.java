@@ -54,14 +54,14 @@ public class SslContextFactory {
     createKeystore(
             configs.getString(RestConfig.SSL_KEYSTORE_TYPE_CONFIG),
             configs.getString(RestConfig.SSL_KEYSTORE_LOCATION_CONFIG),
-            configs.getPassword(RestConfig.SSL_KEYSTORE_PASSWORD_CONFIG).toString(),
-            configs.getPassword(RestConfig.SSL_KEY_PASSWORD_CONFIG).toString()
+            configs.getPassword(RestConfig.SSL_KEYSTORE_PASSWORD_CONFIG).value(),
+            configs.getPassword(RestConfig.SSL_KEY_PASSWORD_CONFIG).value()
     );
 
     createTruststore(
             configs.getString(RestConfig.SSL_TRUSTSTORE_TYPE_CONFIG),
             configs.getString(RestConfig.SSL_TRUSTSTORE_LOCATION_CONFIG),
-            configs.getPassword(RestConfig.SSL_TRUSTSTORE_PASSWORD_CONFIG).toString()
+            configs.getPassword(RestConfig.SSL_TRUSTSTORE_PASSWORD_CONFIG).value()
     );
     try {
       this.sslContext = createSslContext();
