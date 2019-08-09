@@ -22,12 +22,17 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.SecureRandom;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.Map;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import io.confluent.rest.RestConfig;
+
+import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
 
 import io.confluent.ksql.rest.client.exception.KsqlRestClientException;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -42,6 +47,7 @@ public class SslContextFactory {
   private String keyPassword;
   private SecurityStore truststore;
   private SSLContext sslContext;
+  private TrustManager[] trustAllCerts;
 
   public SslContextFactory(final Map<?, ?> props) throws KsqlRestClientException {
     final RestConfig configs = new RestConfig(RestConfig.baseConfigDef(), props);
@@ -58,11 +64,32 @@ public class SslContextFactory {
             configs.getPassword(RestConfig.SSL_KEY_PASSWORD_CONFIG).value()
     );
 
+    final boolean trustAllCertsEnable = configs.getBoolean(RestConfig.SSL_TRUSTALLCERTS_CONFIG);
     createTruststore(
             configs.getString(RestConfig.SSL_TRUSTSTORE_TYPE_CONFIG),
             configs.getString(RestConfig.SSL_TRUSTSTORE_LOCATION_CONFIG),
-            configs.getPassword(RestConfig.SSL_TRUSTSTORE_PASSWORD_CONFIG).value()
+            configs.getPassword(RestConfig.SSL_TRUSTSTORE_PASSWORD_CONFIG).value(),
+            trustAllCertsEnable
     );
+
+    if (trustAllCertsEnable) {
+      props.remove(RestConfig.SSL_TRUSTALLCERTS_CONFIG);
+      trustAllCerts = new TrustManager[] {
+        new X509TrustManager() {
+          public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+            return null;
+          }
+
+          @Override
+          public void checkClientTrusted(X509Certificate[] arg0, String arg1)
+                   throws CertificateException { }
+
+          @Override
+          public void checkServerTrusted(X509Certificate[] arg0, String arg1)
+                   throws CertificateException { }
+          }
+      };
+    }
     try {
       this.sslContext = createSslContext();
     } catch (Exception e) {
@@ -98,7 +125,10 @@ public class SslContextFactory {
     final KeyStore ts = truststore == null ? null : truststore.load();
     tmf.init(ts);
 
-    sslContext.init(keyManagers, tmf.getTrustManagers(), new SecureRandom());
+    sslContext.init(keyManagers,
+            (trustAllCerts == null) ? tmf.getTrustManagers() : trustAllCerts,
+            new SecureRandom());
+
     return sslContext;
   }
 
@@ -127,7 +157,7 @@ public class SslContextFactory {
     }
   }
 
-  private void createTruststore(String type, String path, String password)
+  private void createTruststore(String type, String path, String password, boolean trustAllCerts)
           throws KsqlRestClientException {
 
     if (path == null && password != null) {
@@ -135,17 +165,19 @@ public class SslContextFactory {
               "SSL trust store is not specified, but trust store password is specified.");
     }
 
-    final boolean secureCluster = UserGroupInformation.isSecurityEnabled();
-    if (secureCluster && (path == null || path.isEmpty())) {
-      try (SslConfig sslConfig = WebSecurityManager
-              .getSslConfig(SslConfig.SslConfigScope.SCOPE_CLIENT_ONLY)) {
-        path = sslConfig.getClientTruststoreLocation();
-        password = new String(sslConfig.getClientTruststorePassword());
+    if (!trustAllCerts) {
+      final boolean secureCluster = UserGroupInformation.isSecurityEnabled();
+      if (secureCluster && (path == null || path.isEmpty())) {
+        try (SslConfig sslConfig = WebSecurityManager
+                .getSslConfig(SslConfig.SslConfigScope.SCOPE_CLIENT_ONLY)) {
+          path = sslConfig.getClientTruststoreLocation();
+          password = new String(sslConfig.getClientTruststorePassword());
+        }
       }
-    }
 
-    if (StringUtil.isNotBlank(path)) {
-      this.truststore = new SecurityStore(type, path, password);
+      if (StringUtil.isNotBlank(path)) {
+        this.truststore = new SecurityStore(type, path, password);
+      }
     }
 
   }

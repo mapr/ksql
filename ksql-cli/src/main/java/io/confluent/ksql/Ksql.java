@@ -58,8 +58,9 @@ public final class Ksql {
     }
 
     try {
-      final Properties properties = updatePropertiesWithSslTrustore(options.getSslTrustore(),
+      final Properties properties = updatePropertiesWithSslInfo(options.getSslTrustore(),
               options.getSslTrustorePassword(),
+              options.getSslTrustAllCertsEnable(),
               loadProperties(options.getConfigFile()));
       final KsqlRestClient restClient = new KsqlRestClient(options.getServer(),
               properties,
@@ -101,9 +102,10 @@ public final class Ksql {
     return properties;
   }
 
-  private static Properties updatePropertiesWithSslTrustore(Optional<String> sslTrustoreFile,
-                                                            Optional<String> sslTrustorePassword,
-                                                            Properties initial) {
+  private static Properties updatePropertiesWithSslInfo(Optional<String> sslTrustoreFile,
+                                                        Optional<String> sslTrustorePassword,
+                                                        Optional<Boolean> trustAllCerts,
+                                                        Properties initial) {
     if (sslTrustoreFile.isPresent()) {
       initial.setProperty(RestConfig.SSL_TRUSTSTORE_LOCATION_CONFIG, sslTrustoreFile.get());
     }
@@ -111,6 +113,9 @@ public final class Ksql {
     if (sslTrustorePassword.isPresent()) {
       initial.setProperty(RestConfig.SSL_TRUSTSTORE_PASSWORD_CONFIG, sslTrustorePassword.get());
     }
+
+    trustAllCerts.ifPresent(val ->
+            initial.setProperty(RestConfig.SSL_TRUSTALLCERTS_CONFIG, val.toString()));
 
     return initial;
   }
