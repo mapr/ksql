@@ -71,6 +71,11 @@ public class SslContextFactory {
             configs.getPassword(RestConfig.SSL_TRUSTSTORE_PASSWORD_CONFIG).value(),
             trustAllCertsEnable
     );
+    /* Info about keystore and trsutore is not needed any more. Should be removed from properties */
+    props.remove(RestConfig.SSL_KEYSTORE_LOCATION_CONFIG);
+    props.remove(RestConfig.SSL_TRUSTSTORE_LOCATION_CONFIG);
+    props.remove(RestConfig.SSL_KEYSTORE_PASSWORD_CONFIG);
+    props.remove(RestConfig.SSL_TRUSTSTORE_PASSWORD_CONFIG);
 
     if (trustAllCertsEnable) {
       props.remove(RestConfig.SSL_TRUSTALLCERTS_CONFIG);
