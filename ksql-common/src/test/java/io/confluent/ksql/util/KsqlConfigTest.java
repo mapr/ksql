@@ -432,4 +432,22 @@ public class KsqlConfigTest {
     // Then:
     assertThat(result.get("some.random.property"), is(nullValue()));
   }
+
+  @Test(expected = Exception.class)
+  public void shouldFailByTryingLazilyExtractSchemaRegistryUrlFromZookeeper() {
+    final KsqlConfig ksqlConfig = new KsqlConfig(new HashMap<String, Object>());
+
+    ksqlConfig.getSchemaRegistryUrl();
+  }
+
+
+  @Test
+  public void shouldNotExtractSchemaRegistryUrlFromZookeeperWhenPreset() {
+    final Map<String, Object> initialProps = new HashMap<>();
+    initialProps.put(KsqlConfig.SCHEMA_REGISTRY_URL_PROPERTY, KsqlConfig.defaultSchemaRegistryUrl);
+
+    final KsqlConfig ksqlConfig = new KsqlConfig(initialProps);
+
+    assertThat(ksqlConfig.getSchemaRegistryUrl(), equalTo(KsqlConfig.defaultSchemaRegistryUrl));
+  }
 }

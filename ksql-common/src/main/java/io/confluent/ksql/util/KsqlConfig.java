@@ -14,6 +14,7 @@
 
 package io.confluent.ksql.util;
 
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.confluent.kafka.schemaregistry.client.rest.utils.UrlUtils;
@@ -27,6 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -45,7 +47,7 @@ public class KsqlConfig extends AbstractConfig implements Cloneable {
   private final String commandsStreamFolder;
   private final String commandsStream;
 
-  private final String schemaRegistryUrl;
+  private final Supplier<String> schemaRegistryUrl = Suppliers.memoize(this::initSchemaRegistryUrl);
 
   public static final String KSQL_CONFIG_PROPERTY_PREFIX = "ksql.";
 
@@ -409,8 +411,6 @@ public class KsqlConfig extends AbstractConfig implements Cloneable {
   public KsqlConfig(final boolean current, final Map<?, ?> props) {
     super(configDef(current), props);
 
-    this.schemaRegistryUrl = initSchemaRegistryUrl();
-
     final Map<String, Object> streamsConfigDefaults = new HashMap<>();
 
     streamsConfigDefaults.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, KsqlConstants
@@ -442,8 +442,6 @@ public class KsqlConfig extends AbstractConfig implements Cloneable {
                      final Map<String, ?> values,
                      final Map<String, ConfigValue> ksqlStreamConfigProps) {
     super(configDef(current), values);
-
-    this.schemaRegistryUrl = initSchemaRegistryUrl();
 
     this.ksqlStreamConfigProps = ksqlStreamConfigProps;
 
@@ -565,7 +563,7 @@ public class KsqlConfig extends AbstractConfig implements Cloneable {
   }
 
   public String getSchemaRegistryUrl() {
-    return schemaRegistryUrl;
+    return schemaRegistryUrl.get();
   }
 
   private String initSchemaRegistryUrl() {
