@@ -17,32 +17,19 @@ package io.confluent.ksql.cli.commands;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import io.confluent.common.config.ConfigException;
 import io.confluent.ksql.cli.Options;
 import org.junit.Test;
 
 public class OptionsTest {
 
-  @Test(expected = ConfigException.class)
-  public void shouldThrowConfigExceptionIfOnlyUsernameIsProvided() throws Exception {
-    final Options options = Options.parse("http://foobar", "-u", "joe");
-    options.getAuthMethod();
-  }
-
-  @Test(expected = ConfigException.class)
-  public void shouldThrowConfigExceptionIfOnlyPasswordIsProvided() throws Exception {
-    final Options options = Options.parse("http://foobar", "-p", "joe");
-    options.getAuthMethod();
-  }
-
   @Test
-  public void shouldReturnUserPasswordPairWhenBothProvided() throws Exception {
-    final Options options = Options.parse("http://foobar", "-u", "joe", "-p", "joe");
+  public void shouldReturnAuthMethodWhenProvided() throws Exception {
+    final Options options = Options.parse("http://foobar", "-a", "maprsasl");
     assertTrue(options.getAuthMethod().isPresent());
   }
 
   @Test
-  public void shouldReturnEmptyOptionWhenUserAndPassNotPresent() throws Exception {
+  public void shouldReturnEmptyOptionWhenAuthMethodNotPresent() throws Exception {
     final Options options = Options.parse("http://foobar");
     assertFalse(options.getAuthMethod().isPresent());
   }

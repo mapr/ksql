@@ -51,11 +51,13 @@ import org.eclipse.jetty.websocket.client.ClientUpgradeRequest;
 import org.eclipse.jetty.websocket.client.WebSocketClient;
 import org.glassfish.jersey.internal.util.Base64;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TemporaryFolder;
 
+@Ignore
 @Category({IntegrationTest.class})
 public class BasicAuthFunctionalTest {
 

@@ -44,6 +44,9 @@ import org.junit.Test;
 
 @SuppressWarnings("unchecked")
 public class KsqlGenericRowAvroSerializerTest {
+  private static final Map<String, Object> PROPS = ImmutableMap.of(
+          KsqlConfig.SCHEMA_REGISTRY_URL_PROPERTY, KsqlConfig.defaultSchemaRegistryUrl
+  );
 
   private final Schema schema = SchemaBuilder.struct()
         .field("ordertime".toUpperCase(), Schema.OPTIONAL_INT64_SCHEMA)
@@ -67,7 +70,7 @@ public class KsqlGenericRowAvroSerializerTest {
 
     final Serializer<GenericRow> serializer =
         new KsqlAvroTopicSerDe().getGenericRowSerde(
-            schema, new KsqlConfig(Collections.emptyMap()), false,
+            schema, new KsqlConfig(PROPS), false,
             () -> schemaRegistryClient
         ).serializer();
 
@@ -105,7 +108,7 @@ public class KsqlGenericRowAvroSerializerTest {
     final SchemaRegistryClient schemaRegistryClient = new MockSchemaRegistryClient();
     final Serializer<GenericRow> serializer =
         new KsqlAvroTopicSerDe().getGenericRowSerde(
-            schema, new KsqlConfig(Collections.emptyMap()), false,
+            schema, new KsqlConfig(PROPS), false,
             () -> schemaRegistryClient
         ).serializer();
 
@@ -144,7 +147,7 @@ public class KsqlGenericRowAvroSerializerTest {
     final SchemaRegistryClient schemaRegistryClient = new MockSchemaRegistryClient();
     final Serializer<GenericRow> serializer =
         new KsqlAvroTopicSerDe().getGenericRowSerde(
-            schema, new KsqlConfig(Collections.emptyMap()), false,
+            schema, new KsqlConfig(PROPS), false,
             () -> schemaRegistryClient
         ).serializer();
 
@@ -160,7 +163,7 @@ public class KsqlGenericRowAvroSerializerTest {
     final SchemaRegistryClient schemaRegistryClient = new MockSchemaRegistryClient();
     final Serializer<GenericRow> serializer =
         new KsqlAvroTopicSerDe().getGenericRowSerde(
-            schema, new KsqlConfig(Collections.emptyMap()), false,
+            schema, new KsqlConfig(PROPS), false,
             () -> schemaRegistryClient
         ).serializer();
 
@@ -195,7 +198,7 @@ public class KsqlGenericRowAvroSerializerTest {
     final SchemaRegistryClient schemaRegistryClient = new MockSchemaRegistryClient();
     final Serde<GenericRow> serde =
         new KsqlAvroTopicSerDe().getGenericRowSerde(
-            ksqlRecordSchema, new KsqlConfig(Collections.emptyMap()), false,
+            ksqlRecordSchema, new KsqlConfig(PROPS), false,
             () -> schemaRegistryClient
         );
 
@@ -346,7 +349,7 @@ public class KsqlGenericRowAvroSerializerTest {
     final SchemaRegistryClient schemaRegistryClient = new MockSchemaRegistryClient();
     final Serde<GenericRow> serde =
         new KsqlAvroTopicSerDe().getGenericRowSerde(
-            ksqlRecordSchema, new KsqlConfig(Collections.emptyMap()), false,
+            ksqlRecordSchema, new KsqlConfig(PROPS), false,
             () -> schemaRegistryClient
         );
 
@@ -373,7 +376,7 @@ public class KsqlGenericRowAvroSerializerTest {
     final SchemaRegistryClient schemaRegistryClient = new MockSchemaRegistryClient();
     final Serde<GenericRow> serde =
         new KsqlAvroTopicSerDe().getGenericRowSerde(
-            ksqlRecordSchema, new KsqlConfig(Collections.emptyMap()), true,
+            ksqlRecordSchema, new KsqlConfig(PROPS), true,
             () -> schemaRegistryClient
         );
 

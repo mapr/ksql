@@ -70,17 +70,14 @@ import org.hamcrest.CoreMatchers;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.experimental.categories.Category;
 import org.junit.rules.RuleChain;
 
 /**
  * Most tests in CliTest are end-to-end integration tests, so it may expect a long running time.
  */
+@Ignore
 @Category({IntegrationTest.class})
 public class CliTest {
 

@@ -71,6 +71,12 @@
         </dependency>
 
         <dependency>
+            <groupId>com.mapr.streams</groupId>
+            <artifactId>mapr-streams</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>connect-json</artifactId>
             <scope>provided</scope>

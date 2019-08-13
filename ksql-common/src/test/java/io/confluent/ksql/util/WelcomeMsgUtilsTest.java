@@ -70,7 +70,7 @@ public class WelcomeMsgUtilsTest {
     WelcomeMsgUtils.displayWelcomeMessage(35, realPrintWriter);
 
     // Then:
-    assertThat(stringWriter.toString(), is("KSQL.\n\n"));
+    assertThat(stringWriter.toString(), is("KSQL:\n\n"));
   }
 
   @Test

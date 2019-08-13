@@ -52,6 +52,7 @@ import java.util.stream.StreamSupport;
 import org.apache.kafka.connect.data.Field;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.SchemaBuilder;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -89,6 +90,8 @@ import org.junit.runners.Parameterized;
  *   under the src/test/resources/expected_topology directory.
  */
 
+// End-to-End tests require last-version of kafka-streams-test-utils that's missing on mapr
+@Ignore
 @RunWith(Parameterized.class)
 public class QueryTranslationTest {
   private static final ObjectMapper objectMapper = new ObjectMapper();

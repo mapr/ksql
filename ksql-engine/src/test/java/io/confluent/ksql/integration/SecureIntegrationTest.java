@@ -67,12 +67,14 @@ import org.apache.kafka.test.TestUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 /**
  * Tests covering integration with secured components, e.g. secure Kafka cluster.
  */
+@Ignore
 @Category({IntegrationTest.class})
 public class SecureIntegrationTest {
 

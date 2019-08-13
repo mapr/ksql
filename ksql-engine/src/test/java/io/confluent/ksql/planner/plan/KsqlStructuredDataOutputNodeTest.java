@@ -19,6 +19,7 @@ import static io.confluent.ksql.planner.plan.PlanTestUtil.SOURCE_NODE;
 import static io.confluent.ksql.planner.plan.PlanTestUtil.TRANSFORM_NODE;
 import static io.confluent.ksql.planner.plan.PlanTestUtil.getNodeByName;
 import static io.confluent.ksql.planner.plan.PlanTestUtil.verifyProcessorNode;
+import static io.confluent.ksql.testutils.MaprTestData.MAPR_STREAM_PREFIX;
 import static org.easymock.EasyMock.eq;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -26,7 +27,6 @@ import static org.hamcrest.core.IsInstanceOf.instanceOf;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient;
 import io.confluent.ksql.ddl.DdlConfig;
 import io.confluent.ksql.function.InternalFunctionRegistry;
 import io.confluent.ksql.metastore.KsqlStream;
@@ -36,6 +36,7 @@ import io.confluent.ksql.schema.registry.MockSchemaRegistryClientFactory;
 import io.confluent.ksql.serde.json.KsqlJsonTopicSerDe;
 import io.confluent.ksql.structured.SchemaKStream;
 import io.confluent.ksql.structured.SchemaKTable;
+import io.confluent.ksql.testutils.MaprTestData;
 import io.confluent.ksql.util.KafkaTopicClient;
 import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.ksql.util.timestamp.LongColumnTimestampExtractionPolicy;
@@ -58,6 +59,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class KsqlStructuredDataOutputNodeTest {
+  private static final String OUTPUT_TOPIC_FULL_NAME = MAPR_STREAM_PREFIX + "output";
   private final KafkaTopicClient topicClient = EasyMock.createNiceMock(KafkaTopicClient.class);
   private static final String MAPVALUES_OUTPUT_NODE = "KSTREAM-MAPVALUES-0000000003";
   private static final String OUTPUT_NODE = "KSTREAM-SINK-0000000004";
@@ -81,7 +83,7 @@ public class KsqlStructuredDataOutputNodeTest {
       dataSource,
       schema);
 
-  private final KsqlConfig ksqlConfig =  new KsqlConfig(new HashMap<>());
+  private final KsqlConfig ksqlConfig =  new KsqlConfig(MaprTestData.compatibleKsqlConfig());
   private StreamsBuilder builder = new StreamsBuilder();
   private KsqlStructuredDataOutputNode outputNode;
 
@@ -94,7 +96,7 @@ public class KsqlStructuredDataOutputNodeTest {
     props.put(KsqlConfig.SINK_NUMBER_OF_PARTITIONS_PROPERTY, 4);
     props.put(KsqlConfig.SINK_NUMBER_OF_REPLICAS_PROPERTY, (short)3);
     createOutputNode(props);
-    topicClient.createTopic(eq("output"), eq(4), eq((short)3), eq(Collections.emptyMap()));
+    topicClient.createTopic(eq(OUTPUT_TOPIC_FULL_NAME), eq(4), eq((short)3), eq(Collections.emptyMap()));
     EasyMock.expectLastCall();
     EasyMock.replay(topicClient);
     stream = buildStream();
@@ -188,7 +190,7 @@ public class KsqlStructuredDataOutputNodeTest {
     final StreamsBuilder streamsBuilder = new StreamsBuilder();
     final Map<String, String> topicConfig = ImmutableMap.of(
         TopicConfig.CLEANUP_POLICY_CONFIG, TopicConfig.CLEANUP_POLICY_COMPACT);
-    topicClientForNonWindowTable.createTopic("output", 4, (short) 3, topicConfig);
+    topicClientForNonWindowTable.createTopic(OUTPUT_TOPIC_FULL_NAME, 4, (short) 3, topicConfig);
     EasyMock.replay(topicClientForNonWindowTable);
     final SchemaKStream schemaKStream = outputNode.buildStream(
         streamsBuilder,
@@ -208,7 +210,7 @@ public class KsqlStructuredDataOutputNodeTest {
     final KsqlStructuredDataOutputNode outputNode = getKsqlStructuredDataOutputNode(true);
 
     final StreamsBuilder streamsBuilder = new StreamsBuilder();
-    topicClientForWindowTable.createTopic("output", 4, (short) 3, Collections.emptyMap());
+    topicClientForWindowTable.createTopic(OUTPUT_TOPIC_FULL_NAME, 4, (short) 3, Collections.emptyMap());
     EasyMock.replay(topicClientForWindowTable);
     final SchemaKStream schemaKStream = outputNode.buildStream(
         streamsBuilder,
@@ -227,7 +229,7 @@ public class KsqlStructuredDataOutputNodeTest {
     final KafkaTopicClient topicClientForWindowTable = EasyMock.mock(KafkaTopicClient.class);
 
     final StreamsBuilder streamsBuilder = new StreamsBuilder();
-    topicClientForWindowTable.createTopic("output", 4, (short) 3, Collections.emptyMap());
+    topicClientForWindowTable.createTopic(OUTPUT_TOPIC_FULL_NAME, 4, (short) 3, Collections.emptyMap());
     EasyMock.replay(topicClientForWindowTable);
     final SchemaKStream schemaKStream = outputNode.buildStream(
         streamsBuilder,

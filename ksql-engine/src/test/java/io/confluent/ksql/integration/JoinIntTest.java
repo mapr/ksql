@@ -18,10 +18,11 @@ import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.test.TestUtils;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-
+@Ignore
 @Category({IntegrationTest.class})
 public class JoinIntTest {
 

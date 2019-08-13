@@ -98,6 +98,7 @@
         <schema.registry.version>5.1.2.0-mapr-SNAPSHOT</schema.registry.version>
         <mapr.streams.version>6.2.0-mapr-SNAPSHOT</mapr.streams.version>
         <version.3digit>5.1.2</version.3digit>
+        <powermock.version>2.0.2</powermock.version>
     </properties>
 
     <dependencyManagement>
@@ -343,6 +344,13 @@
                 <artifactId>kafka-clients</artifactId>
                 <version>2.1.1-cp1</version>
                 <classifier>test</classifier>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.javassist</groupId>
+                <artifactId>javassist</artifactId>
+                <version>3.24.0-GA</version>
                 <scope>test</scope>
             </dependency>
 

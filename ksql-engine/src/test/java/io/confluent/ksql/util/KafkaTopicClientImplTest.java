@@ -29,6 +29,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.confluent.ksql.exception.KafkaResponseGetFailedException;
 import io.confluent.ksql.exception.KafkaTopicException;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -41,13 +43,14 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
+
+import io.confluent.ksql.testutils.MaprTestData;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AlterConfigsResult;
 import org.apache.kafka.clients.admin.Config;
 import org.apache.kafka.clients.admin.ConfigEntry;
 import org.apache.kafka.clients.admin.CreateTopicsResult;
 import org.apache.kafka.clients.admin.DeleteTopicsResult;
-import org.apache.kafka.clients.admin.DescribeClusterResult;
 import org.apache.kafka.clients.admin.DescribeConfigsResult;
 import org.apache.kafka.clients.admin.DescribeTopicsResult;
 import org.apache.kafka.clients.admin.ListTopicsResult;
@@ -64,16 +67,18 @@ import org.apache.kafka.common.errors.TopicExistsException;
 import org.apache.kafka.common.errors.UnknownTopicOrPartitionException;
 import org.apache.kafka.common.utils.Utils;
 import org.easymock.EasyMock;
-import org.easymock.EasyMockRunner;
 import org.easymock.IArgumentMatcher;
 import org.easymock.Mock;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.powermock.api.easymock.PowerMock;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(EasyMockRunner.class)
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(MaprFSUtils.class)
 public class KafkaTopicClientImplTest {
-
   private final String topicName1 = "topic1";
   private final String topicName2 = "topic2";
   private final String topicName3 = "topic3";
@@ -97,29 +102,26 @@ public class KafkaTopicClientImplTest {
   @Before
   public void init() {
     node = new Node(1, "host", 9092);
-    expect(adminClient.describeCluster()).andReturn(describeClusterResult());
-    expect(adminClient.describeConfigs(describeBrokerRequest()))
-        .andReturn(describeBrokerResult());
   }
 
   @Test
   public void shouldCreateTopic() {
-    expect(adminClient.listTopics()).andReturn(getListTopicsResult());
+    expect(adminClient.listTopics(MaprTestData.MAPR_STREAM)).andReturn(getListTopicsResult());
     expect(adminClient.createTopics(anyObject())).andReturn(getCreateTopicsResult());
     replay(adminClient);
 
-    final KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, "");
+    final KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, MaprTestData.MAPR_STREAM);
     kafkaTopicClient.createTopic("test", 1, (short) 1);
     verify(adminClient);
   }
 
   @Test
   public void shouldUseExistingTopicWithTheSameSpecsInsteadOfCreate() {
-    expect(adminClient.listTopics()).andReturn(getListTopicsResult());
+    expect(adminClient.listTopics(MaprTestData.MAPR_STREAM)).andReturn(getListTopicsResult());
     expect(adminClient.describeTopics(anyObject())).andReturn(getDescribeTopicsResult());
     replay(adminClient);
 
-    final KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, "");
+    final KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, MaprTestData.MAPR_STREAM);
     kafkaTopicClient.createTopic(topicName1, 1, (short) 1);
     verify(adminClient);
   }
@@ -127,29 +129,29 @@ public class KafkaTopicClientImplTest {
   @Test(expected = KafkaTopicException.class)
   public void shouldFailCreateExistingTopic() {
     expect(adminClient.createTopics(anyObject())).andReturn(getCreateTopicsResult());
-    expect(adminClient.listTopics()).andReturn(getListTopicsResult());
+    expect(adminClient.listTopics(MaprTestData.MAPR_STREAM)).andReturn(getListTopicsResult());
     expect(adminClient.describeTopics(anyObject())).andReturn(getDescribeTopicsResult());
     replay(adminClient);
-    final KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, "");
+    final KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, MaprTestData.MAPR_STREAM);
     kafkaTopicClient.createTopic(topicName1, 1, (short) 2);
     verify(adminClient);
   }
 
   @Test
   public void shouldNotFailIfTopicAlreadyExistsWhenCreating() {
-    expect(adminClient.listTopics()).andReturn(getEmptyListTopicResult());
+    expect(adminClient.listTopics(MaprTestData.MAPR_STREAM)).andReturn(getEmptyListTopicResult());
     expect(adminClient.createTopics(anyObject()))
         .andReturn(createTopicReturningTopicExistsException());
     expect(adminClient.describeTopics(anyObject())).andReturn(getDescribeTopicsResult());
     replay(adminClient);
-    final KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, "");
+    final KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, MaprTestData.MAPR_STREAM);
     kafkaTopicClient.createTopic(topicName1, 1, (short) 1);
     verify(adminClient);
   }
 
   @Test
   public void shouldRetryDescribeTopicOnRetriableException() {
-    expect(adminClient.listTopics()).andReturn(getEmptyListTopicResult());
+    expect(adminClient.listTopics(MaprTestData.MAPR_STREAM)).andReturn(getEmptyListTopicResult());
     expect(adminClient.createTopics(anyObject()))
         .andReturn(createTopicReturningTopicExistsException());
     expect(adminClient.describeTopics(anyObject()))
@@ -157,14 +159,14 @@ public class KafkaTopicClientImplTest {
     // The second time, return the right response.
     expect(adminClient.describeTopics(anyObject())).andReturn(getDescribeTopicsResult()).once();
     replay(adminClient);
-    final KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, "");
+    final KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, MaprTestData.MAPR_STREAM);
     kafkaTopicClient.createTopic(topicName1, 1, (short) 1);
     verify(adminClient);
   }
 
   @Test(expected = KafkaResponseGetFailedException.class)
   public void shouldFailToDescribeTopicsWhenRetriesExpire() {
-    expect(adminClient.listTopics()).andReturn(getEmptyListTopicResult());
+    expect(adminClient.listTopics(MaprTestData.MAPR_STREAM)).andReturn(getEmptyListTopicResult());
     expect(adminClient.describeTopics(anyObject()))
         .andReturn(describeTopicReturningUnknownPartitionException())
         .andReturn(describeTopicReturningUnknownPartitionException())
@@ -172,17 +174,17 @@ public class KafkaTopicClientImplTest {
         .andReturn(describeTopicReturningUnknownPartitionException())
         .andReturn(describeTopicReturningUnknownPartitionException());
     replay(adminClient);
-    final KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, "");
+    final KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, MaprTestData.MAPR_STREAM);
     kafkaTopicClient.describeTopics(Collections.singleton(topicName1));
     verify(adminClient);
   }
 
   @Test
   public void shouldRetryListTopics() {
-    expect(adminClient.listTopics()).andReturn(listTopicResultWithNotControllerException()).once();
-    expect(adminClient.listTopics()).andReturn(getListTopicsResult());
+    expect(adminClient.listTopics(MaprTestData.MAPR_STREAM)).andReturn(listTopicResultWithNotControllerException()).once();
+    expect(adminClient.listTopics(MaprTestData.MAPR_STREAM)).andReturn(getListTopicsResult());
     replay(adminClient);
-    final KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, "");
+    final KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, MaprTestData.MAPR_STREAM);
     final Set<String> names = kafkaTopicClient.listTopicNames();
     assertThat(names, equalTo(Utils.mkSet(topicName1, topicName2, topicName3)));
     verify(adminClient);
@@ -190,9 +192,9 @@ public class KafkaTopicClientImplTest {
 
   @Test
   public void shouldFilterInternalTopics() {
-    expect(adminClient.listTopics()).andReturn(getListTopicsResultWithInternalTopics());
+    expect(adminClient.listTopics(MaprTestData.MAPR_STREAM)).andReturn(getListTopicsResultWithInternalTopics());
     replay(adminClient);
-    final KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, "");
+    final KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, MaprTestData.MAPR_STREAM);
     final Set<String> names = kafkaTopicClient.listNonInternalTopicNames();
     assertThat(names, equalTo(Utils.mkSet(topicName1, topicName2, topicName3)));
     verify(adminClient);
@@ -200,9 +202,9 @@ public class KafkaTopicClientImplTest {
 
   @Test
   public void shouldListTopicNames() {
-    expect(adminClient.listTopics()).andReturn(getListTopicsResult());
+    expect(adminClient.listTopics(MaprTestData.MAPR_STREAM)).andReturn(getListTopicsResult());
     replay(adminClient);
-    final KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, "");
+    final KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, MaprTestData.MAPR_STREAM);
     final Set<String> names = kafkaTopicClient.listTopicNames();
     assertThat(names, equalTo(Utils.mkSet(topicName1, topicName2, topicName3)));
     verify(adminClient);
@@ -212,24 +214,25 @@ public class KafkaTopicClientImplTest {
   public void shouldDeleteTopics() {
     expect(adminClient.deleteTopics(anyObject())).andReturn(getDeleteTopicsResult());
     replay(adminClient);
-    final KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, "");
+    final KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, MaprTestData.MAPR_STREAM);
     final List<String> topics = Collections.singletonList(topicName2);
     kafkaTopicClient.deleteTopics(topics);
     verify(adminClient);
   }
 
   @Test
-  public void shouldDeleteInternalTopics() {
-    expect(adminClient.listTopics()).andReturn(getListTopicsResultWithInternalTopics());
-    expect(adminClient.deleteTopics(Arrays.asList(internalTopic2, internalTopic1)))
-        .andReturn(getDeleteInternalTopicsResult());
-    replay(adminClient);
-    final KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, "");
-    final String applicationId = String.format("%s%s",
-                                         KsqlConstants.KSQL_INTERNAL_TOPIC_PREFIX,
-                                         "default_query_CTAS_USERS_BY_CITY");
+  public void shouldDeleteInternalTopics() throws IOException {
+    final String applicationId = KsqlConstants.KSQL_INTERNAL_TOPIC_PREFIX + "default_query_CTAS_USERS_BY_CITY";
+
+    PowerMock.mockStaticPartial(MaprFSUtils.class, "deleteAppDirAndInternalStream");
+    MaprFSUtils.deleteAppDirAndInternalStream(applicationId);
+    EasyMock.expectLastCall();
+    PowerMock.replay(MaprFSUtils.class);
+
+    final KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, MaprTestData.MAPR_STREAM);
     kafkaTopicClient.deleteInternalTopics(applicationId);
-    verify(adminClient);
+
+    PowerMock.verify(MaprFSUtils.class);
   }
 
   @Test
@@ -242,7 +245,7 @@ public class KafkaTopicClientImplTest {
         ));
     replay(adminClient);
 
-    final KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, "");
+    final KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, MaprTestData.MAPR_STREAM);
     final Map<String, String> config = kafkaTopicClient.getTopicConfig("fred");
 
     assertThat(config.get(TopicConfig.RETENTION_MS_CONFIG), is("12345"));
@@ -255,7 +258,7 @@ public class KafkaTopicClientImplTest {
         .andReturn(topicConfigResponse(new RuntimeException()));
     replay(adminClient);
 
-    final KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, "");
+    final KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, MaprTestData.MAPR_STREAM);
     final Map<String, String> config = kafkaTopicClient.getTopicConfig("fred");
 
     assertThat(config.get(TopicConfig.RETENTION_MS_CONFIG), is("12345"));
@@ -273,7 +276,7 @@ public class KafkaTopicClientImplTest {
         ));
     replay(adminClient);
 
-    final KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, "");
+    final KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, MaprTestData.MAPR_STREAM);
     final Map<String, String> config = kafkaTopicClient.getTopicConfig("fred");
 
     assertThat(config.get(TopicConfig.RETENTION_MS_CONFIG), is("12345"));
@@ -284,7 +287,7 @@ public class KafkaTopicClientImplTest {
   @Test
   public void shouldSetTopicCleanupPolicyToCompact() throws InterruptedException,
                                                             ExecutionException {
-    expect(adminClient.listTopics()).andReturn(getEmptyListTopicResult());
+    expect(adminClient.listTopics(MaprTestData.MAPR_STREAM)).andReturn(getEmptyListTopicResult());
 
     // Verify that the new topic configuration being passed to the admin client is what we expect.
     final NewTopic newTopic = new NewTopic(topicName1, 1, (short) 1);
@@ -292,7 +295,7 @@ public class KafkaTopicClientImplTest {
     expect(adminClient.createTopics(singleNewTopic(newTopic))).andReturn(getCreateTopicsResult());
     replay(adminClient);
 
-    final KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, "");
+    final KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, MaprTestData.MAPR_STREAM);
     kafkaTopicClient.createTopic(topicName1,
                                  1,
                                  (short) 1,
@@ -322,7 +325,7 @@ public class KafkaTopicClientImplTest {
         .andReturn(alterTopicConfigResponse());
     replay(adminClient);
 
-    final KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, "");
+    final KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, MaprTestData.MAPR_STREAM);
     kafkaTopicClient.addTopicConfig("peter", overrides);
 
     verify(adminClient);
@@ -343,7 +346,7 @@ public class KafkaTopicClientImplTest {
 
     replay(adminClient);
 
-    final KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, "");
+    final KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, MaprTestData.MAPR_STREAM);
     kafkaTopicClient.addTopicConfig("peter", overrides);
 
     verify(adminClient);
@@ -367,7 +370,7 @@ public class KafkaTopicClientImplTest {
         .andReturn(alterTopicConfigResponse());
     replay(adminClient);
 
-    final KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, "");
+    final KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(adminClient, MaprTestData.MAPR_STREAM);
     kafkaTopicClient.addTopicConfig("peter", overrides);
 
     verify(adminClient);
@@ -464,30 +467,6 @@ public class KafkaTopicClientImplTest {
         .andReturn(KafkaFuture.completedFuture(new HashSet<>(topicNamesList)));
     replay(listTopicsResult);
     return listTopicsResult;
-  }
-
-  private DescribeClusterResult describeClusterResult() {
-    final Collection<Node> nodes = Collections.singletonList(node);
-    final DescribeClusterResult describeClusterResult = mock(DescribeClusterResult.class);
-    expect(describeClusterResult.nodes()).andReturn(KafkaFuture.completedFuture(nodes));
-    replay(describeClusterResult);
-    return describeClusterResult;
-  }
-
-  private Collection<ConfigResource> describeBrokerRequest() {
-    return Collections.singleton(new ConfigResource(ConfigResource.Type.BROKER, node.idString()));
-  }
-
-  private DescribeConfigsResult describeBrokerResult() {
-    final DescribeConfigsResult describeConfigsResult = mock(DescribeConfigsResult.class);
-    final ConfigEntry configEntryDeleteEnable = new ConfigEntry("delete.topic.enable", "true");
-    final List<ConfigEntry> configEntries = new ArrayList<>();
-    configEntries.add(configEntryDeleteEnable);
-    final Map<ConfigResource, Config> config = ImmutableMap.of(
-        new ConfigResource(ConfigResource.Type.BROKER, node.idString()), new Config(configEntries));
-    expect(describeConfigsResult.all()).andReturn(KafkaFuture.completedFuture(config));
-    replay(describeConfigsResult);
-    return describeConfigsResult;
   }
 
   private ConfigEntry defaultConfigEntry(final String key, final String value) {

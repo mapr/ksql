@@ -46,9 +46,11 @@ import org.apache.kafka.test.TestUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+@Ignore
 @Category({IntegrationTest.class})
 public class JsonFormatTest {
   private static final String inputTopic = "orders_topic";

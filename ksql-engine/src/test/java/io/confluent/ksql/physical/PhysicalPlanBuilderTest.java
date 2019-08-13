@@ -34,14 +34,10 @@ import io.confluent.ksql.planner.plan.PlanNode;
 import io.confluent.ksql.schema.registry.MockSchemaRegistryClientFactory;
 import io.confluent.ksql.serde.DataSource;
 import io.confluent.ksql.structured.LogicalPlanBuilder;
-import io.confluent.ksql.util.FakeKafkaTopicClient;
-import io.confluent.ksql.util.KafkaTopicClient;
-import io.confluent.ksql.util.KsqlConfig;
-import io.confluent.ksql.util.KsqlConstants;
-import io.confluent.ksql.util.KsqlException;
-import io.confluent.ksql.util.MetaStoreFixture;
-import io.confluent.ksql.util.QueryIdGenerator;
-import io.confluent.ksql.util.QueryMetadata;
+import io.confluent.ksql.testutils.AvoidMaprFSAppDirCreation;
+import io.confluent.ksql.testutils.MaprTestData;
+import io.confluent.ksql.util.*;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -58,16 +54,21 @@ import org.apache.kafka.clients.producer.ProducerInterceptor;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.connect.data.Schema;
+import org.apache.kafka.streams.KafkaClientSupplier;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
-import org.apache.kafka.streams.processor.internals.DefaultKafkaClientSupplier;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.MockPolicy;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 @SuppressWarnings("unchecked")
+@RunWith(PowerMockRunner.class)
+@MockPolicy(AvoidMaprFSAppDirCreation.class)
 public class PhysicalPlanBuilderTest {
 
   private final String simpleSelectFilter = "SELECT col0, col2, col3 FROM test1 WHERE col0 > 100;";
@@ -76,14 +77,14 @@ public class PhysicalPlanBuilderTest {
   private LogicalPlanBuilder planBuilder;
   private final Supplier<SchemaRegistryClient> schemaRegistryClientFactory
       = new MockSchemaRegistryClientFactory()::get;
-  private final KsqlConfig ksqlConfig = new KsqlConfig(
-      ImmutableMap.of(
-          ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092",
-          "commit.interval.ms", 0,
-          "cache.max.bytes.buffering", 0,
-          "auto.offset.reset", "earliest"));
-  private final KafkaTopicClient kafkaTopicClient = new FakeKafkaTopicClient();
+  private final KsqlConfig ksqlConfig = new KsqlConfig(MaprTestData.compatibleKsqlConfig(ImmutableMap.of(
+      StreamsConfig.COMMIT_INTERVAL_MS_CONFIG, 0,
+      StreamsConfig.CACHE_MAX_BYTES_BUFFERING_CONFIG, 0,
+      ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest"
+  )));
+  private final KafkaTopicClient kafkaTopicClient = new FakeKafkaTopicClient(ksqlConfig);
   private KsqlEngine ksqlEngine;
+  private KafkaClientSupplier kafkaClientSupplier;
 
   // Test implementation of KafkaStreamsBuilder that tracks calls and returned values
   class TestKafkaStreamsBuilder implements KafkaStreamsBuilder {
@@ -107,7 +108,7 @@ public class PhysicalPlanBuilderTest {
     public KafkaStreams buildKafkaStreams(final StreamsBuilder builder, final Map<String, Object> conf) {
       final Properties props = new Properties();
       props.putAll(conf);
-      final KafkaStreams kafkaStreams = new KafkaStreams(builder.build(), props);
+      final KafkaStreams kafkaStreams = new KafkaStreams(builder.build(), props, kafkaClientSupplier);
       calls.add(new Call(builder, props, kafkaStreams));
       return kafkaStreams;
     }
@@ -124,13 +125,14 @@ public class PhysicalPlanBuilderTest {
     testKafkaStreamsBuilder = new TestKafkaStreamsBuilder();
     physicalPlanBuilder = buildPhysicalPlanBuilder(Collections.emptyMap());
     planBuilder = new LogicalPlanBuilder(metaStore);
+    kafkaClientSupplier = new FakeKafkaClientSupplier();
     ksqlEngine = KsqlEngineTestUtil.createKsqlEngine(
         kafkaTopicClient,
         schemaRegistryClientFactory,
-        new DefaultKafkaClientSupplier(),
+        kafkaClientSupplier,
         new MetaStoreImpl(new InternalFunctionRegistry()),
         ksqlConfig,
-        new DefaultKafkaClientSupplier().getAdminClient(
+        kafkaClientSupplier.getAdminClient(
             ksqlConfig.getKsqlAdminClientConfigProps())
     );
   }

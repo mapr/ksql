@@ -31,7 +31,6 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
 import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.ksql.function.InternalFunctionRegistry;
@@ -52,6 +51,9 @@ import io.confluent.ksql.parser.tree.UnsetProperty;
 import io.confluent.ksql.query.QueryId;
 import io.confluent.ksql.serde.KsqlTopicSerDe;
 import io.confluent.ksql.serde.json.KsqlJsonTopicSerDe;
+import io.confluent.ksql.testutils.AvoidMaprFSAppDirCreation;
+import io.confluent.ksql.testutils.MaprTestData;
+import io.confluent.ksql.util.FakeKafkaClientSupplier;
 import io.confluent.ksql.util.FakeKafkaTopicClient;
 import io.confluent.ksql.util.KafkaTopicClient;
 import io.confluent.ksql.util.KsqlConfig;
@@ -74,32 +76,47 @@ import org.apache.avro.SchemaBuilder;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.common.utils.Utils;
 import org.apache.kafka.streams.KafkaClientSupplier;
-import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.processor.internals.DefaultKafkaClientSupplier;
 import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.MockPolicy;
+import org.powermock.modules.junit4.PowerMockRunner;
 
+@RunWith(PowerMockRunner.class)
+@MockPolicy(AvoidMaprFSAppDirCreation.class)
 public class KsqlEngineTest {
 
-  private final KafkaTopicClient topicClient = new FakeKafkaTopicClient();
-  private final SchemaRegistryClient schemaRegistryClient = new MockSchemaRegistryClient();
-  private final Supplier<SchemaRegistryClient> schemaRegistryClientFactory =
-      () -> schemaRegistryClient;
-  private final MetaStore metaStore = MetaStoreFixture.getNewMetaStore(new InternalFunctionRegistry());
-  private final KsqlConfig ksqlConfig
-      = new KsqlConfig(null);
-  private final KafkaClientSupplier kafkaClientSupplier = new DefaultKafkaClientSupplier();
-  private final AdminClient adminClient
-      = kafkaClientSupplier.getAdminClient(ksqlConfig.getKsqlAdminClientConfigProps());
-  private final KsqlEngine ksqlEngine = KsqlEngineTestUtil.createKsqlEngine(
-      topicClient,
-      schemaRegistryClientFactory,
-      kafkaClientSupplier,
-      metaStore,
-      ksqlConfig,
-      adminClient);
+  private KafkaTopicClient topicClient;
+  private SchemaRegistryClient schemaRegistryClient;
+  private Supplier<SchemaRegistryClient> schemaRegistryClientFactory;
+  private MetaStore metaStore;
+  private KsqlConfig ksqlConfig;
+  private KafkaClientSupplier kafkaClientSupplier;
+  private AdminClient adminClient;
+  private KsqlEngine ksqlEngine;
+
+  @Before
+  public void setUp() {
+    kafkaClientSupplier = new FakeKafkaClientSupplier();
+    ksqlConfig = new KsqlConfig(MaprTestData.compatibleKsqlConfig());
+    adminClient = kafkaClientSupplier.getAdminClient(ksqlConfig.getKsqlAdminClientConfigProps());
+    metaStore = MetaStoreFixture.getNewMetaStore(new InternalFunctionRegistry());
+    schemaRegistryClient = new MockSchemaRegistryClient();
+    schemaRegistryClientFactory = () -> schemaRegistryClient;
+    topicClient = new FakeKafkaTopicClient(ksqlConfig);
+    ksqlEngine = KsqlEngineTestUtil.createKsqlEngine(
+        topicClient,
+        schemaRegistryClientFactory,
+        kafkaClientSupplier,
+        metaStore,
+        ksqlConfig,
+        adminClient
+    );
+  }
 
   @After
   public void closeEngine() {

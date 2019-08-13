@@ -26,9 +26,6 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.Config;
 import org.apache.kafka.clients.admin.ConfigEntry;
@@ -41,7 +38,6 @@ import org.apache.kafka.common.Node;
 import org.apache.kafka.common.config.ConfigResource;
 import org.apache.kafka.common.config.TopicConfig;
 import org.apache.kafka.common.errors.TopicExistsException;
-import org.apache.kafka.streams.StreamsConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -231,14 +227,7 @@ public class KafkaTopicClientImpl implements KafkaTopicClient {
   @Override
   public void deleteInternalTopics(final String applicationId) {
     try {
-      final Configuration conf = new Configuration();
-      final FileSystem fs =  FileSystem.get(conf);
-      final  String appDir = StreamsConfig.STREAMS_INTERNAL_STREAM_COMMON_FOLDER + applicationId;
-
-      final Path p = new Path(appDir);
-      if (fs.exists(p)) {
-        fs.delete(p, true);
-      }
+      MaprFSUtils.deleteAppDirAndInternalStream(applicationId);
     } catch (final Exception e) {
       log.error("Exception while trying to clean up internal topics for application id: {}.",
                 applicationId, e

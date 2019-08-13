@@ -25,6 +25,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.common.Node;
 import org.apache.kafka.common.TopicPartitionInfo;
@@ -33,6 +35,14 @@ import org.apache.kafka.common.TopicPartitionInfo;
  * Fake Kafka Client is for test only, none of its methods should be called.
  */
 public class FakeKafkaTopicClient implements KafkaTopicClient {
+  private String defaultStream = "";
+
+  public FakeKafkaTopicClient() {
+  }
+
+  public FakeKafkaTopicClient(KsqlConfig config) {
+    this.defaultStream = config.getKsqlDefaultStream();
+  }
 
   class FakeTopic {
     private final String topicName;
@@ -79,7 +89,8 @@ public class FakeKafkaTopicClient implements KafkaTopicClient {
   private Map<String, FakeTopic> topicMap = new HashMap<>();
 
   @Override
-  public void createTopic(final String topic, final int numPartitions, final short replicationFactor, final Map<String, ?> configs) {
+  public void createTopic(String topic, final int numPartitions, final short replicationFactor, final Map<String, ?> configs) {
+    topic = getFullTopicName(topic);
     if (!topicMap.containsKey(topic)) {
       final TopicCleanupPolicy cleanUpPolicy =
           CLEANUP_POLICY_COMPACT.equals(configs.get(COMPRESSION_TYPE_CONFIG))
@@ -92,17 +103,19 @@ public class FakeKafkaTopicClient implements KafkaTopicClient {
 
   @Override
   public boolean isTopicExists(final String topic) {
-    return topicMap.containsKey(topic);
+    return topicMap.containsKey(getFullTopicName(topic));
   }
 
   @Override
   public Set<String> listTopicNames() {
-    return topicMap.keySet();
+    return listTopicNames(defaultStream);
   }
 
   @Override
   public Set<String> listTopicNames(String stream) {
-    return Collections.emptySet();
+    return topicMap.keySet().stream()
+        .map(topic -> getShortTopicName(stream, topic))
+        .collect(Collectors.toSet());
   }
 
   @Override
@@ -117,7 +130,7 @@ public class FakeKafkaTopicClient implements KafkaTopicClient {
   public Map<String, TopicDescription> describeTopics(final Collection<String> topicNames) {
     return listTopicNames()
         .stream()
-        .filter(n -> topicNames.contains(n))
+        .filter(topicNames::contains)
         .collect(
             Collectors.toMap(n -> n, n -> topicMap.get(n).getDescription()));
   }
@@ -140,11 +153,18 @@ public class FakeKafkaTopicClient implements KafkaTopicClient {
   @Override
   public void deleteTopics(final List<String> topicsToDelete) {
     for (final String topicName: topicsToDelete) {
-      topicMap.remove(topicName);
+      topicMap.remove(getFullTopicName(topicName));
     }
   }
-
   @Override
   public void deleteInternalTopics(final String applicationId) {
+  }
+
+  private String getShortTopicName(String stream, String topic) {
+    return StringUtils.removeStart(topic, stream + ":");
+  }
+
+  private String getFullTopicName(String topicName) {
+    return MaprFSUtils.decorateTopicWithDefaultStreamIfNeeded(topicName, defaultStream);
   }
 }

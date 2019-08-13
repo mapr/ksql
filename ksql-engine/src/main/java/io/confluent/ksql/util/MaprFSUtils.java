@@ -19,8 +19,10 @@ package io.confluent.ksql.util;
 import com.mapr.fs.MapRFileAce;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.kafka.common.KafkaException;
+import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.mapr.Utils;
 
 import java.io.IOException;
@@ -79,4 +81,15 @@ public class MaprFSUtils {
         }
         return String.format("%s:%s", defaultStream, topic);
     }
+
+  public static void deleteAppDirAndInternalStream(String applicationId) throws IOException {
+    final Configuration conf = new Configuration();
+    final FileSystem fs =  FileSystem.get(conf);
+    final  String appDir = StreamsConfig.STREAMS_INTERNAL_STREAM_COMMON_FOLDER + applicationId;
+
+    final Path p = new Path(appDir);
+    if (fs.exists(p)) {
+      fs.delete(p, true);
+    }
+  }
 }
