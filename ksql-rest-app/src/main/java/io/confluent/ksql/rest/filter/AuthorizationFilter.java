@@ -120,7 +120,7 @@ public class AuthorizationFilter implements ContainerRequestFilter {
     try {
       final byte[] inputStream = ByteStreams.toByteArray(requestContext.getEntityStream());
       requestContext.setEntityStream(new ByteArrayInputStream(inputStream));
-      final String jsonRequest = IOUtils.toString(new ByteArrayInputStream(inputStream));
+      final String jsonRequest = IOUtils.toString(new ByteArrayInputStream(inputStream), "UTF-8");
       final JSONObject obj = new JSONObject(jsonRequest);
       final String command = obj.getString("ksql").toUpperCase().trim();
 
