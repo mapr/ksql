@@ -150,12 +150,15 @@ public class SslContextFactory {
   private void createKeystore(final String type, final String path,
                               final String password, final String keyPassword)
           throws KsqlRestClientException {
-    if (path == null && password != null) {
+    if ((path == null || path.isEmpty())
+            && password != null
+            && !password.isEmpty()) {
       throw new KsqlRestClientException(
-              "SSL key store is not specified, but key store password is specified.");
+              "SSL keystore is not specified, but keystore password is specified. "
+                      + "Keystore cannot be blank.");
     } else if (path != null && password == null) {
       throw new KsqlRestClientException(
-              "SSL key store is specified, but key store password is not specified.");
+              "SSL keystore is specified, but keystore password is not specified.");
     } else if (StringUtil.isNotBlank(path) && StringUtil.isNotBlank(password)) {
       this.keystore = new SecurityStore(type, path, password);
       this.keyPassword = keyPassword;
@@ -165,9 +168,12 @@ public class SslContextFactory {
   private void createTruststore(String type, String path, String password, boolean trustAllCerts)
           throws KsqlRestClientException {
 
-    if (path == null && password != null) {
+    if ((path == null || path.isEmpty())
+            && password != null
+            && !password.isEmpty()) {
       throw new KsqlRestClientException(
-              "SSL trust store is not specified, but trust store password is specified.");
+              "SSL truststore is not specified, but truststore password is specified. "
+                      + "Trustore cannot be blank.");
     }
 
     if (!trustAllCerts) {
