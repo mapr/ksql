@@ -14,7 +14,6 @@
 
 package io.confluent.ksql.rest.server;
 
-
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
@@ -77,6 +76,6 @@ public class KsqlRestConfigTest {
   public void ensureCorrectCommandTopicName() {
     final String commandTopicName = KsqlRestConfig.getCommandTopic("TestKSql");
     assertThat(commandTopicName,
-               equalTo("_confluent-ksql-TestKSql_" + KsqlRestConfig.COMMAND_TOPIC_SUFFIX));
+               equalTo("/apps/ksql/TestKSql/ksql-commands:_confluent-ksql-TestKSql_" + KsqlRestConfig.COMMAND_TOPIC_SUFFIX));
   }
 }

@@ -68,10 +68,11 @@ import io.confluent.ksql.rest.server.KsqlRestConfig;
 import io.confluent.ksql.rest.server.computation.CommandId;
 import io.confluent.ksql.rest.server.computation.CommandStore;
 import io.confluent.ksql.rest.server.computation.QueuedCommandStatus;
-import io.confluent.ksql.rest.server.utils.TestUtils;
 import io.confluent.ksql.rest.util.EntityUtil;
 import io.confluent.ksql.serde.DataSource;
 import io.confluent.ksql.serde.json.KsqlJsonTopicSerDe;
+import io.confluent.ksql.testutils.AvoidMaprFSAppDirCreation;
+import io.confluent.ksql.testutils.MaprTestData;
 import io.confluent.ksql.util.FakeKafkaClientSupplier;
 import io.confluent.ksql.util.FakeKafkaTopicClient;
 import io.confluent.ksql.util.KsqlConfig;
@@ -97,7 +98,6 @@ import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.SchemaBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.easymock.EasyMock;
-import org.easymock.EasyMockRunner;
 import org.easymock.Mock;
 import org.easymock.MockType;
 import org.eclipse.jetty.http.HttpStatus.Code;
@@ -105,9 +105,12 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.MockPolicy;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 @SuppressWarnings("unchecked")
-@RunWith(EasyMockRunner.class)
+@RunWith(PowerMockRunner.class)
+@MockPolicy(AvoidMaprFSAppDirCreation.class)
 public class KsqlResourceTest {
 
   private static final long STATE_CLEANUP_DELAY_MS_DEFAULT = 10 * 60 * 1000L;
@@ -132,7 +135,7 @@ public class KsqlResourceTest {
     registerSchema(schemaRegistryClient);
     ksqlRestConfig = new KsqlRestConfig(getDefaultKsqlConfig());
     ksqlConfig = new KsqlConfig(ksqlRestConfig.getKsqlConfigProperties());
-    kafkaTopicClient = new FakeKafkaTopicClient();
+    kafkaTopicClient = new FakeKafkaTopicClient(ksqlConfig);
     realEngine = KsqlEngineTestUtil.createKsqlEngine(
         kafkaTopicClient,
         () -> schemaRegistryClient,
@@ -883,7 +886,7 @@ public class KsqlResourceTest {
     configMap.put(RestConfig.LISTENERS_CONFIG, "http://localhost:8084");
 
     final Properties properties = new Properties();
-    properties.putAll(configMap);
+    properties.putAll(MaprTestData.compatibleKsqlConfig(configMap));
 
     return properties;
   }

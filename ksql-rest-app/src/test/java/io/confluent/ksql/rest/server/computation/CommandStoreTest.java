@@ -40,7 +40,6 @@ import io.confluent.ksql.rest.entity.CommandStatus;
 import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.ksql.util.KsqlException;
 import io.confluent.ksql.util.Pair;
-
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,11 +49,11 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.Node;
@@ -62,13 +61,16 @@ import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.TopicPartition;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
-import org.easymock.EasyMockRunner;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
+import org.powermock.api.easymock.PowerMock;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 @SuppressWarnings("unchecked")
-@RunWith(EasyMockRunner.class)
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(UserGroupInformation.class)
 public class CommandStoreTest {
 
   private static final String COMMAND_TOPIC = "command";
@@ -76,7 +78,7 @@ public class CommandStoreTest {
   private static final Map<String, Object> OVERRIDE_PROPERTIES = Collections.emptyMap();
 
   private final Consumer<CommandId, Command> commandConsumer = niceMock(Consumer.class);
-  private final Producer<CommandId, Command> commandProducer = mock(Producer.class);
+  private final ProducerPool commandProducerPool = mock(ProducerPool.class);
   private final String statementText = "test-statement";
   private final CommandId commandId =
       new CommandId(CommandId.Type.STREAM, "foo", CommandId.Action.CREATE);
@@ -85,6 +87,16 @@ public class CommandStoreTest {
   private final Command command =
       new Command(statementText, Collections.emptyMap(), Collections.emptyMap(), null);
   private final Node node = mock(Node.class);
+
+  @Before
+  public void setUp() throws Exception {
+    PowerMock.mockStaticPartialNice(UserGroupInformation.class, "getCurrentUser");
+    final UserGroupInformation ugi = EasyMock.mock(UserGroupInformation.class);
+    EasyMock.expect(ugi.getUserName()).andStubReturn("fake-user");
+    EasyMock.expect(UserGroupInformation.getCurrentUser()).andStubReturn(ugi);
+
+    PowerMock.replay(UserGroupInformation.class, ugi);
+  }
 
   @Test
   public void shouldHaveAllCreateCommandsInOrder() {
@@ -122,8 +134,8 @@ public class CommandStoreTest {
     final CommandStore commandStore = createCommandStoreThatAssignsSameId(commandId);
 
     // Given:
-    expect(commandProducer.send(anyObject())).andReturn(future);
-    replay(commandProducer);
+    expect(commandProducerPool.send(anyObject())).andReturn(future);
+    replay(commandProducerPool);
     commandStore.enqueueCommand(statementText, statement, KSQL_CONFIG, OVERRIDE_PROPERTIES);
 
     try {
@@ -141,9 +153,9 @@ public class CommandStoreTest {
     final CommandStore commandStore = createCommandStoreThatAssignsSameId(commandId);
 
     // Given:
-    expect(commandProducer.send(anyObject())).andThrow(new RuntimeException("oops")).times(1);
-    expect(commandProducer.send(anyObject())).andReturn(future).times(1);
-    replay(commandProducer);
+    expect(commandProducerPool.send(anyObject())).andThrow(new RuntimeException("oops")).times(1);
+    expect(commandProducerPool.send(anyObject())).andReturn(future).times(1);
+    replay(commandProducerPool);
     try {
       commandStore.enqueueCommand(statementText, statement, KSQL_CONFIG, OVERRIDE_PROPERTIES);
       fail("enqueueCommand should have raised an exception");
@@ -155,7 +167,7 @@ public class CommandStoreTest {
 
     // Then:
     // main condition being verified is that the above call doesn't throw
-    verify(commandProducer);
+    verify(commandProducerPool);
   }
 
   @Test
@@ -164,23 +176,23 @@ public class CommandStoreTest {
 
     // Given:
     setupConsumerToReturnCommand(commandId, command);
-    expect(commandProducer.send(anyObject(ProducerRecord.class))).andAnswer(
+    expect(commandProducerPool.send(anyObject(ProducerRecord.class))).andAnswer(
         () -> {
           commandStore.getNewCommands();
           return future;
         }
     ).times(1);
-    expect(commandProducer.send(anyObject(ProducerRecord.class))).andReturn(future);
+    expect(commandProducerPool.send(anyObject(ProducerRecord.class))).andReturn(future);
     future.get();
     expectLastCall().andStubReturn(null);
-    replay(future, commandProducer);
+    replay(future, commandProducerPool);
     commandStore.enqueueCommand(statementText, statement, KSQL_CONFIG, OVERRIDE_PROPERTIES);
 
     // When:
     commandStore.enqueueCommand(statementText, statement, KSQL_CONFIG, OVERRIDE_PROPERTIES);
 
     // Then:
-    verify(future, commandProducer, commandConsumer);
+    verify(future, commandProducerPool, commandConsumer);
   }
 
   @Test
@@ -190,7 +202,7 @@ public class CommandStoreTest {
 
     // Given:
     setupConsumerToReturnCommand(commandId, command);
-    expect(commandProducer.send(anyObject(ProducerRecord.class))).andAnswer(
+    expect(commandProducerPool.send(anyObject(ProducerRecord.class))).andAnswer(
         () -> {
           final QueuedCommand queuedCommand = commandStore.getNewCommands().get(0);
           assertThat(queuedCommand.getCommandId(), equalTo(commandId));
@@ -203,14 +215,14 @@ public class CommandStoreTest {
     );
     future.get();
     expectLastCall().andReturn(null);
-    replay(future, commandProducer);
+    replay(future, commandProducerPool);
 
     // When:
     commandStore.enqueueCommand(statementText, statement, KSQL_CONFIG, OVERRIDE_PROPERTIES);
 
     // Then:
-    // verifying the commandProducer also verifies the assertions in its IAnswer were run
-    verify(future, commandProducer, commandConsumer);
+    // verifying the commandProducerPool also verifies the assertions in its IAnswer were run
+    verify(future, commandProducerPool, commandConsumer);
   }
 
   @Test
@@ -273,15 +285,15 @@ public class CommandStoreTest {
     final Capture<ProducerRecord<CommandId, Command>> recordCapture = Capture.newInstance();
     final Future<RecordMetadata> future = mock(Future.class);
 
-    expect(commandProducer.send(capture(recordCapture))).andReturn(future);
+    expect(commandProducerPool.send(capture(recordCapture))).andReturn(future);
     future.get();
     expectLastCall().andReturn(null);
-    replay(commandProducer, future);
+    replay(commandProducerPool, future);
 
     final CommandStore commandStore = createCommandStoreThatAssignsSameId(commandId);
     commandStore.enqueueCommand(statementText, statement, ksqlConfig, overrideProperties);
 
-    verify(commandProducer, future);
+    verify(commandProducerPool, future);
 
     final ProducerRecord<CommandId, Command> record = recordCapture.getValue();
     assertThat(record.key(), equalTo(commandId));
@@ -315,7 +327,7 @@ public class CommandStoreTest {
     return new CommandStore(
         COMMAND_TOPIC,
         commandConsumer,
-        new ProducerPool(null, null, null),
+        commandProducerPool,
         commandIdAssigner);
   }
 

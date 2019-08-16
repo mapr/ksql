@@ -70,17 +70,17 @@ public class MaprFSUtils {
     }
   }
 
-    public static String decorateTopicWithDefaultStreamIfNeeded(String topic, String defaultStream){
-        return topic.contains(":") ? topic : decorateTopicWithDefaultStream(topic, defaultStream);
-    }
+  public static String decorateTopicWithDefaultStreamIfNeeded(String topic, String defaultStream){
+    return topic.contains(":") ? topic : decorateTopicWithDefaultStream(topic, defaultStream);
+  }
 
-    private static String decorateTopicWithDefaultStream(String topic, String defaultStream){
-        if(defaultStream.isEmpty()){
-            throw new KsqlException("Cannot decorate topic with default stream. " +
-                    "Set " + KsqlConfig.KSQL_DEFAULT_STREAM_CONFIG);
-        }
-        return String.format("%s:%s", defaultStream, topic);
+  private static String decorateTopicWithDefaultStream(String topic, String defaultStream){
+    if(defaultStream.isEmpty()){
+      throw new KsqlException("Cannot decorate topic with default stream. " +
+              "Set " + KsqlConfig.KSQL_DEFAULT_STREAM_CONFIG);
     }
+      return String.format("%s:%s", defaultStream, topic);
+  }
 
   public static void deleteAppDirAndInternalStream(String applicationId) throws IOException {
     final Configuration conf = new Configuration();

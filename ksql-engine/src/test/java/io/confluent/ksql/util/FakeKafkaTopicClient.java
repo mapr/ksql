@@ -132,7 +132,7 @@ public class FakeKafkaTopicClient implements KafkaTopicClient {
         .stream()
         .filter(topicNames::contains)
         .collect(
-            Collectors.toMap(n -> n, n -> topicMap.get(n).getDescription()));
+            Collectors.toMap(n -> n, n -> topicMap.get(getFullTopicName(n)).getDescription()));
   }
 
   @Override

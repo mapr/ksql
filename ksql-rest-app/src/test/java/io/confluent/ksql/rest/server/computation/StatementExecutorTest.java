@@ -22,7 +22,6 @@ import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reportMatcher;
 import static org.easymock.EasyMock.verify;
-import static org.hamcrest.CoreMatchers.anyOf;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -58,13 +57,14 @@ import io.confluent.ksql.rest.server.mock.MockKafkaTopicClient;
 import io.confluent.ksql.rest.server.utils.TestUtils;
 import io.confluent.ksql.test.util.EmbeddedSingleNodeKafkaCluster;
 import io.confluent.ksql.schema.registry.MockSchemaRegistryClientFactory;
+import io.confluent.ksql.testutils.AvoidMaprFSAppDirCreation;
+import io.confluent.ksql.testutils.MaprTestData;
 import io.confluent.ksql.util.FakeKafkaClientSupplier;
 import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.ksql.util.KsqlConstants;
 import io.confluent.ksql.util.Pair;
 import io.confluent.ksql.util.PersistentQueryMetadata;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -82,8 +82,13 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.MockPolicy;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 @SuppressWarnings("ConstantConditions")
+@RunWith(PowerMockRunner.class)
+@MockPolicy(AvoidMaprFSAppDirCreation.class)
 public class StatementExecutorTest extends EasyMockSupport {
   @Rule
   public ExpectedException exceptionRule = ExpectedException.none();
@@ -103,8 +108,7 @@ public class StatementExecutorTest extends EasyMockSupport {
 
   @Before
   public void setUp() {
-    final Map<String, Object> props = new HashMap<>();
-    props.put("bootstrap.servers", CLUSTER.bootstrapServers());
+    final Map<String, Object> props = MaprTestData.compatibleKsqlConfig();
 
     ksqlConfig = new KsqlConfig(props);
     ksqlEngine = KsqlEngineTestUtil.createKsqlEngine(

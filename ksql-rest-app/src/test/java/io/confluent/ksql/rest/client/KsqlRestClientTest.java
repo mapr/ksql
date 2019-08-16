@@ -18,7 +18,6 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -37,6 +36,7 @@ import io.confluent.ksql.rest.server.mock.MockApplication;
 import io.confluent.ksql.rest.server.mock.MockStreamedQueryResource;
 import io.confluent.ksql.rest.server.resources.Errors;
 import io.confluent.ksql.rest.server.utils.TestUtils;
+import io.confluent.rest.RestConfig;
 import java.io.Closeable;
 import java.net.URI;
 import java.time.Duration;
@@ -45,8 +45,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
@@ -72,6 +70,9 @@ public class KsqlRestClientTest {
     final String serverAddress = "http://localhost:" + port;
     props.put(KsqlRestConfig.LISTENERS_CONFIG, serverAddress);
     props.put(StreamsConfig.APPLICATION_ID_CONFIG, "ksql_config_test");
+    props.put(RestConfig.SSL_KEYSTORE_LOCATION_CONFIG, "/tmp/none");
+    props.put(RestConfig.SSL_KEYSTORE_PASSWORD_CONFIG, "none");
+    props.put(RestConfig.SSL_KEY_PASSWORD_CONFIG, "none");
     final KsqlRestConfig ksqlRestConfig = new KsqlRestConfig(props);
     mockApplication = new MockApplication(ksqlRestConfig);
     mockApplication.start();
@@ -139,32 +140,6 @@ public class KsqlRestClientTest {
     } finally {
       writer.finished();
     }
-  }
-
-  @SuppressWarnings("ResultOfMethodCallIgnored")
-  @Test
-  public void shouldInterruptScannerOnClose() throws InterruptedException {
-    final MockStreamedQueryResource sqr = mockApplication.getStreamedQueryResource();
-    final RestResponse<KsqlRestClient.QueryStream> queryResponse = ksqlRestClient.makeQueryRequest
-            ("Select *");
-    Assert.assertNotNull(queryResponse);
-    Assert.assertTrue(queryResponse.isSuccessful());
-
-    final List<MockStreamedQueryResource.TestStreamWriter> writers = sqr.getWriters();
-    Assert.assertEquals(1, writers.size());
-
-          final KsqlRestClient.QueryStream queryStream = queryResponse.getResponse();
-
-    final Thread closeThread = givenStreamWillBeClosedIn(Duration.ofMillis(100), queryStream);
-    try {
-      queryStream.hasNext();
-      fail();
-    } catch (final IllegalStateException e) {
-      // expected
-    }
-
-    closeThread.join(10_000);
-    assertThat("invalid test", closeThread.isAlive(), is(false));
   }
 
   @Test
@@ -240,7 +215,7 @@ public class KsqlRestClientTest {
     // Then:
     assertThat(response.getErrorMessage().getErrorCode(), is(Errors.ERROR_CODE_UNAUTHORIZED));
     assertThat(response.getErrorMessage().getMessage(),
-        is("Could not authenticate successfully with the supplied credentials."));
+        is("Could not authenticate successfully with the supplied credentials or ticket."));
   }
 
   @Test
@@ -254,7 +229,7 @@ public class KsqlRestClientTest {
     // Then:
     assertThat(response.getErrorMessage().getErrorCode(), is(Errors.ERROR_CODE_UNAUTHORIZED));
     assertThat(response.getErrorMessage().getMessage(),
-        is("Could not authenticate successfully with the supplied credentials."));
+        is("Could not authenticate successfully with the supplied credentials or ticket."));
   }
 
   @Test
@@ -403,7 +378,7 @@ public class KsqlRestClientTest {
 
     EasyMock.replay(client, target, builder, response);
 
-    ksqlRestClient = new KsqlRestClient(client, "http://0.0.0.0", Collections.emptyMap(), null);
+    ksqlRestClient = new KsqlRestClient(client, "http://0.0.0.0", Collections.emptyMap(), Optional.empty());
   }
 
   private static Thread givenStreamWillBeClosedIn(final Duration duration, final Closeable stream) {

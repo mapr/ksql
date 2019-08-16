@@ -14,8 +14,6 @@
 
 package io.confluent.ksql.rest.server;
 
-import static org.easymock.EasyMock.anyObject;
-
 import com.google.common.collect.ImmutableMap;
 import io.confluent.ksql.exception.KafkaTopicException;
 import io.confluent.ksql.util.KafkaTopicClient;
@@ -27,7 +25,6 @@ import java.util.Map;
 import org.apache.kafka.common.config.TopicConfig;
 import org.easymock.EasyMock;
 import org.junit.Test;
-
 
 public class KsqlRestApplicationTest {
 
@@ -60,7 +57,8 @@ public class KsqlRestApplicationTest {
   public void shouldNotAttemptToCreateCommandTopicIfItExists() {
     EasyMock.resetToStrict(topicClient);
     EasyMock.expect(topicClient.isTopicExists(COMMAND_TOPIC)).andReturn(true);
-    EasyMock.expect(topicClient.addTopicConfig(anyObject(), anyObject())).andReturn(false);
+    //This method is not used due to workaround for not implemented method MarlinAdminClientImpl.describeConfigs
+    //EasyMock.expect(topicClient.addTopicConfig(anyObject(), anyObject())).andReturn(false);
 
     EasyMock.replay(topicClient);
 
@@ -77,7 +75,8 @@ public class KsqlRestApplicationTest {
         TopicConfig.RETENTION_MS_CONFIG, Long.MAX_VALUE
     );
     EasyMock.expect(topicClient.isTopicExists(COMMAND_TOPIC)).andReturn(true);
-    EasyMock.expect(topicClient.addTopicConfig(COMMAND_TOPIC, retentionConfig)).andReturn(true);
+    //This method is not used due to workaround for not implemented method MarlinAdminClientImpl.describeConfigs
+    //EasyMock.expect(topicClient.addTopicConfig(COMMAND_TOPIC, retentionConfig)).andReturn(true);
 
     EasyMock.replay(topicClient);
 
