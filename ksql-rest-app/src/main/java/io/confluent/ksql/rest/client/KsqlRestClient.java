@@ -30,6 +30,7 @@ import io.confluent.ksql.rest.entity.StreamedRow;
 import io.confluent.ksql.rest.server.resources.Errors;
 import io.confluent.ksql.rest.util.JsonMapper;
 import io.confluent.ksql.util.Pair;
+import io.confluent.rest.RestConfig;
 import io.confluent.rest.validation.JacksonMessageBodyProvider;
 import java.io.Closeable;
 import java.io.IOException;
@@ -103,7 +104,9 @@ public class KsqlRestClient implements Closeable {
   public KsqlRestClient(final String serverAddress,
                         final Map<String, Object> localProperties,
                         final Optional<String> authMethod) {
-    this(buildClient(initializeSslContext(serverAddress, localProperties)),
+    this(buildClient(Optional.ofNullable(localProperties.get(RestConfig.SSL_TRUSTALLCERTS_CONFIG))
+              .map(x -> Boolean.valueOf(x.toString()))
+              .orElse(false), initializeSslContext(serverAddress, localProperties)),
             serverAddress, localProperties, authMethod);
   }
 
@@ -501,7 +504,7 @@ public class KsqlRestClient implements Closeable {
     }
   }
 
-  private static Client buildClient(final SSLContext sslContext) {
+  private static Client buildClient(final boolean insecure, final SSLContext sslContext) {
     final ObjectMapper objectMapper = JsonMapper.INSTANCE.mapper;
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     objectMapper.configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false);
@@ -510,6 +513,9 @@ public class KsqlRestClient implements Closeable {
     final ClientBuilder cb = ClientBuilder.newBuilder();
     if (sslContext == null) {
       return cb.register(jsonProvider).build();
+    }
+    if (insecure) {
+      cb.hostnameVerifier((x, y) -> true);
     }
     return cb.sslContext(sslContext).register(jsonProvider).build();
   }

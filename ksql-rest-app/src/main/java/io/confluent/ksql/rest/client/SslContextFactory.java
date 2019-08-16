@@ -102,7 +102,6 @@ public class SslContextFactory {
     }
   }
 
-
   private SSLContext createSslContext() throws GeneralSecurityException, IOException {
     final SSLContext sslContext;
     if (StringUtil.isNotBlank(provider)) {
