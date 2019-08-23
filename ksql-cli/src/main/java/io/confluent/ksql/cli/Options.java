@@ -42,10 +42,10 @@ public class Options {
   private static final String OUTPUT_FORMAT_OPTION_NAME = "--output";
   private static final String AUTH_METHOD_SHORT_OPTION = "-a";
   private static final String AUTH_METHOD_OPTION_NAME = "--auth";
-  private static final String SSL_TRUSTORE_SHORT_OPTION_NAME = "-t";
-  private static final String SSL_TRUSTORE_OPTION_NAME = "--trustore";
-  private static final String SSL_TRUSTORE_PASSWORD_SHORT_OPTION_NAME = "-tp";
-  private static final String SSL_TRUSTORE_PASSWORD_OPTION_NAME = "--trustore-password";
+  private static final String SSL_TRUSTSTORE_SHORT_OPTION_NAME = "-t";
+  private static final String SSL_TRUSTSTORE_OPTION_NAME = "--truststore";
+  private static final String SSL_TRUSTSTORE_PASSWORD_SHORT_OPTION_NAME = "-tp";
+  private static final String SSL_TRUSTSTORE_PASSWORD_OPTION_NAME = "--truststore-password";
   private static final String SSL_TRUST_ALL_CERTS_OPTION_NAME = "--insecure";
   private static final String SSL_TRUST_ALL_CERTS_SHORT_OPTION_NAME = "-k";
 
@@ -80,28 +80,28 @@ public class Options {
   private String authMethod;
 
   @Option(
-          name = {SSL_TRUSTORE_OPTION_NAME, SSL_TRUSTORE_SHORT_OPTION_NAME},
+          name = {SSL_TRUSTSTORE_OPTION_NAME, SSL_TRUSTSTORE_SHORT_OPTION_NAME},
           description =
                   "If your KSQL server is configured for 'https' protocol, "
-                          + "then you can provide your custom ssl_trustore"
-                          + " file. Ssl_trustore file can be specified with the "
-                          + SSL_TRUSTORE_OPTION_NAME
+                          + "then you can provide your custom ssl_truststore"
+                          + " file. Ssl_truststore file can be specified with the "
+                          + SSL_TRUSTSTORE_OPTION_NAME
                           + "/"
-                          + SSL_TRUSTORE_SHORT_OPTION_NAME
+                          + SSL_TRUSTSTORE_SHORT_OPTION_NAME
                           + " flag")
-  private String sslTrustore;
+  private String sslTruststore;
 
   @Option(
-          name = {SSL_TRUSTORE_PASSWORD_OPTION_NAME, SSL_TRUSTORE_PASSWORD_SHORT_OPTION_NAME},
+          name = {SSL_TRUSTSTORE_PASSWORD_OPTION_NAME, SSL_TRUSTSTORE_PASSWORD_SHORT_OPTION_NAME},
           description =
                   "If your KSQL server is configured for 'https' protocol, "
-                          + "then you can provide your custom ssl_trustore"
+                          + "then you can provide your custom ssl_truststore"
                           + " file and password for it. The password can be specified with the "
-                          + SSL_TRUSTORE_PASSWORD_OPTION_NAME
+                          + SSL_TRUSTSTORE_PASSWORD_OPTION_NAME
                           + "/"
-                          + SSL_TRUSTORE_PASSWORD_SHORT_OPTION_NAME
+                          + SSL_TRUSTSTORE_PASSWORD_SHORT_OPTION_NAME
                           + " flag")
-  private String sslTrustorePassword;
+  private String sslTruststorePassword;
 
   @Option(
           name = {SSL_TRUST_ALL_CERTS_OPTION_NAME, SSL_TRUST_ALL_CERTS_SHORT_OPTION_NAME},
@@ -168,12 +168,12 @@ public class Options {
     this.authMethod = authMethod;
   }
 
-  public Optional<String> getSslTrustore() {
-    return Optional.ofNullable(sslTrustore);
+  public Optional<String> getSslTruststore() {
+    return Optional.ofNullable(sslTruststore);
   }
 
-  public Optional<String> getSslTrustorePassword() {
-    return Optional.ofNullable(sslTrustorePassword);
+  public Optional<String> getSslTruststorePassword() {
+    return Optional.ofNullable(sslTruststorePassword);
   }
 
   public Optional<Boolean> getSslTrustAllCertsEnable() {

@@ -172,7 +172,7 @@ public class SslContextFactory {
             && !password.isEmpty()) {
       throw new KsqlRestClientException(
               "SSL truststore is not specified, but truststore password is specified. "
-                      + "Trustore cannot be blank.");
+                      + "Truststore cannot be blank.");
     }
 
     if (!trustAllCerts) {
