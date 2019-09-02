@@ -7,6 +7,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import io.confluent.common.utils.IntegrationTest;
 import io.confluent.ksql.GenericRow;
 import io.confluent.ksql.KsqlContext;
+import io.confluent.ksql.test.categories.UnsupportedTest;
 import io.confluent.ksql.function.UdfLoaderUtil;
 import io.confluent.ksql.util.KafkaTopicClient;
 import io.confluent.ksql.util.OrderDataProvider;
@@ -25,12 +26,10 @@ import org.apache.kafka.streams.kstream.Windowed;
 import org.apache.kafka.test.TestUtils;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-@Ignore
-@Category({IntegrationTest.class})
+@Category({IntegrationTest.class, UnsupportedTest.class})
 public class WindowingIntTest {
 
   private static final int WINDOW_SIZE_SEC = 5;

@@ -27,16 +27,18 @@ import java.util.Map;
 import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import io.confluent.ksql.test.categories.UnsupportedTest;
 import org.apache.avro.Schema;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 
 // End-to-End tests require last-version of kafka-streams-test-utils that's missing on mapr
-@Ignore
 @RunWith(Parameterized.class)
+@Category({UnsupportedTest.class})
 public class SchemaTranslationTest {
   private static final ObjectMapper objectMapper = new ObjectMapper();
   private static final Path SCHEMA_VALIDATION_TEST_DIR = Paths.get("schema-validation-tests");

@@ -18,10 +18,9 @@ package io.confluent.ksql.integration;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Streams;
+import io.confluent.ksql.test.categories.UnsupportedTest;
 import io.confluent.ksql.util.KafkaConsumerGroupClient;
 import io.confluent.ksql.util.KafkaConsumerGroupClient.ConsumerSummary;
 import io.confluent.ksql.util.KafkaConsumerGroupClientImpl;
@@ -38,7 +37,6 @@ import org.apache.kafka.test.IntegrationTest;
 import org.apache.kafka.test.TestUtils;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
@@ -47,8 +45,7 @@ import org.junit.experimental.categories.Category;
  * of stubbing results from the admin client as constructors are package-private. Mocking
  * the results would be tedious and distract from the actual testing.
  */
-@Ignore
-@Category({IntegrationTest.class})
+@Category({IntegrationTest.class, UnsupportedTest.class})
 public class KafkaConsumerGroupClientTest {
 
   private IntegrationTestHarness testHarness;

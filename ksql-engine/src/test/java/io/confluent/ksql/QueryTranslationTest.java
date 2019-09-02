@@ -19,6 +19,7 @@ import com.google.common.io.Files;
 import io.confluent.connect.avro.AvroData;
 import io.confluent.ksql.EndToEndEngineTestUtil.TestCase;
 import io.confluent.ksql.EndToEndEngineTestUtil.TopologyAndConfigs;
+import io.confluent.ksql.test.categories.UnsupportedTest;
 import io.confluent.ksql.ddl.DdlConfig;
 import io.confluent.ksql.function.InternalFunctionRegistry;
 import io.confluent.ksql.metastore.MetaStoreImpl;
@@ -52,8 +53,8 @@ import java.util.stream.StreamSupport;
 import org.apache.kafka.connect.data.Field;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.SchemaBuilder;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
@@ -91,8 +92,8 @@ import org.junit.runners.Parameterized;
  */
 
 // End-to-End tests require last-version of kafka-streams-test-utils that's missing on mapr
-@Ignore
 @RunWith(Parameterized.class)
+@Category({UnsupportedTest.class})
 public class QueryTranslationTest {
   private static final ObjectMapper objectMapper = new ObjectMapper();
   private static final Path QUERY_VALIDATION_TEST_DIR = Paths.get("query-validation-tests");

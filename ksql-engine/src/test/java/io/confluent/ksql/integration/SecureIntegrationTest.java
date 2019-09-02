@@ -32,6 +32,7 @@ import static org.hamcrest.Matchers.is;
 
 import io.confluent.common.utils.IntegrationTest;
 import io.confluent.ksql.KsqlEngine;
+import io.confluent.ksql.test.categories.UnsupportedTest;
 import io.confluent.ksql.query.QueryId;
 import io.confluent.ksql.test.util.EmbeddedSingleNodeKafkaCluster;
 import io.confluent.ksql.test.util.secure.ClientTrustStore;
@@ -67,15 +68,13 @@ import org.apache.kafka.test.TestUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 /**
  * Tests covering integration with secured components, e.g. secure Kafka cluster.
  */
-@Ignore
-@Category({IntegrationTest.class})
+@Category({IntegrationTest.class, UnsupportedTest.class})
 public class SecureIntegrationTest {
 
   private static final String INPUT_TOPIC = "orders_topic";

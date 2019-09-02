@@ -25,6 +25,7 @@ import static org.junit.Assert.assertThat;
 import com.google.common.collect.ImmutableMap;
 import io.confluent.ksql.GenericRow;
 import io.confluent.ksql.KsqlEngine;
+import io.confluent.ksql.test.categories.UnsupportedTest;
 import io.confluent.ksql.query.QueryId;
 import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.ksql.util.PageViewDataProvider;
@@ -47,7 +48,6 @@ import org.apache.kafka.test.IntegrationTest;
 import org.apache.kafka.test.TestUtils;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -59,8 +59,7 @@ import org.slf4j.LoggerFactory;
  * This test emulates the end to end flow in the quick start guide and ensures that the outputs at each stage
  * are what we expect. This tests a broad set of KSQL functionality and is a good catch-all.
  */
-@Ignore
-@Category({IntegrationTest.class})
+@Category({IntegrationTest.class, UnsupportedTest.class})
 public class EndToEndIntegrationTest {
 
   private static final Logger log = LoggerFactory.getLogger(EndToEndIntegrationTest.class);

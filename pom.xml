@@ -99,6 +99,13 @@
         <mapr.streams.version>6.2.0-mapr-SNAPSHOT</mapr.streams.version>
         <version.3digit>5.1.2</version.3digit>
         <powermock.version>2.0.2</powermock.version>
+        <junit.integration.categories>
+            io.confluent.common.utils.IntegrationTest,
+            org.apache.kafka.test.IntegrationTest
+        </junit.integration.categories>
+        <junit.unsupported.categories>
+            io.confluent.ksql.test.categories.UnsupportedTest
+        </junit.unsupported.categories>
     </properties>
 
     <dependencyManagement>
@@ -458,6 +465,22 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <excludedGroups>${junit.integration.categories},${junit.unsupported.categories}</excludedGroups>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <configuration>
+                    <groups>${junit.integration.categories}</groups>
+                    <excludedGroups>${junit.unsupported.categories}</excludedGroups>
+                </configuration>
             </plugin>
         </plugins>
     </build>
