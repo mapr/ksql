@@ -14,6 +14,7 @@
 
 package io.confluent.ksql.util;
 
+import static org.easymock.EasyMock.*;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.is;
@@ -24,7 +25,10 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 
 import com.google.common.collect.ImmutableMap;
+import io.confluent.kafka.schemaregistry.client.rest.utils.UrlUtils;
 import io.confluent.ksql.errors.LogMetricAndContinueExceptionHandler;
+
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,7 +39,13 @@ import org.apache.kafka.common.config.SslConfigs;
 import org.apache.kafka.streams.StreamsConfig;
 import org.hamcrest.core.IsEqual;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.easymock.PowerMock;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(UrlUtils.class)
 public class KsqlConfigTest {
 
   @Test
@@ -433,11 +443,17 @@ public class KsqlConfigTest {
     assertThat(result.get("some.random.property"), is(nullValue()));
   }
 
-  @Test(expected = Exception.class)
-  public void shouldFailByTryingLazilyExtractSchemaRegistryUrlFromZookeeper() {
+  @Test
+  public void shouldExtractAndMemoizeSchemaRegistryUrlFromZookeeper() throws IOException {
+    PowerMock.mockStatic(UrlUtils.class);
+    expect(UrlUtils.extractSchemaRegistryUrlFromZk(anyString(), anyInt(), anyBoolean()))
+            .andReturn("first-and-only-url")
+            .andReturn("url that should never be returned");
+    PowerMock.replay(UrlUtils.class);
+
     final KsqlConfig ksqlConfig = new KsqlConfig(new HashMap<String, Object>());
 
-    ksqlConfig.getSchemaRegistryUrl();
+    assertThat(ksqlConfig.getSchemaRegistryUrl(), is("first-and-only-url"));
   }
 
 
