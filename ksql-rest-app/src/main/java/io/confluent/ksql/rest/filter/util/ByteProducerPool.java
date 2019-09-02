@@ -14,12 +14,13 @@
 
 package io.confluent.ksql.rest.filter.util;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
+import java.util.function.Function;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.confluent.rest.impersonation.Errors;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -27,14 +28,16 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 
 public class ByteProducerPool {
-
+  private final Properties properties;
   private Map<UserGroupInformation, KafkaProducer<byte[], byte[]>> producers =
           new ConcurrentHashMap<>();
 
-  private Properties properties;
+  @VisibleForTesting
+  private Function<Properties, KafkaProducer<byte[], byte[]>> producerFactory;
 
   public ByteProducerPool(final Properties properties) {
     this.properties = properties;
+    this.producerFactory = KafkaProducer::new;
   }
 
   public Future<RecordMetadata> send(final ProducerRecord<byte[], byte[]> record) {
@@ -42,10 +45,10 @@ public class ByteProducerPool {
       final UserGroupInformation user = UserGroupInformation.getCurrentUser();
 
       final KafkaProducer<byte[], byte[]> producer
-              = producers.computeIfAbsent(user, k -> new KafkaProducer<>(properties));
+              = producers.computeIfAbsent(user, info -> producerFactory.apply(properties));
 
       return producer.send(record);
-    } catch (IOException e) {
+    } catch (Exception e) {
       throw Errors.serverLoginException(e);
     }
   }

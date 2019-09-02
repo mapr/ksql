@@ -49,7 +49,7 @@ public class AuthorizationFilter implements ContainerRequestFilter {
   private static final Logger logger = LoggerFactory.getLogger(AuthorizationFilter.class);
 
   private static final String INTERNAL_TOPIC = "ksql-authorization-auxiliary-topic";
-  private static final String [] commandWithWritePermsPrefixes =
+  private static final String[] commandWithWritePermsPrefixes =
       {"CREATE", "DROP", "RUN", "TERMINATE", "INSERT"};
 
   private final ByteConsumerPool byteConsumerPool;
@@ -57,13 +57,19 @@ public class AuthorizationFilter implements ContainerRequestFilter {
   private final String internalTopic;
 
   public AuthorizationFilter(KsqlRestConfig ksqlRestConfig) {
-    this.internalTopic = String.format("%s%s/ksql-commands:%s",
-            KsqlConfig.KSQL_SERVICES_COMMON_FOLDER,
-            new KsqlConfig(ksqlRestConfig.getKsqlConfigProperties())
-                    .getString(KsqlConfig.KSQL_SERVICE_ID_CONFIG),
-            INTERNAL_TOPIC);
+    this.internalTopic = buildInternalTopicName(ksqlRestConfig);
     this.byteConsumerPool = new ByteConsumerPool(getConsumerProperties(), internalTopic);
     this.byteProducerPool = new ByteProducerPool(getProducerProperties());
+    this.initializeInternalTopicWithDummyRecord();
+  }
+
+
+  AuthorizationFilter(KsqlRestConfig ksqlRestConfig,
+                      ByteConsumerPool byteConsumerPool,
+                      ByteProducerPool byteProducerPool) {
+    this.internalTopic = buildInternalTopicName(ksqlRestConfig);
+    this.byteConsumerPool = byteConsumerPool;
+    this.byteProducerPool = byteProducerPool;
     this.initializeInternalTopicWithDummyRecord();
   }
 
@@ -144,45 +150,41 @@ public class AuthorizationFilter implements ContainerRequestFilter {
   }
 
   private void checkWritingPermissions() {
-    String currentUser = "<not available>";
-    try {
-      currentUser = UserGroupInformation.getCurrentUser().getUserName();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
     try {
       final ProducerRecord<byte[], byte[]> record =
               new ProducerRecord<>(internalTopic, new byte[0]);
       byteProducerPool.send(record).get();
     } catch (Exception e) {
-      throw new AuthorizationException(
-              "FORBIDDEN. User "
-                      + currentUser
-                      + " doesn't have permission to run this command.\n");
+      logger.debug("Forbidden through failed send operation", e);
+      throw forbidden("modify");
     }
   }
 
   private void checkReadingPermissions() {
-    String currentUser = "<not available>";
+    final ConsumerRecords<byte[], byte[]> records;
+    try {
+      records = byteConsumerPool.poll();
+    } catch (Exception e) {
+      logger.debug("Forbidden through failed poll operation", e);
+      throw forbidden("read");
+    }
+
+    if (records == null || records.count() < 1) {
+      logger.debug("Forbidden through missing polled records");
+      throw forbidden("read");
+    }
+  }
+
+  private AuthorizationException forbidden(String permission) {
+    final String currentUser;
     try {
       currentUser = UserGroupInformation.getCurrentUser().getUserName();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    final AuthorizationException excp = new AuthorizationException(
-            "FORBIDDEN. User: "
-                    + currentUser
-                    + " doesn't have perimissions to execute the operation.\n");
-    ConsumerRecords<byte[], byte[]> records = null;
-    try {
-      records = byteConsumerPool.poll();
-    } catch (Exception e) {
-      throw excp;
-    }
-
-    if (records == null || records.count() < 1) {
-      throw excp;
-    }
+    return new AuthorizationException("FORBIDDEN. User " + currentUser
+            + " doesn't have permission to " + permission
+            + " to execute the operation");
   }
 
   private String retrieveCookie(ContainerRequestContext requestContext) {
@@ -194,7 +196,7 @@ public class AuthorizationFilter implements ContainerRequestFilter {
     return null;
   }
 
-  private Properties getProducerProperties() {
+  private static Properties getProducerProperties() {
     final Properties properties = new Properties();
     properties.put(ProducerConfig.ACKS_CONFIG, "-1");
     properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
@@ -206,7 +208,7 @@ public class AuthorizationFilter implements ContainerRequestFilter {
     return properties;
   }
 
-  private Properties getConsumerProperties() {
+  private static Properties getConsumerProperties() {
     final Properties properties = new Properties();
     properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
     properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
@@ -215,5 +217,13 @@ public class AuthorizationFilter implements ContainerRequestFilter {
     properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
             org.apache.kafka.common.serialization.ByteArrayDeserializer.class);
     return properties;
+  }
+
+  private static String buildInternalTopicName(KsqlRestConfig ksqlRestConfig) {
+    return String.format("%s%s/ksql-commands:%s",
+            KsqlConfig.KSQL_SERVICES_COMMON_FOLDER,
+            new KsqlConfig(ksqlRestConfig.getKsqlConfigProperties())
+                    .getString(KsqlConfig.KSQL_SERVICE_ID_CONFIG),
+            INTERNAL_TOPIC);
   }
 }
