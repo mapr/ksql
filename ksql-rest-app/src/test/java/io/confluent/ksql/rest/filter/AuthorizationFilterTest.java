@@ -24,6 +24,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.MockPolicy;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
@@ -38,7 +41,9 @@ import static org.easymock.EasyMock.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
-@RunWith(JUnitParamsRunner.class)
+@RunWith(PowerMockRunner.class)
+@MockPolicy(UserGroupInformationMockPolicy.class)
+@PowerMockRunnerDelegate(JUnitParamsRunner.class)
 public class AuthorizationFilterTest extends EasyMockSupport {
 
   private static final String AUXILIARY_TOPIC = "/apps/ksql/test-service/ksql-commands:ksql-authorization-auxiliary-topic";

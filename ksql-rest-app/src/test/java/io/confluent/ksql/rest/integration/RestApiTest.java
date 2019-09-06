@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
+import io.confluent.ksql.test.categories.UnsupportedTest;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -59,7 +60,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static io.confluent.ksql.rest.server.utils.TestUtils.randomFreeLocalPort;
 
-@Category({IntegrationTest.class})
+@Category({IntegrationTest.class, UnsupportedTest.class})
 public class RestApiTest {
   private static final Logger LOGGER = LoggerFactory.getLogger(RestApiTest.class);
   private static final IntegrationTestHarness testHarness = new IntegrationTestHarness();

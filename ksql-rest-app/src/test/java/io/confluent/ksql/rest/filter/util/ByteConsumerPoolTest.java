@@ -1,5 +1,6 @@
 package io.confluent.ksql.rest.filter.util;
 
+import io.confluent.ksql.rest.filter.UserGroupInformationMockPolicy;
 import io.confluent.rest.exceptions.RestServerErrorException;
 import io.confluent.rest.impersonation.Errors;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -7,13 +8,14 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
-import org.easymock.EasyMockRunner;
 import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
 import org.easymock.TestSubject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.MockPolicy;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.security.PrivilegedAction;
 import java.time.Duration;
@@ -29,7 +31,8 @@ import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
-@RunWith(EasyMockRunner.class)
+@RunWith(PowerMockRunner.class)
+@MockPolicy(UserGroupInformationMockPolicy.class)
 public class ByteConsumerPoolTest extends EasyMockSupport {
   private static final String ANY_TOPIC = "/some-stream:topic";
   private static final String ANY_USER = System.getProperty("user.name");

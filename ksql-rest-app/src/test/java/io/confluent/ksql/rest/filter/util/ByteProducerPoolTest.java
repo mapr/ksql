@@ -1,17 +1,19 @@
 package io.confluent.ksql.rest.filter.util;
 
+import io.confluent.ksql.rest.filter.UserGroupInformationMockPolicy;
 import io.confluent.rest.exceptions.RestServerErrorException;
 import io.confluent.rest.impersonation.Errors;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
-import org.easymock.EasyMockRunner;
 import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
 import org.easymock.TestSubject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.MockPolicy;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
 import java.security.PrivilegedAction;
@@ -26,7 +28,8 @@ import static org.easymock.EasyMock.*;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
 
-@RunWith(EasyMockRunner.class)
+@RunWith(PowerMockRunner.class)
+@MockPolicy(UserGroupInformationMockPolicy.class)
 public class ByteProducerPoolTest extends EasyMockSupport {
   private static final byte[] ANY_BYTES = "text".getBytes();
   private static final ProducerRecord<byte[], byte[]> ANY_RECORD = new ProducerRecord<>("topic", ANY_BYTES);

@@ -1,25 +1,28 @@
 package io.confluent.ksql.rest;
 
 import org.apache.commons.io.IOUtils;
-import org.hamcrest.CustomTypeSafeMatcher;
+import org.easymock.EasyMock;
+import org.easymock.IArgumentMatcher;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 
-import static org.hamcrest.integration.EasyMock2Adapter.adapt;
-
 public class MockMatchers {
   public static InputStream inputStreamOf(String text) {
-    final String description = "inputStreamOf(" + text + ")";
-    adapt(new CustomTypeSafeMatcher<InputStream>(description) {
+    EasyMock.reportMatcher(new IArgumentMatcher() {
       @Override
-      protected boolean matchesSafely(InputStream inputStream) {
+      public boolean matches(Object o) {
         try {
-          return text.equals(IOUtils.toString(inputStream, Charset.defaultCharset()));
+          return text.equals(IOUtils.toString((InputStream) o, Charset.defaultCharset()));
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
+      }
+
+      @Override
+      public void appendTo(StringBuffer stringBuffer) {
+        stringBuffer.append("inputStreamOf(").append(text).append(")");
       }
     });
     return null;
