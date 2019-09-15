@@ -292,6 +292,11 @@ public class KsqlRestClient implements Closeable {
       final String path,
       final Response response) {
 
+    if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+      return RestResponse.erroneous(404, "Path not found. Path='" + path + "'. "
+              + "Check your ksql http url to make sure you are connecting to a ksql server.");
+    }
+
     final KsqlErrorMessage errorMessage = response.readEntity(KsqlErrorMessage.class);
     if (errorMessage != null) {
       return RestResponse.erroneous(errorMessage);
