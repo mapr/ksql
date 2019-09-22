@@ -26,6 +26,7 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.Random;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
 // CHECKSTYLE_RULES.OFF: ClassDataAbstractionCoupling
 public final class DataGen {
@@ -78,7 +79,16 @@ public final class DataGen {
     props.put("client.id", "KSQLDataGenProducer");
 
     if (arguments.propertiesFile != null) {
-      props.load(arguments.propertiesFile);
+      final Properties tmp = new Properties();
+      tmp.load(arguments.propertiesFile);
+      final Map<Object, Object> map = tmp
+              .entrySet()
+              .stream()
+              .collect(Collectors
+                      .toMap(
+                        Map.Entry::getKey,
+                        e -> ((String)e.getValue()).trim()));
+      props.putAll(map);
     }
 
     return props;
