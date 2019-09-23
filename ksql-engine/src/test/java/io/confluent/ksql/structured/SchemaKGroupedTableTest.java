@@ -174,7 +174,7 @@ public class SchemaKGroupedTableTest {
 
     when(aggregateSchema.value()).thenReturn(mock(List.class));
 
-    when(mockKGroupedTable.aggregate(any(), any(), any(), any())).thenReturn(table);
+    when(mockKGroupedTable.aggregate(any(), any(), any(), (Materialized)any())).thenReturn(table);
     when(table.mapValues(any(ValueMapper.class))).thenReturn(table);
   }
 
@@ -311,7 +311,7 @@ public class SchemaKGroupedTableTest {
     when(materializedFactory.create(any(), any(), any())).thenReturn(materialized);
 
     final KTable mockKTable = mock(KTable.class);
-    when(mockKGroupedTable.aggregate(any(), any(), any(), any())).thenReturn(mockKTable);
+    when(mockKGroupedTable.aggregate(any(), any(), any(), (Materialized)any())).thenReturn(mockKTable);
 
     final SchemaKGroupedTable groupedTable =
         buildSchemaKGroupedTable(mockKGroupedTable, materializedFactory);
