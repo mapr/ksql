@@ -17,18 +17,16 @@ package io.confluent.ksql.rest.filter;
 import com.google.common.io.ByteStreams;
 import io.confluent.ksql.rest.client.exception.AuthorizationException;
 import io.confluent.ksql.rest.entity.KsqlErrorMessage;
-import io.confluent.ksql.rest.filter.util.ByteConsumerPool;
-import io.confluent.ksql.rest.filter.util.ByteProducerPool;
-import io.confluent.ksql.rest.server.KsqlRestConfig;
-import io.confluent.ksql.util.KsqlConfig;
+import io.confluent.ksql.rest.util.ByteConsumerPool;
+import io.confluent.ksql.rest.util.ByteProducerPool;
+import io.confluent.rest.auth.MaprAuthenticationUtils;
 import io.confluent.rest.impersonation.ImpersonationUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.hadoop.security.UserGroupInformation;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.KafkaException;
 import org.glassfish.jersey.server.ContainerRequest;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -36,19 +34,15 @@ import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.List;
-import java.util.Properties;
 
 // CHECKSTYLE_RULES.OFF: ClassDataAbstractionCoupling
 public class AuthorizationFilter implements ContainerRequestFilter {
   // CHECKSTYLE_RULES.ON: ClassDataAbstractionCoupling
   private static final Logger logger = LoggerFactory.getLogger(AuthorizationFilter.class);
 
-  private static final String INTERNAL_TOPIC = "ksql-authorization-auxiliary-topic";
   private static final String[] commandWithWritePermsPrefixes =
       {"CREATE", "DROP", "RUN", "TERMINATE", "INSERT"};
 
@@ -56,32 +50,22 @@ public class AuthorizationFilter implements ContainerRequestFilter {
   private final ByteProducerPool byteProducerPool;
   private final String internalTopic;
 
-  public AuthorizationFilter(KsqlRestConfig ksqlRestConfig) {
-    this.internalTopic = buildInternalTopicName(ksqlRestConfig);
-    this.byteConsumerPool = new ByteConsumerPool(getConsumerProperties(), internalTopic);
-    this.byteProducerPool = new ByteProducerPool(getProducerProperties());
-    this.initializeInternalTopicWithDummyRecord();
-  }
-
-
-  AuthorizationFilter(KsqlRestConfig ksqlRestConfig,
-                      ByteConsumerPool byteConsumerPool,
-                      ByteProducerPool byteProducerPool) {
-    this.internalTopic = buildInternalTopicName(ksqlRestConfig);
+  public AuthorizationFilter(ByteConsumerPool byteConsumerPool,
+                             ByteProducerPool byteProducerPool,
+                             String internalTopic) {
     this.byteConsumerPool = byteConsumerPool;
     this.byteProducerPool = byteProducerPool;
-    this.initializeInternalTopicWithDummyRecord();
+    this.internalTopic = internalTopic;
   }
 
   @Override
   public void filter(ContainerRequestContext requestContext) throws IOException {
-    final String authentication = requestContext.getHeaderString(HttpHeaders.AUTHORIZATION);
-    final String cookie = retrieveCookie(requestContext);
     try {
-      ImpersonationUtils.runAsUser(() -> {
+      final String user = MaprAuthenticationUtils.getUserNameFromRequestContext(requestContext);
+      ImpersonationUtils.executor().runThrowingAs(user, () -> {
         checkPermissions(requestContext);
         return null;
-      }, authentication, cookie);
+      });
     } catch (NotImplementedException e) {
       final int errorCode = Response.Status.NOT_IMPLEMENTED.getStatusCode();
       requestContext.abortWith(Response.status(Response.Status.NOT_IMPLEMENTED)
@@ -95,15 +79,19 @@ public class AuthorizationFilter implements ContainerRequestFilter {
     }
   }
 
-  private void initializeInternalTopicWithDummyRecord() {
+  public void initialize() {
     /** The method below is used to write initial record to INTERNAL_TOPIC.
      * It will not fail because authorization filter is created as cluster admin user.
      * Cluster admin user has appropriate permissions to send records to internal stream.
      */
-    this.checkWritingPermissions();
+    try {
+      this.checkWritingPermissions();
+    } catch (Exception e) {
+      throw new KafkaException(e);
+    }
   }
 
-  private void checkPermissions(ContainerRequestContext requestContext) {
+  private void checkPermissions(ContainerRequestContext requestContext) throws IOException {
     final String path = ((ContainerRequest) requestContext).getPath(true);
 
     if (path.equals("info")) {
@@ -122,21 +110,17 @@ public class AuthorizationFilter implements ContainerRequestFilter {
     }
   }
 
-  private void checkPermsForKsqlPath(ContainerRequestContext requestContext) {
-    try {
-      final byte[] inputStream = ByteStreams.toByteArray(requestContext.getEntityStream());
-      requestContext.setEntityStream(new ByteArrayInputStream(inputStream));
-      final String jsonRequest = IOUtils.toString(new ByteArrayInputStream(inputStream), "UTF-8");
-      final JSONObject obj = new JSONObject(jsonRequest);
-      final String command = obj.getString("ksql").toUpperCase().trim();
+  private void checkPermsForKsqlPath(ContainerRequestContext requestContext) throws IOException {
+    final byte[] inputStream = ByteStreams.toByteArray(requestContext.getEntityStream());
+    requestContext.setEntityStream(new ByteArrayInputStream(inputStream));
+    final String jsonRequest = IOUtils.toString(new ByteArrayInputStream(inputStream), "UTF-8");
+    final JSONObject obj = new JSONObject(jsonRequest);
+    final String command = obj.getString("ksql").toUpperCase().trim();
 
-      if (commandRequiresWritingPerms(command)) {
-        checkWritingPermissions();
-      } else {
-        checkReadingPermissions();
-      }
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+    if (commandRequiresWritingPerms(command)) {
+      checkWritingPermissions();
+    } else {
+      checkReadingPermissions();
     }
   }
 
@@ -149,7 +133,7 @@ public class AuthorizationFilter implements ContainerRequestFilter {
     return false;
   }
 
-  private void checkWritingPermissions() {
+  private void checkWritingPermissions() throws IOException {
     try {
       final ProducerRecord<byte[], byte[]> record =
               new ProducerRecord<>(internalTopic, new byte[0]);
@@ -160,70 +144,25 @@ public class AuthorizationFilter implements ContainerRequestFilter {
     }
   }
 
-  private void checkReadingPermissions() {
+  private void checkReadingPermissions() throws IOException {
     final ConsumerRecords<byte[], byte[]> records;
     try {
-      records = byteConsumerPool.poll();
+      records = byteConsumerPool.poll(internalTopic);
     } catch (Exception e) {
       logger.debug("Forbidden through failed poll operation", e);
       throw forbidden("read");
     }
 
-    if (records == null || records.count() < 1) {
+    if (records.count() < 1) {
       logger.debug("Forbidden through missing polled records");
       throw forbidden("read");
     }
   }
 
-  private AuthorizationException forbidden(String permission) {
-    final String currentUser;
-    try {
-      currentUser = UserGroupInformation.getCurrentUser().getUserName();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+  private AuthorizationException forbidden(String permission) throws IOException {
+    final String currentUser = UserGroupInformation.getCurrentUser().getUserName();
     return new AuthorizationException("FORBIDDEN. User " + currentUser
             + " doesn't have permission to " + permission
             + " to execute the operation");
-  }
-
-  private String retrieveCookie(ContainerRequestContext requestContext) {
-    final List<String> cookies = ((ContainerRequest) requestContext).getRequestHeader("Cookie");
-    if (cookies != null) {
-      return cookies.stream().filter(cookie -> cookie.startsWith("hadoop.auth"))
-              .findFirst().orElse(null);
-    }
-    return null;
-  }
-
-  private static Properties getProducerProperties() {
-    final Properties properties = new Properties();
-    properties.put(ProducerConfig.ACKS_CONFIG, "-1");
-    properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
-            org.apache.kafka.common.serialization.ByteArraySerializer.class);
-    properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
-            org.apache.kafka.common.serialization.ByteArraySerializer.class);
-    properties.put(ProducerConfig.RETRIES_CONFIG, 0);
-    properties.put("streams.buffer.max.time.ms", "0");
-    return properties;
-  }
-
-  private static Properties getConsumerProperties() {
-    final Properties properties = new Properties();
-    properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-    properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
-    properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
-            org.apache.kafka.common.serialization.ByteArrayDeserializer.class);
-    properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
-            org.apache.kafka.common.serialization.ByteArrayDeserializer.class);
-    return properties;
-  }
-
-  private static String buildInternalTopicName(KsqlRestConfig ksqlRestConfig) {
-    return String.format("%s%s/ksql-commands:%s",
-            KsqlConfig.KSQL_SERVICES_COMMON_FOLDER,
-            new KsqlConfig(ksqlRestConfig.getKsqlConfigProperties())
-                    .getString(KsqlConfig.KSQL_SERVICE_ID_CONFIG),
-            INTERNAL_TOPIC);
   }
 }

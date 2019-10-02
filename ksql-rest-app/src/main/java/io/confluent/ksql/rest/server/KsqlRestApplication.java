@@ -36,7 +36,7 @@ import io.confluent.ksql.parser.tree.StringLiteral;
 import io.confluent.ksql.parser.tree.TableElement;
 import io.confluent.ksql.parser.tree.Type;
 import io.confluent.ksql.rest.entity.ServerInfo;
-import io.confluent.ksql.rest.filter.AuthorizationFilter;
+import io.confluent.ksql.rest.filter.AuthorizationFilterProvider;
 import io.confluent.ksql.rest.server.computation.Command;
 import io.confluent.ksql.rest.server.computation.CommandId;
 import io.confluent.ksql.rest.server.computation.CommandIdAssigner;
@@ -160,7 +160,7 @@ public final class KsqlRestApplication extends Application<KsqlRestConfig> imple
 
     if (appConfig.getBoolean(KsqlRestConfig.ENABLE_AUTHORIZATION_CONFIG)) {
       if (appConfig.getBoolean(KsqlRestConfig.ENABLE_AUTHENTICATION_CONFIG)) {
-        config.register(new AuthorizationFilter(appConfig));
+        config.register(AuthorizationFilterProvider.configure(appConfig));
       } else {
         throw new KsqlException(String.format(
             "Authorization is not allowed without authentication. Configure %s=true",
