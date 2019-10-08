@@ -19,6 +19,11 @@
         <cli.skip-execute>false</cli.skip-execute>
         <cli.main-class>${main-class}</cli.main-class>
         <docker.skip-build>false</docker.skip-build>
+        <mapr.coverage.whitelist>
+            io/confluent/ksql/rest/filter/AuthorizationFilter.class,
+            io/confluent/ksql/rest/util/ByteConsumerPool.class,
+            io/confluent/ksql/rest/util/ByteProducerPool.class
+        </mapr.coverage.whitelist>
     </properties>
 
     <dependencies>
