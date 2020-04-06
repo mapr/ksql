@@ -32,6 +32,33 @@ For a detailed description of findbugs bug categories, see http://findbugs.sourc
         <Class name="~io.confluent.ksql.parser.SqlBaseParser.*"/>
     </Match>
 
+    <!-- to build with Java 11, see https://github.com/spotbugs/spotbugs/issues/756 -->
+    <Match>
+        <Or>
+            <And>
+                <Class name="io.confluent.ksql.test.util.KafkaEmbedded"/>
+                <Method name="createTopic"/>
+            </And>
+            <And>
+                <Class name="io.confluent.ksql.function.UdfCompiler"/>
+                <Method name="&lt;init&gt;"/>
+            </And>
+            <And>
+                <Class name="io.confluent.ksql.function.udf.json.ArrayContainsKudf"/>
+                <Method name="jsonStringArrayContains"/>
+            </And>
+            <And>
+                <Class name="io.confluent.ksql.rest.client.SslContextFactory"/>
+                <Method name="createTruststore"/>
+            </And>
+            <And>
+                <Class name="io.confluent.ksql.rest.server.KsqlRestApplication"/>
+                <Method name="getKafkaClusterId"/>
+            </And>
+        </Or>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE"/>
+    </Match>
+
     <!-- other issues we should fix in the future -->
     <Match>
         <Class name="io.confluent.ksql.util.KsqlConfig"/>

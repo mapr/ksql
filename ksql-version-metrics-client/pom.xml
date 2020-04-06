@@ -99,9 +99,10 @@
                         <arg>-Xlint:all,-options,-path,-unchecked</arg>
                         <arg>-Werror</arg>
                     </compilerArgs>
+                    <release>${maven.compiler.release}</release>
                 </configuration>
             </plugin>
-
+ 
             <plugin>
                 <groupId>org.apache.avro</groupId>
                 <artifactId>avro-maven-plugin</artifactId>
