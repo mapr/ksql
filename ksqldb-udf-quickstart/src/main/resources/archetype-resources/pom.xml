@@ -37,10 +37,6 @@
 
     <repositories>
         <repository>
-            <id>confluent</id>
-            <url>https://confluent.jfrog.io/confluent/maven-public/</url>
-        </repository>
-        <repository>
             <id>ossrh</id>
             <name>Maven Central</name>
             <url>https://repo1.maven.org/maven2/</url>
