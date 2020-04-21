@@ -37,6 +37,10 @@
 
     <repositories>
         <repository>
+            <id>confluent</id>
+            <url>${confluent.maven.repo}</url>
+        </repository>
+        <repository>
             <id>ossrh</id>
             <name>Maven Central</name>
             <url>https://repo1.maven.org/maven2/</url>
