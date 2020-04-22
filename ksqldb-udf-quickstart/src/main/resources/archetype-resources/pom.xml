@@ -38,7 +38,7 @@
     <repositories>
         <repository>
             <id>confluent</id>
-            <url>${confluent.maven.repo}</url>
+            <url>https://s3.us-west-2.amazonaws.com/jenkins-confluent-packages-alpha-maven/</url>
         </repository>
         <repository>
             <id>ossrh</id>
