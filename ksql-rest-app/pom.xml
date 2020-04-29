@@ -152,6 +152,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>mapr-eco-tools</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
             <groupId>io.confluent.ksql</groupId>
             <artifactId>ksql-engine</artifactId>
             <version>${project.parent.version}</version>
@@ -207,6 +213,9 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
                     <release>${maven.compiler.release}</release>
+                    <compilerArgs>
+                        <arg></arg>
+                    </compilerArgs>
                 </configuration>
             </plugin>
             <plugin>

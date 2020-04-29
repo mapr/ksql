@@ -102,7 +102,7 @@ public class AggregateNodeTest {
     final List<String> successors = node.successors().stream().map(TopologyDescription.Node::name).collect(Collectors.toList());
     assertThat(node.predecessors(), equalTo(Collections.emptySet()));
     assertThat(successors, equalTo(Collections.singletonList("KSTREAM-AGGREGATE-0000000007")));
-    assertThat(node.topicSet(), hasItem(containsString("KSTREAM-AGGREGATE-STATE-STORE-0000000006")));
+    assertThat(node.topicSet(), hasItem(containsString("STATE-STORE-0000000006")));
     assertThat(node.topicSet(), hasItem(containsString("-repartition")));
   }
 

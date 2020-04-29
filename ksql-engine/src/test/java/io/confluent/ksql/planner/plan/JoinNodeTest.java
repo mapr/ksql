@@ -210,7 +210,7 @@ public class JoinNodeTest {
     final TopologyDescription.Processor leftJoin
         = (TopologyDescription.Processor) getNodeByName(topology, "KSTREAM-LEFTJOIN-0000000015");
     final List<String> predecessors = leftJoin.predecessors().stream().map(TopologyDescription.Node::name).collect(Collectors.toList());
-    assertThat(leftJoin.stores(), equalTo(Utils.mkSet("KSTREAM-AGGREGATE-STATE-STORE-0000000004")));
+    assertThat(leftJoin.stores(), equalTo(Utils.mkSet("STATE-STORE-0000000004")));
     assertThat(predecessors, equalTo(Collections.singletonList("KSTREAM-SOURCE-0000000014")));
   }
 
