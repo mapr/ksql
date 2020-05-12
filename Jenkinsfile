@@ -1,7 +1,7 @@
 #!/usr/bin/env groovy
 
 dockerfile {
-    slackChannel = '#ksql-alerts'
+    slackChannel = ''
     upstreamProjects = 'confluentinc/schema-registry'
     extraDeployArgs = '-Ddocker.skip=true'
     dockerPush = false
