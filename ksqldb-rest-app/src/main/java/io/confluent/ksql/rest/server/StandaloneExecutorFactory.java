@@ -35,6 +35,7 @@ import io.confluent.ksql.statement.Injector;
 import io.confluent.ksql.statement.Injectors;
 import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.ksql.util.ReservedInternalTopics;
+import io.confluent.ksql.util.TelemetryReporterUtil;
 import io.confluent.ksql.version.metrics.KsqlVersionCheckerAgent;
 import io.confluent.ksql.version.metrics.VersionCheckerAgent;
 import java.util.Map;
@@ -99,7 +100,8 @@ public final class StandaloneExecutorFactory {
         serviceContext.getTopicClient()
     );
     final ConfigStore configStore = configStoreFactory.apply(configTopicName, baseConfig);
-    final KsqlConfig ksqlConfig = configStore.getKsqlConfig();
+    final KsqlConfig ksqlConfig =
+        TelemetryReporterUtil.addTelemetryReporterConfigs(configStore.getKsqlConfig());
 
     final ProcessingLogConfig processingLogConfig
         = new ProcessingLogConfig(properties);

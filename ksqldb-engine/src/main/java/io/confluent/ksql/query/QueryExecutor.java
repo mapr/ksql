@@ -314,6 +314,7 @@ public final class QueryExecutor {
         StreamsConfig.producerPrefix(ProducerConfig.INTERCEPTOR_CLASSES_CONFIG),
         ProducerCollector.class.getCanonicalName()
     );
+
     return newStreamsProperties;
   }
 

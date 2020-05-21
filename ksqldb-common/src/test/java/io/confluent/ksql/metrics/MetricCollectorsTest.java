@@ -21,6 +21,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -73,10 +75,10 @@ public class MetricCollectorsTest {
   public void shouldAddConfigurableReporters() {
     final MetricsReporter mockReporter = mock(MetricsReporter.class);
     assertThat(MetricCollectors.getMetrics().reporters().size(), equalTo(1));
-    when(ksqlConfig.getConfiguredInstances(any(), any()))
+    when(ksqlConfig.getConfiguredInstances(anyString(), any(), any()))
         .thenReturn(Collections.singletonList(mockReporter));
 
-    MetricCollectors.addConfigurableReporter(ksqlConfig);
+    MetricCollectors.addConfigurableReporter(ksqlConfig, "kafka-id");
     final List<MetricsReporter> reporters = MetricCollectors.getMetrics().reporters();
     assertThat(reporters, hasItem(mockReporter));
   }

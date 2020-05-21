@@ -148,6 +148,12 @@ public final class IntegrationTestHarness extends ExternalResource {
             topicClient.createTopic(name, partitionCount, DEFAULT_REPLICATION_FACTOR));
   }
 
+  public void getTopics() {
+    final KafkaTopicClient topicClient = serviceContext.get().getTopicClient();
+
+    System.out.println(topicClient.listTopicNames());
+  }
+
   /**
    * Deletes internal topics for the given application.
    */
