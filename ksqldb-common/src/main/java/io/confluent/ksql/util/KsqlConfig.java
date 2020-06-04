@@ -784,6 +784,8 @@ public class KsqlConfig extends AbstractConfig {
         addConfluentMetricsContextConfigsKafka(
             Collections.emptyMap(),
             getString(KSQL_SERVICE_ID_CONFIG)));
+    System.out.println("streams configs");
+    System.out.println(map);
     return Collections.unmodifiableMap(map);
   }
 
@@ -801,6 +803,9 @@ public class KsqlConfig extends AbstractConfig {
     map.putAll(
         addConfluentMetricsContextConfigsKafka(Collections.emptyMap(),
         getString(KSQL_SERVICE_ID_CONFIG)));
+    System.out.println("admin configs");
+    System.out.println(map);
+    
     return Collections.unmodifiableMap(map);
   }
 
