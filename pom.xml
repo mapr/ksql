@@ -127,6 +127,9 @@
         <skip.docker.test>true</skip.docker.test>
         <compile.warnings-flag>-Werror</compile.warnings-flag>
         <!-- Only used to provide login module implementation for tests -->
+        <kafka.version>6.0.0-ce-SNAPSHOT</kafka.version>
+        <ce.kafka.version>6.0.0-ce-SNAPSHOT</ce.kafka.version>
+        <confluent.version>5.5.0</confluent.version>
         <jetty.version>9.4.28.v20200408</jetty.version>
         <git-commit-id-plugin.version>2.2.6</git-commit-id-plugin.version>
         <scala.version>2.13.2</scala.version>
@@ -291,7 +294,7 @@
             <dependency>
                 <groupId>io.confluent</groupId>
                 <artifactId>kafka-json-schema-provider</artifactId>
-                <version>${confluent.version}</version>
+                <version>6.0.0-SNAPSHOT</version>
             </dependency>
 
             <dependency>
