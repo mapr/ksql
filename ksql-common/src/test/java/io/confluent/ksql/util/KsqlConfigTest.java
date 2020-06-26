@@ -25,10 +25,10 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 
 import com.google.common.collect.ImmutableMap;
-import io.confluent.kafka.schemaregistry.client.rest.utils.UrlUtils;
+import io.confluent.kafka.schemaregistry.client.rest.utils.SchemaRegistryDiscoveryClient;
 import io.confluent.ksql.errors.LogMetricAndContinueExceptionHandler;
 
-import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -45,7 +45,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(UrlUtils.class)
+@PrepareForTest({SchemaRegistryDiscoveryClient.class, KsqlConfig.class})
 public class KsqlConfigTest {
 
   @Test
@@ -444,16 +444,23 @@ public class KsqlConfigTest {
   }
 
   @Test
-  public void shouldExtractAndMemoizeSchemaRegistryUrlFromZookeeper() throws IOException {
-    PowerMock.mockStatic(UrlUtils.class);
-    expect(UrlUtils.extractSchemaRegistryUrlFromZk(anyString(), anyInt(), anyBoolean()))
-            .andReturn("first-and-only-url")
-            .andReturn("url that should never be returned");
-    PowerMock.replay(UrlUtils.class);
+  public void shouldExtractAndMemoizeSchemaRegistryUrlFromZookeeper() throws Exception {
+    PowerMock.mockStatic(SchemaRegistryDiscoveryClient.class);
+    SchemaRegistryDiscoveryClient discoveryClient = partialMockBuilder(SchemaRegistryDiscoveryClient.class)
+            .withConstructor()
+            .addMockedMethod("discoverUrls")
+            .mock();
+    PowerMock.expectNew(SchemaRegistryDiscoveryClient.class).andReturn(discoveryClient);
+    expect(discoveryClient.discoverUrls())
+            .andReturn(Arrays.asList("first-and-only-url"))
+            .andReturn(Arrays.asList("url that should never be returned"));
+    PowerMock.replay(SchemaRegistryDiscoveryClient.class, discoveryClient);
 
     final KsqlConfig ksqlConfig = new KsqlConfig(new HashMap<String, Object>());
 
-    assertThat(ksqlConfig.getSchemaRegistryUrl(), is("first-and-only-url"));
+    String schemaRegistryUrl = ksqlConfig.getSchemaRegistryUrl();
+    PowerMock.verifyAll();
+    assertThat(schemaRegistryUrl, is("first-and-only-url"));
   }
 
 

@@ -17,14 +17,15 @@ package io.confluent.ksql.util;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import io.confluent.kafka.schemaregistry.client.rest.utils.UrlUtils;
+import io.confluent.kafka.schemaregistry.client.rest.utils.SchemaRegistryDiscoveryClient;
+import io.confluent.kafka.schemaregistry.client.rest.utils.SchemaRegistryDiscoveryConfig;
 import io.confluent.ksql.config.ConfigItem;
 import io.confluent.ksql.config.KsqlConfigResolver;
 import io.confluent.ksql.errors.LogMetricAndContinueExceptionHandler;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -63,10 +64,17 @@ public class KsqlConfig extends AbstractConfig implements Cloneable {
 
   public static final String KSQL_SCHEMA_REGISTRY_PREFIX = "ksql.schema.registry.";
 
-  public static final String
-          KSQL_SCHEMA_REGISTRY_SERVICE_ID_CONFIG = "ksql.schema.registry.service.id";
-  public static final String
-          KSQL_SCHEMA_REGISTRY_SERVICE_ID_DEFAULT = "default_";
+  public static final String SCHEMA_REGISTRY_SERVICE_ID_CONFIG
+          = KSQL_CONFIG_PROPERTY_PREFIX + SchemaRegistryDiscoveryConfig.SERVICE_ID_CONFIG;
+
+  public static final String SCHEMA_REGISTRY_DISCOVERY_TIMEOUT_CONFIG
+          = KSQL_CONFIG_PROPERTY_PREFIX + SchemaRegistryDiscoveryConfig.DISCOVERY_TIMEOUT_CONFIG;
+
+  public static final String SCHEMA_REGISTRY_DISCOVERY_RETRIES_CONFIG
+          = KSQL_CONFIG_PROPERTY_PREFIX + SchemaRegistryDiscoveryConfig.DISCOVERY_RETRIES_CONFIG;
+
+  public static final String SCHEMA_REGISTRY_DISCOVERY_INTERVAL_CONFIG
+          = KSQL_CONFIG_PROPERTY_PREFIX + SchemaRegistryDiscoveryConfig.DISCOVERY_INTERVAL_CONFIG;
 
   public static final String KAFKASTORE_INIT_TIMEOUT_CONFIG =
           "ksql.schema.registry.zookeeper.init.timeout.ms";
@@ -272,11 +280,29 @@ public class KsqlConfig extends AbstractConfig implements Cloneable {
             + "data is not deleted from the log prematurely. Allows for clock drift. "
             + "Default is 1 day"
         ).define(
-            KSQL_SCHEMA_REGISTRY_SERVICE_ID_CONFIG,
+            SCHEMA_REGISTRY_SERVICE_ID_CONFIG,
             ConfigDef.Type.STRING,
-            KSQL_SCHEMA_REGISTRY_SERVICE_ID_DEFAULT,
+            SchemaRegistryDiscoveryConfig.SERVICE_ID_DEFAULT,
             ConfigDef.Importance.MEDIUM,
-            "Indicates the ID of the schema registry service."
+            SchemaRegistryDiscoveryConfig.SERVICE_ID_DOC
+        ).define(
+            SCHEMA_REGISTRY_DISCOVERY_TIMEOUT_CONFIG,
+            ConfigDef.Type.INT,
+            SchemaRegistryDiscoveryConfig.DISCOVERY_TIMEOUT_DEFAULT,
+            ConfigDef.Importance.MEDIUM,
+            SchemaRegistryDiscoveryConfig.DISCOVERY_TIMEOUT_DOC
+        ).define(
+            SCHEMA_REGISTRY_DISCOVERY_RETRIES_CONFIG,
+            ConfigDef.Type.INT,
+            SchemaRegistryDiscoveryConfig.DISCOVERY_RETRIES_DEFAULT,
+            ConfigDef.Importance.MEDIUM,
+            SchemaRegistryDiscoveryConfig.DISCOVERY_RETRIES_DOC
+        ).define(
+            SCHEMA_REGISTRY_DISCOVERY_INTERVAL_CONFIG,
+            ConfigDef.Type.INT,
+            SchemaRegistryDiscoveryConfig.DISCOVERY_INTERVAL_DEFAULT,
+            ConfigDef.Importance.MEDIUM,
+            SchemaRegistryDiscoveryConfig.DISCOVERY_INTERVAL_DOC
         ).define(
             KAFKASTORE_INIT_TIMEOUT_CONFIG,
             ConfigDef.Type.INT,
@@ -570,14 +596,13 @@ public class KsqlConfig extends AbstractConfig implements Cloneable {
     if (getString(SCHEMA_REGISTRY_URL_PROPERTY) != null) {
       return getString(SCHEMA_REGISTRY_URL_PROPERTY);
     } else {
-      try {
-        return UrlUtils.extractSchemaRegistryUrlFromZk(
-                getString(KSQL_SCHEMA_REGISTRY_SERVICE_ID_CONFIG),
-                getInt(KAFKASTORE_INIT_TIMEOUT_CONFIG),
-                getBoolean(ZOOKEEPER_SET_ACL_CONFIG));
-      } catch (IOException e) {
-        return defaultSchemaRegistryUrl;
-      }
+      final List<String> urls = new SchemaRegistryDiscoveryClient()
+              .serviceId(getString(SCHEMA_REGISTRY_SERVICE_ID_CONFIG))
+              .timeout(getInt(SCHEMA_REGISTRY_DISCOVERY_TIMEOUT_CONFIG))
+              .retries(getInt(SCHEMA_REGISTRY_DISCOVERY_RETRIES_CONFIG))
+              .retryInterval(getInt(SCHEMA_REGISTRY_DISCOVERY_INTERVAL_CONFIG))
+              .discoverUrls();
+      return String.join(",", urls);
     }
   }
 }
