@@ -96,7 +96,7 @@
         <jackson.version>2.9.1</jackson.version>
         <kafka.version>2.1.1.0-mapr-SNAPSHOT</kafka.version>
         <schema.registry.version>5.1.2.0-mapr-SNAPSHOT</schema.registry.version>
-        <mapr.streams.version>6.2.0-mapr-SNAPSHOT</mapr.streams.version>
+        <mapr.streams.version>6.2.0.0-mapr-SNAPSHOT</mapr.streams.version>
         <version.3digit>5.1.2</version.3digit>
         <powermock.version>2.0.2</powermock.version>
         <junit.integration.categories>
