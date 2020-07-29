@@ -216,10 +216,10 @@ public class KsqlConfigTest {
   @Test
   public void shouldSetStreamsConfigAdminClientProperties() {
     final KsqlConfig ksqlConfig = new KsqlConfig(
-        Collections.singletonMap(AdminClientConfig.RETRIES_CONFIG, 3));
+        Collections.singletonMap(AdminClientConfig.REQUEST_TIMEOUT_MS_CONFIG, 3_000));
     final Object result = ksqlConfig.getKsqlStreamConfigProps().get(
-        AdminClientConfig.RETRIES_CONFIG);
-    assertThat(result, equalTo(3));
+        AdminClientConfig.REQUEST_TIMEOUT_MS_CONFIG);
+    assertThat(result, equalTo(3_000));
   }
 
   @Test
