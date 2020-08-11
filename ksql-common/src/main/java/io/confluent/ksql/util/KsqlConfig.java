@@ -62,6 +62,11 @@ public class KsqlConfig extends AbstractConfig implements Cloneable {
 
   public static final String SINK_NUMBER_OF_REPLICAS_PROPERTY = "ksql.sink.replicas";
 
+  public static final String SCHEMA_REGISTRY_ENABLE_PROPERTY = "ksql.schema.registry.enable";
+  private static final String SCHEMA_REGISTRY_ENABLE_DOC =
+          "Flag for enabling Avro format support with Schema Registry.";
+  private static final String SCHEMA_REGISTRY_ENABLE_DEFAULT = "false";
+
   public static final String KSQL_SCHEMA_REGISTRY_PREFIX = "ksql.schema.registry.";
 
   public static final String SCHEMA_REGISTRY_SERVICE_ID_CONFIG
@@ -279,6 +284,12 @@ public class KsqlConfig extends AbstractConfig implements Cloneable {
             + "is a streams config value which will be added to a windows maintainMs to ensure "
             + "data is not deleted from the log prematurely. Allows for clock drift. "
             + "Default is 1 day"
+        ).define(
+            SCHEMA_REGISTRY_ENABLE_PROPERTY,
+            ConfigDef.Type.BOOLEAN,
+            SCHEMA_REGISTRY_ENABLE_DEFAULT,
+            ConfigDef.Importance.MEDIUM,
+            SCHEMA_REGISTRY_ENABLE_DOC
         ).define(
             SCHEMA_REGISTRY_SERVICE_ID_CONFIG,
             ConfigDef.Type.STRING,
@@ -593,9 +604,10 @@ public class KsqlConfig extends AbstractConfig implements Cloneable {
   }
 
   private String initSchemaRegistryUrl() {
-    if (getString(SCHEMA_REGISTRY_URL_PROPERTY) != null) {
-      return getString(SCHEMA_REGISTRY_URL_PROPERTY);
-    } else {
+    final String srUrl = getString(SCHEMA_REGISTRY_URL_PROPERTY);
+    if (srUrl != null) {
+      return srUrl;
+    } else if (getBoolean(SCHEMA_REGISTRY_ENABLE_PROPERTY)) {
       final List<String> urls = new SchemaRegistryDiscoveryClient()
               .serviceId(getString(SCHEMA_REGISTRY_SERVICE_ID_CONFIG))
               .timeout(getInt(SCHEMA_REGISTRY_DISCOVERY_TIMEOUT_CONFIG))
@@ -603,6 +615,8 @@ public class KsqlConfig extends AbstractConfig implements Cloneable {
               .retryInterval(getInt(SCHEMA_REGISTRY_DISCOVERY_INTERVAL_CONFIG))
               .discoverUrls();
       return String.join(",", urls);
+    } else {
+      return defaultSchemaRegistryUrl;
     }
   }
 }

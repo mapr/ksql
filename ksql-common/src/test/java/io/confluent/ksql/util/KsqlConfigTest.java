@@ -444,7 +444,7 @@ public class KsqlConfigTest {
   }
 
   @Test
-  public void shouldExtractAndMemoizeSchemaRegistryUrlFromZookeeper() throws Exception {
+  public void shouldExtractAndMemoizeSchemaRegistryUrlFromZookeeperWhenSrIsEnabled() throws Exception {
     PowerMock.mockStatic(SchemaRegistryDiscoveryClient.class);
     SchemaRegistryDiscoveryClient discoveryClient = partialMockBuilder(SchemaRegistryDiscoveryClient.class)
             .withConstructor()
@@ -456,18 +456,26 @@ public class KsqlConfigTest {
             .andReturn(Arrays.asList("url that should never be returned"));
     PowerMock.replay(SchemaRegistryDiscoveryClient.class, discoveryClient);
 
-    final KsqlConfig ksqlConfig = new KsqlConfig(new HashMap<String, Object>());
+    final KsqlConfig ksqlConfig = new KsqlConfig(Collections.singletonMap(KsqlConfig.SCHEMA_REGISTRY_ENABLE_PROPERTY, true));
 
     String schemaRegistryUrl = ksqlConfig.getSchemaRegistryUrl();
     PowerMock.verifyAll();
     assertThat(schemaRegistryUrl, is("first-and-only-url"));
   }
 
-
   @Test
   public void shouldNotExtractSchemaRegistryUrlFromZookeeperWhenPreset() {
     final Map<String, Object> initialProps = new HashMap<>();
-    initialProps.put(KsqlConfig.SCHEMA_REGISTRY_URL_PROPERTY, KsqlConfig.defaultSchemaRegistryUrl);
+    initialProps.put(KsqlConfig.SCHEMA_REGISTRY_URL_PROPERTY, "sr_url");
+
+    final KsqlConfig ksqlConfig = new KsqlConfig(initialProps);
+
+    assertThat(ksqlConfig.getSchemaRegistryUrl(), equalTo("sr_url"));
+  }
+
+  @Test
+  public void shouldNotExtractSchemaRegistryUrlFromZookeeperWhenNotPresetAndSrIsNotEnabled() {
+    final Map<String, Object> initialProps = new HashMap<>();
 
     final KsqlConfig ksqlConfig = new KsqlConfig(initialProps);
 
