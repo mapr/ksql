@@ -5,6 +5,10 @@
 
 base_dir=$( cd -P "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )
 
+# calling env var and its overridden file
+env=${MAPR_HOME:-/opt/mapr}/conf/env.sh
+[ -f $env ] && . $env
+
 # Log directory to use
 if [ "x$LOG_DIR" = "x" ]; then
   LOG_DIR="$base_dir/logs"
@@ -57,6 +61,10 @@ fi
 
  KSQL_LOG4J_OPTS="-Dksql.log.dir=$LOG_DIR ${KSQL_LOG4J_OPTS}"
 
+# main class should be assigned before jmx options
+MAIN="$1"
+shift
+
 # JMX settings
 isSecure="false"
 if [ -f "${MAPR_HOME:-/opt/mapr}/conf/mapr-clusters.conf" ]; then
@@ -89,7 +97,7 @@ if [ -z "$MAPR_JMXDISABLE" ] && [ -z "$MAPR_JMXLOCALHOST" ] && [ -z "$MAPR_JMXRE
   echo "No MapR JMX options given - defaulting to local binding"
 fi
 
-if [[ ( -z "$MAPR_JMXDISABLE" || "$MAPR_JMXDISABLE" = 'false' ) && \
+if [[ ( -z "$MAPR_JMXDISABLE" || "$MAPR_JMXDISABLE" = 'false' ) && ( $MAIN == *"KsqlServerMain" ) && \
       ( -z "$MAPR_JMX_KSQL_ENABLE" || "$MAPR_JMX_KSQL_ENABLE" = "true" ) ]]; then
 
   # default setting for localBinding
@@ -171,7 +179,11 @@ if [[ ( -z "$MAPR_JMXDISABLE" || "$MAPR_JMXDISABLE" = 'false' ) && \
     MAPR_JMX_OPTS="-Dcom.sun.management.jmxremote"
   fi
 else
-  echo "JMX disabled by user request"
+  if [[ $MAIN != *"KsqlServerMain" ]]; then
+    echo "JMX disabled - It is used for only KSQL server (skipped for avro consumer and producer)."
+  else
+    echo "JMX disabled by user request"
+  fi
   MAPR_JMX_OPTS=""
 fi
 
@@ -204,9 +216,6 @@ then
   echo "USAGE: $0 [-daemon] [opts] [-help]"
     exit 1
 fi
-
-MAIN="$1"
-shift
 
 DAEMON_NAME=""
 GC_LOG_ENABLED=""
