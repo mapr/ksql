@@ -7,7 +7,7 @@
     <parent>
         <groupId>io.confluent.ksql</groupId>
         <artifactId>ksql-parent</artifactId>
-        <version>5.1.2.0-mapr-SNAPSHOT</version>
+        <version>5.1.2.0-mapr-700</version>
     </parent>
 
     <artifactId>ksql-examples</artifactId>
