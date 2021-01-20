@@ -7,14 +7,14 @@
     <parent>
         <groupId>io.confluent</groupId>
         <artifactId>rest-utils-parent</artifactId>
-        <version>5.1.2.0-mapr-SNAPSHOT</version>
+        <version>5.1.2.100-mapr-701</version>
     </parent>
 
     <groupId>io.confluent.ksql</groupId>
     <artifactId>ksql-parent</artifactId>
     <packaging>pom</packaging>
     <name>ksql-parent</name>
-    <version>5.1.2.0-mapr-SNAPSHOT</version>
+    <version>5.1.2.100-mapr-701</version>
     <licenses>
         <license>
             <name>Confluent Community License</name>
@@ -94,9 +94,9 @@
         <avro.random.generator.version>0.2.1</avro.random.generator.version>
         <apache.curator.version>2.9.0</apache.curator.version>
         <jackson.version>2.9.1</jackson.version>
-        <kafka.version>2.1.1.0-mapr-SNAPSHOT</kafka.version>
-        <schema.registry.version>5.1.2.0-mapr-SNAPSHOT</schema.registry.version>
-        <mapr.streams.version>6.2.0.0-mapr-SNAPSHOT</mapr.streams.version>
+        <kafka.version>2.1.1.100-mapr-701</kafka.version>
+        <schema.registry.version>5.1.2.100-mapr-701</schema.registry.version>
+        <mapr.streams.version>6.2.0.0-mapr</mapr.streams.version>
         <version.3digit>5.1.2</version.3digit>
         <powermock.version>2.0.2</powermock.version>
         <junit.integration.categories>
@@ -390,7 +390,7 @@
             <dependency>
                 <groupId>org.apache.zookeeper</groupId>
                 <artifactId>zookeeper</artifactId>
-                <version>3.5.6-mapr-SNAPSHOT</version>
+                <version>3.5.6.0-mapr-2009</version>
                 <scope>provided</scope>
             </dependency>
 
