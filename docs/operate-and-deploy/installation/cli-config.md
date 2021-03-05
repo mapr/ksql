@@ -15,7 +15,7 @@ You can connect the ksqlDB CLI to one ksqlDB server per cluster.
     the ksqlDB cluster.
 
 To connect the ksqlDB CLI to a cluster, run the following command with your
-ksqlDB server URL specified (default is `http://localhost:8088`):
+ksqlDB server URL specified (default is `http://localhost:8084`):
 
 ```bash
 <path-to-confluent>/bin/ksql <ksql-server-URL>

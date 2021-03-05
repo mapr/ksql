@@ -65,7 +65,7 @@ public class KsqlRestClientTest {
   @Test
   public void shouldParseSingleServerAddress() throws Exception {
     // Given:
-    final String singleServerAddress = "http://singleServer:8088";
+    final String singleServerAddress = "http://singleServer:8084";
     final URI singleServerURI = new URI(singleServerAddress);
 
     // When:
@@ -78,8 +78,8 @@ public class KsqlRestClientTest {
   @Test
   public void shouldParseMultipleServerAddresses() throws Exception {
     // Given:
-    final String firstServerAddress = "http://firstServer:8088";
-    final String multipleServerAddresses = firstServerAddress + ",http://secondServer:8088";
+    final String firstServerAddress = "http://firstServer:8084";
+    final String multipleServerAddresses = firstServerAddress + ",http://secondServer:8084";
     final URI firstServerURI = new URI(firstServerAddress);
 
     // When:
@@ -94,18 +94,18 @@ public class KsqlRestClientTest {
     // When:
     final Exception e = assertThrows(
         KsqlRestClientException.class,
-        () -> clientWithServerAddresses("http://firstServer:8088,secondBuggyServer.8088")
+        () -> clientWithServerAddresses("http://firstServer:8084,secondBuggyServer.8084")
     );
 
     // Then:
     assertThat(e.getMessage(), containsString(
-        "The supplied serverAddress is invalid: secondBuggyServer.8088"));
+        "The supplied serverAddress is invalid: secondBuggyServer.8084"));
   }
 
   @Test
   public void shouldParseHttpsAddress() throws Exception {
     // Given:
-    final String serverAddress = "https://singleServer:8088";
+    final String serverAddress = "https://singleServer:8084";
     final URI serverURI = new URI(serverAddress);
 
     // When:

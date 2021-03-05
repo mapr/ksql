@@ -31,6 +31,7 @@ import org.apache.kafka.streams.StreamsConfig;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.rules.RuleChain;
@@ -39,6 +40,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Category({IntegrationTest.class})
+//TODO KAFKA-446: Fix unit tests to support MapR environment
+@Ignore
 public class LagReportingAgentFunctionalTest {
   private static final Logger LOG = LoggerFactory.getLogger(LagReportingAgentFunctionalTest.class);
   private static final TemporaryFolder TMP = new TemporaryFolder();

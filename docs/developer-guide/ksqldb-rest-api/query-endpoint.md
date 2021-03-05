@@ -39,7 +39,7 @@ Response JSON Object:
 ### Example curl command
 
 ```bash
-curl -X "POST" "http://<ksqldb-host-name>:8088/query" \
+curl -X "POST" "http://<ksqldb-host-name>:8084/query" \
      -d $'{
   "ksql": "SELECT * FROM USERS;",
   "streamsProperties": {}

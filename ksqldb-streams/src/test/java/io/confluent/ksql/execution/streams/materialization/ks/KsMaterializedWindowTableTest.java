@@ -39,6 +39,7 @@ import io.confluent.ksql.schema.ksql.LogicalSchema;
 import io.confluent.ksql.schema.ksql.types.SqlTypes;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.streams.KeyValue;
@@ -70,8 +71,8 @@ public class KsMaterializedWindowTableTest {
       .keyBuilder(ColumnName.of("K0"), SqlTypes.STRING).build("x");
 
   private static final Range<Instant> WINDOW_START_BOUNDS = Range.closed(
-      Instant.now(),
-      Instant.now().plusSeconds(10)
+      Instant.now().truncatedTo(ChronoUnit.MILLIS),
+      Instant.now().truncatedTo(ChronoUnit.MILLIS).plusSeconds(10)
   );
 
   private static final ValueAndTimestamp<GenericRow> VALUE_1 = ValueAndTimestamp
@@ -189,8 +190,8 @@ public class KsMaterializedWindowTableTest {
   public void shouldReturnValuesForClosedBounds() {
     // Given:
     final Range<Instant> bounds = Range.closed(
-        Instant.now(),
-        Instant.now().plusSeconds(10)
+        Instant.now().truncatedTo(ChronoUnit.MILLIS),
+        Instant.now().truncatedTo(ChronoUnit.MILLIS).plusSeconds(10)
     );
 
     when(fetchIterator.hasNext())
@@ -229,8 +230,8 @@ public class KsMaterializedWindowTableTest {
   public void shouldReturnValuesForOpenBounds() {
     // Given:
     final Range<Instant> bounds = Range.open(
-        Instant.now(),
-        Instant.now().plusSeconds(10)
+        Instant.now().truncatedTo(ChronoUnit.MILLIS),
+        Instant.now().truncatedTo(ChronoUnit.MILLIS).plusSeconds(10)
     );
 
     when(fetchIterator.hasNext())

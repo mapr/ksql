@@ -24,6 +24,7 @@ import io.confluent.ksql.util.ExecutorUtil;
 import io.confluent.ksql.util.KsqlConstants;
 import io.confluent.ksql.util.KsqlException;
 import io.confluent.ksql.util.KsqlServerException;
+import io.confluent.ksql.util.MaprFSUtils;
 import io.confluent.ksql.util.Pair;
 import java.util.Collection;
 import java.util.Collections;
@@ -72,6 +73,7 @@ public class KafkaTopicClientImpl implements KafkaTopicClient {
   private static final String DELETE_TOPIC_ENABLE = "delete.topic.enable";
 
   private final Supplier<Admin> adminClient;
+  private final String ksqlDefaultStream;
 
   /**
    * Construct a topic client from an existing admin client.
@@ -79,9 +81,12 @@ public class KafkaTopicClientImpl implements KafkaTopicClient {
    * is created only once and then reused.
    *
    * @param sharedAdminClient the admin client .
+   * @param ksqlDefaultStream the default stream .
    */
-  public KafkaTopicClientImpl(final Supplier<Admin> sharedAdminClient) {
+  public KafkaTopicClientImpl(
+      final Supplier<Admin> sharedAdminClient, final String ksqlDefaultStream) {
     this.adminClient = Objects.requireNonNull(sharedAdminClient, "sharedAdminClient");
+    this.ksqlDefaultStream = ksqlDefaultStream;
   }
 
   @Override
@@ -161,14 +166,28 @@ public class KafkaTopicClientImpl implements KafkaTopicClient {
   @Override
   public boolean isTopicExists(final String topic) {
     LOG.trace("Checking for existence of topic '{}'", topic);
-    return listTopicNames().contains(topic);
+    final String[] streamAndTopic = topic.split(":");
+    if (streamAndTopic.length > 1) {
+      return listTopicNames(streamAndTopic[0]).contains(streamAndTopic[1]);
+    } else {
+      return listTopicNames().contains(topic);
+    }
+  }
+
+  @Override
+  public Set<String> listTopicNames(final String stream) {
+    try {
+      return adminClient.get().listTopics(stream).names().get();
+    } catch (InterruptedException | ExecutionException e) {
+      throw new KafkaResponseGetFailedException("Failed to retrieve Kafka Topic names", e);
+    }
   }
 
   @Override
   public Set<String> listTopicNames() {
     try {
       return ExecutorUtil.executeWithRetries(
-          () -> adminClient.get().listTopics().names().get(),
+          () -> adminClient.get().listTopics(ksqlDefaultStream).names().get(),
           ExecutorUtil.RetryBehaviour.ON_RETRYABLE);
     } catch (final Exception e) {
       throw new KafkaResponseGetFailedException("Failed to retrieve Kafka Topic names", e);
@@ -178,9 +197,14 @@ public class KafkaTopicClientImpl implements KafkaTopicClient {
   @Override
   public Map<String, TopicDescription> describeTopics(final Collection<String> topicNames) {
     try {
+      final Collection<String> topicNamesWithStreamName = topicNames
+          .stream()
+          .map(topic -> MaprFSUtils
+              .decorateTopicWithDefaultStreamIfNeeded(topic, ksqlDefaultStream))
+          .collect(Collectors.toSet());
       return ExecutorUtil.executeWithRetries(
           () -> adminClient.get().describeTopics(
-              topicNames,
+              topicNamesWithStreamName,
               new DescribeTopicsOptions().includeAuthorizedOperations(true)
           ).all().get(),
           ExecutorUtil.RetryBehaviour.ON_RETRYABLE);
@@ -294,16 +318,7 @@ public class KafkaTopicClientImpl implements KafkaTopicClient {
   @Override
   public void deleteInternalTopics(final String applicationId) {
     try {
-      final Set<String> topicNames = listTopicNames();
-      final List<String> internalTopics = Lists.newArrayList();
-      for (final String topicName : topicNames) {
-        if (isInternalTopic(topicName, applicationId)) {
-          internalTopics.add(topicName);
-        }
-      }
-      if (!internalTopics.isEmpty()) {
-        deleteTopics(internalTopics);
-      }
+      MaprFSUtils.deleteAppDirAndInternalStream(applicationId);
     } catch (final Exception e) {
       LOG.error("Exception while trying to clean up internal topics for application id: {}.",
           applicationId, e

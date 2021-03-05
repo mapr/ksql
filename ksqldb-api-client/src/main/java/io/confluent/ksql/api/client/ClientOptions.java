@@ -23,7 +23,7 @@ import io.confluent.ksql.api.client.impl.ClientOptionsImpl;
 public interface ClientOptions {
 
   String DEFAULT_HOST = "localhost";
-  int DEFAULT_HOST_PORT = 8088;
+  int DEFAULT_HOST_PORT = 8084;
   int DEFAULT_EXECUTE_QUERY_MAX_RESULT_ROWS = 10000;
 
   /**
@@ -35,7 +35,7 @@ public interface ClientOptions {
   ClientOptions setHost(String host);
 
   /**
-   * Sets the host port of the ksqlDB server to connect to. Defaults to 8088.
+   * Sets the host port of the ksqlDB server to connect to. Defaults to 8084.
    *
    * @param port host port
    * @return a reference to this

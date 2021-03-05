@@ -88,7 +88,7 @@ public class CommandStoreTest {
       Optional.empty()
   );
   private final RecordMetadata recordMetadata = new RecordMetadata(
-      COMMAND_TOPIC_PARTITION, 0, 0, RecordBatch.NO_TIMESTAMP, 0L, 0, 0);
+      COMMAND_TOPIC_PARTITION, 0, 0, RecordBatch.NO_TIMESTAMP, Long.valueOf(0), 0, 0);
 
   private final Future<RecordMetadata> testFuture = new Future<RecordMetadata>() {
     @Override

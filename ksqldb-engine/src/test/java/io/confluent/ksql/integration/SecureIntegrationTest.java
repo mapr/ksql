@@ -50,6 +50,7 @@ import io.confluent.ksql.services.KafkaTopicClient;
 import io.confluent.ksql.services.KafkaTopicClientImpl;
 import io.confluent.ksql.services.ServiceContext;
 import io.confluent.ksql.services.ServiceContextFactory;
+import io.confluent.ksql.test.categories.UnsupportedTest;
 import io.confluent.ksql.test.util.EmbeddedSingleNodeKafkaCluster;
 import io.confluent.ksql.test.util.secure.ClientTrustStore;
 import io.confluent.ksql.test.util.secure.Credentials;
@@ -86,7 +87,7 @@ import org.junit.rules.RuleChain;
  * Tests covering integration with secured components, e.g. secure Kafka cluster.
  */
 @SuppressWarnings("SameParameterValue")
-@Category({IntegrationTest.class})
+@Category({IntegrationTest.class, UnsupportedTest.class})
 public class SecureIntegrationTest {
 
   private static final String INPUT_TOPIC = "orders_topic";
@@ -127,7 +128,7 @@ public class SecureIntegrationTest {
 
     adminClient = AdminClient.create(new KsqlConfig(getKsqlConfig(SUPER_USER))
         .getKsqlAdminClientConfigProps());
-    topicClient = new KafkaTopicClientImpl(() -> adminClient);
+    topicClient = new KafkaTopicClientImpl(() -> adminClient, ksqlConfig.getCommandsStream());
 
     produceInitData();
   }

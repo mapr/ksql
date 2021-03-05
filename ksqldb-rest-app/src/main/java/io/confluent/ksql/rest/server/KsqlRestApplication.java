@@ -96,6 +96,7 @@ import io.confluent.ksql.util.AppInfo;
 import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.ksql.util.KsqlException;
 import io.confluent.ksql.util.KsqlServerException;
+import io.confluent.ksql.util.MaprFSUtils;
 import io.confluent.ksql.util.ReservedInternalTopics;
 import io.confluent.ksql.util.RetryUtil;
 import io.confluent.ksql.util.WelcomeMsgUtils;
@@ -411,6 +412,8 @@ public final class KsqlRestApplication implements Executable {
 
     commandStore.start();
 
+    MaprFSUtils.createAppDirAndProceccingLogStreamIfNotExists(
+        processingLogContext.getConfig(), ksqlConfigNoPort);
     ProcessingLogServerUtils.maybeCreateProcessingLogTopic(
         serviceContext.getTopicClient(),
         processingLogContext.getConfig(),

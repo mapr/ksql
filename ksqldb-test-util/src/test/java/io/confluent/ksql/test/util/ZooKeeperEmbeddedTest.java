@@ -19,12 +19,15 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import io.confluent.ksql.test.categories.UnsupportedTest;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
 import org.apache.zookeeper.ZooKeeper;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
-
+@Category({UnsupportedTest.class})
 public class ZooKeeperEmbeddedTest {
 
   // Use the same timeouts as KafkaEmbedded so that this test highlights any config issues

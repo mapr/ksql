@@ -76,7 +76,7 @@ The following options apply to both the `schema` and `quickstart` options.
 | ``iterations=<number of records>``           | 1,000,000                                           | The maximum number of records to generate.                                                                                            |                                                      |
 | ``msgRate=<rate to produce in msgs/second>`` | -1 (unlimited, i.e. as fast as possible)            | The rate to produce messages at, in messages-per-second.                                                                              |                                                      |
 | ``propertiesFile=<path-to-properties-file>`` | ``<path-to-confluent>/etc/ksqldb/datagen.properties`` | Path to the ``ksql-datagen`` properties file.                                                                                         |                                                      |
-| ``schemaRegistryUrl``                        | http://localhost:8081                               | URL of {{ site.sr }} when ``format`` is ``avro``.                                                                                     |                                                      |
+| ``schemaRegistryUrl``                        | http://localhost:8087                               | URL of {{ site.sr }} when ``format`` is ``avro``.                                                                                     |                                                      |
 
 !!! tip
 	For usage information, enter `ksql-datagen help`.

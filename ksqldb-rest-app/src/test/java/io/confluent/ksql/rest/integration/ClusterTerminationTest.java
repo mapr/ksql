@@ -40,11 +40,14 @@ import java.util.concurrent.TimeUnit;
 import kafka.zookeeper.ZooKeeperClientException;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.rules.RuleChain;
 
 @Category({IntegrationTest.class})
+//TODO KAFKA-446: Fix unit tests to support MapR environment
+@Ignore
 public class ClusterTerminationTest {
 
   private static final PageViewDataProvider PAGE_VIEWS_PROVIDER = new PageViewDataProvider();

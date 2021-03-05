@@ -42,6 +42,7 @@ import io.confluent.ksql.name.ColumnName;
 import io.confluent.ksql.schema.ksql.LogicalSchema;
 import io.confluent.ksql.schema.ksql.types.SqlTypes;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import org.apache.kafka.connect.data.Struct;
@@ -73,7 +74,9 @@ public class KsqlMaterializationTest {
   );
   private static final GenericRow A_VALUE = GenericRow.genericRow("a", "b");
   private static final GenericRow TRANSFORMED = GenericRow.genericRow("x", "y");
-  private static final Window A_WINDOW = Window.of(Instant.now(), Instant.now().plusMillis(10));
+  //JDK11 contains nanos
+  private static final Window A_WINDOW = Window.of(Instant.now().truncatedTo(ChronoUnit.MILLIS),
+          Instant.now().truncatedTo(ChronoUnit.MILLIS).plusMillis(10));
   private static final TimeWindow STREAM_WINDOW = new TimeWindow(
       A_WINDOW.start().toEpochMilli(),
       A_WINDOW.end().toEpochMilli()

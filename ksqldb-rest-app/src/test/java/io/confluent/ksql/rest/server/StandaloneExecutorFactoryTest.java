@@ -30,6 +30,7 @@ import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -40,6 +41,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
+@Ignore //TODO KAFKA-446
 public class StandaloneExecutorFactoryTest {
   private static final String QUERIES_FILE = "queries";
   private static final String INSTALL_DIR = "install";

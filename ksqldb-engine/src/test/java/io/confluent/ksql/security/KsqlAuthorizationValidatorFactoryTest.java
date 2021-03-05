@@ -24,7 +24,9 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
+import io.confluent.common.utils.IntegrationTest;
 import io.confluent.ksql.services.ServiceContext;
+import io.confluent.ksql.test.categories.UnsupportedTest;
 import io.confluent.ksql.util.KsqlConfig;
 import java.util.Collection;
 import java.util.Collections;
@@ -45,11 +47,13 @@ import org.apache.kafka.common.config.ConfigResource;
 import org.apache.kafka.common.errors.UnsupportedVersionException;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
+@Category({UnsupportedTest.class})
 public class KsqlAuthorizationValidatorFactoryTest {
   private static final String KAFKA_AUTHORIZER_CLASS_NAME = "authorizer.class.name";
 

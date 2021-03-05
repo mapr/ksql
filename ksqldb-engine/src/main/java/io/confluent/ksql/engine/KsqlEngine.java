@@ -39,6 +39,7 @@ import io.confluent.ksql.services.ServiceContext;
 import io.confluent.ksql.statement.ConfiguredStatement;
 import io.confluent.ksql.util.KsqlException;
 import io.confluent.ksql.util.KsqlStatementException;
+import io.confluent.ksql.util.MaprFSUtils;
 import io.confluent.ksql.util.PersistentQueryMetadata;
 import io.confluent.ksql.util.QueryMetadata;
 import io.confluent.ksql.util.TransientQueryMetadata;
@@ -95,6 +96,7 @@ public class KsqlEngine implements KsqlExecutionContext, Closeable {
       final Function<KsqlEngine, KsqlEngineMetrics> engineMetricsFactory,
       final QueryIdGenerator queryIdGenerator
   ) {
+    MaprFSUtils.createAppDirAndInternalStreamsIfNotExist(serviceContext.getKsqlConfig());
     this.primaryContext = EngineContext.create(
         serviceContext,
         processingLogContext,

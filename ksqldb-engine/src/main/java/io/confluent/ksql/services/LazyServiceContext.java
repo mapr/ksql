@@ -17,15 +17,18 @@ package io.confluent.ksql.services;
 
 import com.google.common.base.Suppliers;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
+import io.confluent.ksql.util.KsqlConfig;
 import java.util.function.Supplier;
 import org.apache.kafka.clients.admin.Admin;
 import org.apache.kafka.streams.KafkaClientSupplier;
 
 public class LazyServiceContext implements ServiceContext {
   private final Supplier<ServiceContext> serviceContextSupplier;
+  private final KsqlConfig ksqlConfig;
 
   public LazyServiceContext(final Supplier<ServiceContext> serviceContextSupplier) {
     this.serviceContextSupplier = Suppliers.memoize(serviceContextSupplier::get)::get;
+    this.ksqlConfig = serviceContextSupplier.get().getKsqlConfig();
   }
 
   @Override
@@ -61,6 +64,11 @@ public class LazyServiceContext implements ServiceContext {
   @Override
   public SimpleKsqlClient getKsqlClient() {
     return serviceContextSupplier.get().getKsqlClient();
+  }
+
+  @Override
+  public KsqlConfig getKsqlConfig() {
+    return ksqlConfig;
   }
 
   @Override

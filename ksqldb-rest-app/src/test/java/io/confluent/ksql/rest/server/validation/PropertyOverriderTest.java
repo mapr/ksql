@@ -39,12 +39,14 @@ import java.util.Map;
 import java.util.Optional;
 import org.apache.commons.collections4.map.HashedMap;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
+@Ignore //TODO KAFKA-446
 public class PropertyOverriderTest {
 
   @Rule

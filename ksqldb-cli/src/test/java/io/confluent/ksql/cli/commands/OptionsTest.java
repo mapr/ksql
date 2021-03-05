@@ -36,7 +36,7 @@ public class OptionsTest {
     final Options options = parse();
 
     // Then:
-    assertThat(options.getServer(), is("http://localhost:8088"));
+    assertThat(options.getServer(), is("http://localhost:8084"));
   }
 
   @Test

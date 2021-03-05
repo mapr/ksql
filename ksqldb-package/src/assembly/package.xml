@@ -48,7 +48,16 @@
         </fileSet>
         <fileSet>
             <directory>${project.parent.basedir}/config</directory>
-            <outputDirectory>etc/ksqldb</outputDirectory>
+            <outputDirectory>conf.new</outputDirectory>
+            <includes>
+                <include>*</include>
+                <include>secure/*</include>
+                <include>unsecure/*</include>
+            </includes>
+        </fileSet>
+        <fileSet>
+            <directory>${project.parent.basedir}/warden</directory>
+            <outputDirectory>warden</outputDirectory>
             <includes>
                 <include>*</include>
             </includes>

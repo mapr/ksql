@@ -11,11 +11,15 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * Functional test for the running of historic tests, i.e. TestCasePlan, by QTT.
  */
+//TODO KAFKA-446: Fix unit tests to support MapR environment
+@Ignore
 public class HistoricalTestingFunctionalTest {
 
   private static final Path TEST_BASE_DIR = Paths.get("qtt_test_cases");

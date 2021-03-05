@@ -17,10 +17,14 @@ package io.confluent.ksql.api.client;
 
 import io.confluent.ksql.rest.server.KsqlRestConfig;
 import java.util.Map;
+
+import io.confluent.ksql.test.categories.UnsupportedTest;
 import org.apache.kafka.common.config.SslConfigs;
+import org.junit.experimental.categories.Category;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Category({UnsupportedTest.class})
 public class ClientTlsMutualAuthTest extends ClientTlsTest {
 
   protected static final Logger log = LoggerFactory.getLogger(ClientTlsMutualAuthTest.class);

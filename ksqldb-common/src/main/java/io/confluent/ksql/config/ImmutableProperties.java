@@ -18,7 +18,6 @@ package io.confluent.ksql.config;
 import com.google.common.collect.ImmutableSet;
 import io.confluent.ksql.util.KsqlConfig;
 import java.util.Set;
-import org.apache.kafka.streams.StreamsConfig;
 
 /**
  * Hard coded list of known immutable properties
@@ -26,7 +25,6 @@ import org.apache.kafka.streams.StreamsConfig;
 public final class ImmutableProperties {
 
   private static final Set<String> IMMUTABLE_PROPERTIES = ImmutableSet.<String>builder()
-      .add(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG)
       .add(KsqlConfig.KSQL_EXT_DIR)
       .add(KsqlConfig.KSQL_ACTIVE_PERSISTENT_QUERY_LIMIT_CONFIG)
       .add(KsqlConfig.KSQL_PULL_QUERIES_ENABLE_CONFIG)

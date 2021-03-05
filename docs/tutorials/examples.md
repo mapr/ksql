@@ -388,7 +388,7 @@ Uses a Bash [here string](http://tldp.org/LDP/abs/html/x17837.html)
 endpoint:
 
 ```bash
-ksql http://localhost:8088 <<< "SHOW TOPICS;
+ksql http://localhost:8084 <<< "SHOW TOPICS;
 SHOW STREAMS;
 exit"
 ```
@@ -404,7 +404,7 @@ CREATE STREAM pageviews_copy AS SELECT * FROM pageviews EMIT CHANGES;
 ```
 
 ```bash
-ksql http://localhost:8088 <<EOF
+ksql http://localhost:8084 <<EOF
 RUN SCRIPT '/path/to/local/application.sql';
 exit
 EOF

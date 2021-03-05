@@ -16,6 +16,7 @@
 package io.confluent.ksql.services;
 
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
+import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.ksql.util.Sandbox;
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -34,6 +35,7 @@ public final class SandboxedServiceContext implements ServiceContext {
   private final SchemaRegistryClient srClient;
   private final KafkaClientSupplier kafkaClientSupplier;
   private final ConnectClient connectClient;
+  private final KsqlConfig ksqlConfig;
 
   public static SandboxedServiceContext create(final ServiceContext serviceContext) {
     if (serviceContext instanceof SandboxedServiceContext) {
@@ -48,6 +50,7 @@ public final class SandboxedServiceContext implements ServiceContext {
     final ConnectClient connectClient = SandboxConnectClient.createProxy();
 
     return new SandboxedServiceContext(
+        serviceContext.getKsqlConfig(),
         kafkaClientSupplier,
         kafkaTopicClient,
         schemaRegistryClient,
@@ -55,6 +58,7 @@ public final class SandboxedServiceContext implements ServiceContext {
   }
 
   private SandboxedServiceContext(
+      final KsqlConfig ksqlConfig,
       final KafkaClientSupplier kafkaClientSupplier,
       final KafkaTopicClient topicClient,
       final SchemaRegistryClient srClient,
@@ -64,6 +68,7 @@ public final class SandboxedServiceContext implements ServiceContext {
     this.topicClient = Objects.requireNonNull(topicClient, "topicClient");
     this.srClient = Objects.requireNonNull(srClient, "srClient");
     this.connectClient = Objects.requireNonNull(connectClient, "connectClient");
+    this.ksqlConfig = ksqlConfig;
   }
 
   @Override
@@ -99,6 +104,11 @@ public final class SandboxedServiceContext implements ServiceContext {
   @Override
   public SimpleKsqlClient getKsqlClient() {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public KsqlConfig getKsqlConfig() {
+    return ksqlConfig;
   }
 
   @Override

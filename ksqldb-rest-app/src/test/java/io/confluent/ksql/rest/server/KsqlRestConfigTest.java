@@ -19,7 +19,6 @@ package io.confluent.ksql.rest.server;
 import static io.confluent.ksql.rest.server.KsqlRestConfig.ADVERTISED_LISTENER_CONFIG;
 import static io.confluent.ksql.rest.server.KsqlRestConfig.INTERNAL_LISTENER_CONFIG;
 import static io.confluent.ksql.rest.server.KsqlRestConfig.LISTENERS_CONFIG;
-import static org.apache.kafka.streams.StreamsConfig.BOOTSTRAP_SERVERS_CONFIG;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
@@ -51,8 +50,7 @@ import org.slf4j.Logger;
 public class KsqlRestConfigTest {
 
   private static final Map<String, Object> MIN_VALID_CONFIGS = ImmutableMap.<String, Object>builder()
-      .put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")
-      .put(LISTENERS_CONFIG, "http://localhost:8088")
+      .put(LISTENERS_CONFIG, "http://localhost:8084")
       .build();
 
   private static final String QUOTED_INTER_NODE_LISTENER_CONFIG =
@@ -84,8 +82,7 @@ public class KsqlRestConfigTest {
 
     // Then:
     assertThat(ksqlConfigProperties, is(ImmutableMap.of(
-        StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092",
-        LISTENERS_CONFIG, "http://localhost:8088",
+        LISTENERS_CONFIG, "http://localhost:8084",
         ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest",
         KsqlConfig.KSQL_SERVICE_ID_CONFIG, "test"))
     );
@@ -118,7 +115,6 @@ public class KsqlRestConfigTest {
     final Exception e = assertThrows(
         ConfigException.class,
         () -> new KsqlRestConfig(ImmutableMap.<String, Object>builder()
-            .put(BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")
             .put(LISTENERS_CONFIG, "http://localhost:9875,INVALID")
             .build()
         )
@@ -343,7 +339,6 @@ public class KsqlRestConfigTest {
     final URL expected = url("https://unresolvable_host:12345");
 
     final KsqlRestConfig config = new KsqlRestConfig(ImmutableMap.<String, Object>builder()
-        .put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")
         .put(LISTENERS_CONFIG, expected.toString() + ",http://localhost:2589")
         .build()
     );
@@ -367,7 +362,6 @@ public class KsqlRestConfigTest {
     final URL expected = url("https://example.com:12345");
 
     final KsqlRestConfig config = new KsqlRestConfig(ImmutableMap.<String, Object>builder()
-        .put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")
         .put(LISTENERS_CONFIG, expected.toString() + ",http://localhost:2589")
         .build()
     );
@@ -387,7 +381,6 @@ public class KsqlRestConfigTest {
     final URL expected = url("https://localHost:52368");
 
     final KsqlRestConfig config = new KsqlRestConfig(ImmutableMap.<String, Object>builder()
-        .put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")
         .put(LISTENERS_CONFIG, expected.toString() + ",http://localhost:2589")
         .build()
     );
@@ -408,7 +401,6 @@ public class KsqlRestConfigTest {
     final URL expected = url("https://127.0.0.2:12345");
 
     final KsqlRestConfig config = new KsqlRestConfig(ImmutableMap.<String, Object>builder()
-        .put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")
         .put(LISTENERS_CONFIG, expected.toString() + ",http://localhost:2589")
         .build()
     );
@@ -429,7 +421,6 @@ public class KsqlRestConfigTest {
     final URL expected = url("https://[::1]:12345");
 
     final KsqlRestConfig config = new KsqlRestConfig(ImmutableMap.<String, Object>builder()
-        .put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")
         .put(LISTENERS_CONFIG, expected.toString() + ",http://localhost:2589")
         .build()
     );
@@ -452,7 +443,6 @@ public class KsqlRestConfigTest {
     when(portResolver.apply(any())).thenReturn(2222);
 
     final KsqlRestConfig config = new KsqlRestConfig(ImmutableMap.<String, Object>builder()
-        .put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")
         .put(LISTENERS_CONFIG, autoPort.toString() + ",http://localhost:2589")
         .build()
     );
@@ -476,7 +466,6 @@ public class KsqlRestConfigTest {
     when(portResolver.apply(any())).thenReturn(2222);
 
     final KsqlRestConfig config = new KsqlRestConfig(ImmutableMap.<String, Object>builder()
-        .put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")
         .put(LISTENERS_CONFIG, autoPort.toString() + ",http://localhost:2589/")
         .build()
     );
@@ -498,7 +487,6 @@ public class KsqlRestConfigTest {
     final URL wildcard = url("https://0.0.0.0:12589");
 
     final KsqlRestConfig config = new KsqlRestConfig(ImmutableMap.<String, Object>builder()
-        .put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")
         .put(LISTENERS_CONFIG, wildcard.toString() + ",http://localhost:2589")
         .build()
     );
@@ -521,7 +509,6 @@ public class KsqlRestConfigTest {
     final URL wildcard = url("https://[::]:12345");
 
     final KsqlRestConfig config = new KsqlRestConfig(ImmutableMap.<String, Object>builder()
-        .put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")
         .put(LISTENERS_CONFIG, wildcard.toString() + ",http://localhost:2589")
         .build()
     );
@@ -545,7 +532,6 @@ public class KsqlRestConfigTest {
     final URL expected = url("https://unresolvable_host:12345");
 
     final KsqlRestConfig config = new KsqlRestConfig(ImmutableMap.<String, Object>builder()
-        .put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")
         .put(INTERNAL_LISTENER_CONFIG, expected.toString())
         .build()
     );
@@ -569,7 +555,6 @@ public class KsqlRestConfigTest {
     final URL expected = url("https://example.com:12345");
 
     final KsqlRestConfig config = new KsqlRestConfig(ImmutableMap.<String, Object>builder()
-        .put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")
         .put(INTERNAL_LISTENER_CONFIG, expected.toString())
         .build()
     );
@@ -589,7 +574,6 @@ public class KsqlRestConfigTest {
     final URL expected = url("https://localHost:52368");
 
     final KsqlRestConfig config = new KsqlRestConfig(ImmutableMap.<String, Object>builder()
-        .put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")
         .put(INTERNAL_LISTENER_CONFIG, expected.toString())
         .build()
     );
@@ -610,7 +594,6 @@ public class KsqlRestConfigTest {
     final URL expected = url("https://127.0.0.2:12345");
 
     final KsqlRestConfig config = new KsqlRestConfig(ImmutableMap.<String, Object>builder()
-        .put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")
         .put(INTERNAL_LISTENER_CONFIG, expected.toString())
         .build()
     );
@@ -631,7 +614,6 @@ public class KsqlRestConfigTest {
     final URL expected = url("https://[::1]:12345");
 
     final KsqlRestConfig config = new KsqlRestConfig(ImmutableMap.<String, Object>builder()
-        .put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")
         .put(INTERNAL_LISTENER_CONFIG, expected.toString())
         .build()
     );
@@ -654,7 +636,6 @@ public class KsqlRestConfigTest {
     when(portResolver.apply(any())).thenReturn(2222);
 
     final KsqlRestConfig config = new KsqlRestConfig(ImmutableMap.<String, Object>builder()
-        .put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")
         .put(INTERNAL_LISTENER_CONFIG, autoPort.toString())
         .build()
     );
@@ -678,7 +659,6 @@ public class KsqlRestConfigTest {
     when(portResolver.apply(any())).thenReturn(2222);
 
     final KsqlRestConfig config = new KsqlRestConfig(ImmutableMap.<String, Object>builder()
-        .put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")
         .put(INTERNAL_LISTENER_CONFIG, autoPort.toString())
         .build()
     );
@@ -700,7 +680,6 @@ public class KsqlRestConfigTest {
     final URL wildcard = url("https://0.0.0.0:12589");
 
     final KsqlRestConfig config = new KsqlRestConfig(ImmutableMap.<String, Object>builder()
-        .put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")
         .put(INTERNAL_LISTENER_CONFIG, wildcard.toString())
         .build()
     );
@@ -723,7 +702,6 @@ public class KsqlRestConfigTest {
     final URL wildcard = url("https://[::]:12345");
 
     final KsqlRestConfig config = new KsqlRestConfig(ImmutableMap.<String, Object>builder()
-        .put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")
         .put(INTERNAL_LISTENER_CONFIG, wildcard.toString())
         .build()
     );

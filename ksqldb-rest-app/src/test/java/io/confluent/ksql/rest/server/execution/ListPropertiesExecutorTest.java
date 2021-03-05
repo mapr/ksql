@@ -33,12 +33,15 @@ import io.confluent.ksql.rest.server.TemporaryEngine;
 import io.confluent.ksql.util.KsqlConfig;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
+@Ignore //TODO KAFKA-446
 public class ListPropertiesExecutorTest {
 
   @Rule public final TemporaryEngine engine = new TemporaryEngine();

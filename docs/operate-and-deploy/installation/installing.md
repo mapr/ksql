@@ -207,10 +207,10 @@ Your output should resemble:
 -------------------------------------------------------------------------------------------------
 additional-ksqldb-server   /usr/bin/docker/run         Up      0.0.0.0:32768->8090/tcp
 ksql_kafka_1               /etc/confluent/docker/run   Up      0.0.0.0:29092->29092/tcp, 9092/tcp
-ksql_schema-registry_1     /etc/confluent/docker/run   Up      8081/tcp
-ksql_zookeeper_1           /etc/confluent/docker/run   Up      2181/tcp, 2888/tcp, 3888/tcp
+ksql_schema-registry_1     /etc/confluent/docker/run   Up      8087/tcp
+ksql_zookeeper_1           /etc/confluent/docker/run   Up      5181/tcp, 2888/tcp, 3888/tcp
 ksqldb-cli                 /bin/sh                     Up
-primary-ksqldb-server      /usr/bin/docker/run         Up      0.0.0.0:8088->8088/tcp
+primary-ksqldb-server      /usr/bin/docker/run         Up      0.0.0.0:8084->8084/tcp
 ```
 
 When all of the containers have the `Up` state, the ksqlDB stack is ready
@@ -226,7 +226,7 @@ Run the following command to start the ksqlDB CLI in the running `ksqldb-cli`
 container.
 
 ```bash
-docker exec ksqldb-cli ksql http://primary-ksqldb-server:8088
+docker exec ksqldb-cli ksql http://primary-ksqldb-server:8084
 ```
 
 After the ksqlDB CLI starts, your terminal should resemble the following.
@@ -245,7 +245,7 @@ After the ksqlDB CLI starts, your terminal should resemble the following.
 
 Copyright 2017-2020 Confluent Inc.
 
-CLI v{{ site.release }}, Server v{{ site.release }} located at http://primary-ksql-server:8088
+CLI v{{ site.release }}, Server v{{ site.release }} located at http://primary-ksql-server:8084
 
 Having trouble? Type 'help' (case-insensitive) for a rundown of how things work!
 
@@ -285,7 +285,7 @@ image.
 ```bash
 docker run --network tutorials_default --rm --interactive --tty \
     confluentinc/ksqldb-cli:latest ksql \
-    http://ksql-server:8088
+    http://ksql-server:8084
 ```
 
 The `--interactive` and `--tty` options together enable the ksqlDB CLI process
@@ -355,7 +355,7 @@ following default values:
 
 ```yaml
 environment:
-    KSQL_LISTENERS: http://0.0.0.0:8088
+    KSQL_LISTENERS: http://0.0.0.0:8084
     KSQL_BOOTSTRAP_SERVERS: localhost:9092
 ```
 
@@ -426,7 +426,7 @@ Use the following command to start the ksqlDB CLI in the running `ksqldb-cli`
 container.
 
 ```bash
-docker exec -it ksqldb-cli ksql http://ksqldb-server:8088
+docker exec -it ksqldb-cli ksql http://ksqldb-server:8084
 ```
 
 #### PostgreSQL stack
@@ -444,7 +444,7 @@ Use the following command to start the ksqlDB CLI in the running `ksqldb-cli`
 container.
 
 ```bash
-docker exec ksqldb-cli ksql http://ksqldb-server:8088
+docker exec ksqldb-cli ksql http://ksqldb-server:8084
 ```
 
 #### Full ksqlDB event processing application

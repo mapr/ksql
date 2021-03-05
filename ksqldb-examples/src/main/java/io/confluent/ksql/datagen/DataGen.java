@@ -146,7 +146,7 @@ public final class DataGen {
             + "'pageviews')] " + newLine
             + "schema=<avro schema file> " + newLine
             + "[schemaRegistryUrl=<url for Confluent Schema Registry> "
-            + "(defaults to http://localhost:8081)] " + newLine
+            + "(defaults to http://localhost:8087)] " + newLine
             + "key-format=<message key format> (case-insensitive; one of 'avro', 'json', 'kafka' "
             + "or 'delimited') " + newLine
             + "value-format=<message value format> (case-insensitive; one of 'avro', 'json' or "
@@ -284,7 +284,7 @@ public final class DataGen {
         topicName = null;
         keyName = null;
         iterations = -1;
-        schemaRegistryUrl = "http://localhost:8081";
+        schemaRegistryUrl = "http://localhost:8087";
         propertiesFile = null;
         msgRate = -1;
         numThreads = 1;

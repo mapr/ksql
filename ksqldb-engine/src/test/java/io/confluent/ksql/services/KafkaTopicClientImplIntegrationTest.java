@@ -27,6 +27,7 @@ import static org.junit.Assert.assertThrows;
 import com.google.common.collect.ImmutableMap;
 import io.confluent.ksql.exception.KafkaResponseGetFailedException;
 import io.confluent.ksql.integration.Retry;
+import io.confluent.ksql.test.categories.UnsupportedTest;
 import io.confluent.ksql.test.util.EmbeddedSingleNodeKafkaCluster;
 import io.confluent.ksql.topic.TopicProperties;
 import java.util.Collections;
@@ -48,7 +49,7 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.rules.RuleChain;
 
-@Category({IntegrationTest.class})
+@Category({IntegrationTest.class, UnsupportedTest.class})
 public class KafkaTopicClientImplIntegrationTest {
 
   private static final EmbeddedSingleNodeKafkaCluster KAFKA =
@@ -71,7 +72,7 @@ public class KafkaTopicClientImplIntegrationTest {
     adminClient = AdminClient.create(ImmutableMap.of(
         AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, KAFKA.bootstrapServers()));
 
-    client = new KafkaTopicClientImpl(() -> adminClient);
+    client = new KafkaTopicClientImpl(() -> adminClient, "");
 
     allowForAsyncTopicCreation();
   }

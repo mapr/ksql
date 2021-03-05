@@ -51,7 +51,7 @@ public class Options {
   @Arguments(
       title = "server",
       description = "The address of the Ksql server to connect to (ex: http://confluent.io:9098)")
-  private String server = "http://localhost:8088";
+  private String server = "http://localhost:8084";
 
   private static final String CONFIGURATION_FILE_OPTION_NAME = "--config-file";
 

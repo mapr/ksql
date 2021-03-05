@@ -71,6 +71,7 @@ import org.apache.kafka.common.metrics.MetricsReporter;
 import org.apache.kafka.streams.StreamsConfig;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -80,6 +81,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
+@Ignore //TODO KAFKA-446
 public class KsqlRestApplicationTest {
   private static final String LOG_STREAM_NAME = "log_stream";
   private static final String LOG_TOPIC_NAME = "log_topic";

@@ -361,7 +361,8 @@ public class KsqlConfigTest {
         StreamsConfig.METADATA_MAX_AGE_CONFIG, "13"
     ));
     final Map<String, ?> props = cloneClone.getKsqlStreamConfigProps();
-    assertThat(props.get(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG), equalTo(456));
+    //KAFKA-646 AUTO_COMMIT_INTERVAL_MS_CONFIG is Type.LONG now
+    assertThat(props.get(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG), equalTo(456L));
     assertThat(props.get(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG), equalTo("earliest"));
     assertThat(props.get(StreamsConfig.NUM_STREAM_THREADS_CONFIG), equalTo(2));
     assertThat(props.get(StreamsConfig.METADATA_MAX_AGE_CONFIG), equalTo(13L));

@@ -31,7 +31,6 @@ import io.confluent.ksql.util.KafkaConsumerGroupClient.ConsumerSummary;
 import io.confluent.ksql.util.KafkaConsumerGroupClientImpl;
 import io.confluent.ksql.util.ReservedInternalTopics;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -61,14 +60,10 @@ public final class ListTopicsExecutor {
     final Map<String, TopicDescription> topicDescriptions = listTopics(client, statement);
 
     if (statement.getStatement().getShowExtended()) {
-      final KafkaConsumerGroupClient consumerGroupClient
-          = new KafkaConsumerGroupClientImpl(serviceContext.getAdminClient());
-      final Map<String, List<Integer>> topicConsumersAndGroupCount
-          = getTopicConsumerAndGroupCounts(consumerGroupClient);
 
       final List<KafkaTopicInfoExtended> topicInfoExtendedList = topicDescriptions.values()
           .stream().map(desc ->
-              topicDescriptionToTopicInfoExtended(desc, topicConsumersAndGroupCount))
+              topicDescriptionToTopicInfoExtended(desc))
           .collect(Collectors.toList());
 
       return Optional.of(
@@ -104,19 +99,15 @@ public final class ListTopicsExecutor {
   }
 
   private static KafkaTopicInfoExtended topicDescriptionToTopicInfoExtended(
-      final TopicDescription topicDescription,
-      final Map<String, List<Integer>> topicConsumersAndGroupCount
+      final TopicDescription topicDescription
   ) {
-
-    final List<Integer> consumerAndGroupCount = topicConsumersAndGroupCount
-        .getOrDefault(topicDescription.name(), Arrays.asList(0, 0));
 
     return new KafkaTopicInfoExtended(
         topicDescription.name(),
         topicDescription.partitions()
             .stream().map(partition -> partition.replicas().size()).collect(Collectors.toList()),
-        consumerAndGroupCount.get(0),
-        consumerAndGroupCount.get(1));
+        -1,
+        -1);
   }
 
   /**
@@ -126,7 +117,7 @@ public final class ListTopicsExecutor {
       final KafkaConsumerGroupClient consumerGroupClient
   ) {
 
-    final List<String> consumerGroups = consumerGroupClient.listGroups();
+    final List<String> consumerGroups = new ArrayList<>();
 
     final Map<String, AtomicInteger> topicConsumerCount = new HashMap<>();
     final Map<String, Set<String>> topicConsumerGroupCount = new HashMap<>();

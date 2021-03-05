@@ -53,6 +53,7 @@ public final class ServiceContextFactory {
   ) {
 
     return new DefaultServiceContext(
+        ksqlConfig,
         kafkaClientSupplier,
         () -> kafkaClientSupplier
             .getAdmin(ksqlConfig.getKsqlAdminClientConfigProps()),

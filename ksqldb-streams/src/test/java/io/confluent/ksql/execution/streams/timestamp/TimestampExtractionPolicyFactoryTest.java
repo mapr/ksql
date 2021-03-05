@@ -35,6 +35,7 @@ import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.processor.FailOnInvalidTimestamp;
 import org.apache.kafka.streams.processor.TimestampExtractor;
 import org.apache.kafka.streams.processor.UsePartitionTimeOnInvalidTimestamp;
+import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -96,8 +97,9 @@ public class TimestampExtractionPolicyFactoryTest {
     );
 
     // Then:
-    assertThat(e.getMessage(), containsString(
-        "cannot be cast to org.apache.kafka.streams.processor.TimestampExtractor"));
+    assertThat(e.getMessage(), CoreMatchers.anyOf(
+            containsString("cannot be cast to org.apache.kafka.streams.processor.TimestampExtractor"),
+            containsString("cannot be cast to class org.apache.kafka.streams.processor.TimestampExtractor")));
   }
 
   @Test

@@ -23,7 +23,7 @@
     <parent>
         <groupId>io.confluent.ksql</groupId>
         <artifactId>ksqldb-parent</artifactId>
-        <version>6.0.0</version>
+        <version>6.0.0.0-mapr-SNAPSHOT</version>
     </parent>
 
     <artifactId>ksqldb-rest-app</artifactId>
@@ -36,6 +36,11 @@
         <docker.skip-build>true</docker.skip-build>
         <docker.skip-test>true</docker.skip-test>
         <netty-tcnative-version>2.0.29.Final</netty-tcnative-version>
+        <mapr.coverage.whitelist>
+            io/confluent/ksql/rest/filter/AuthorizationFilter.class,
+            io/confluent/ksql/rest/util/ByteConsumerPool.class,
+            io/confluent/ksql/rest/util/ByteProducerPool.class
+        </mapr.coverage.whitelist>
     </properties>
 
     <dependencies>
@@ -62,6 +67,68 @@
         <dependency>
             <groupId>io.confluent</groupId>
             <artifactId>kafka-json-serializer</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.mapr.security</groupId>
+            <artifactId>mapr-security-web</artifactId>
+            <version>${mapr.streams.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.mapr.hadoop</groupId>
+                    <artifactId>maprfs</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-beans</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-context</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-web</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework.security</groupId>
+                    <artifactId>spring-security-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework.security</groupId>
+                    <artifactId>spring-security-web</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework.security.kerberos</groupId>
+                    <artifactId>spring-security-kerberos-web</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.jsonwebtoken</groupId>
+                    <artifactId>jjwt</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.eclipse.jetty</groupId>
+                    <artifactId>jetty-util</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.kohsuke</groupId>
+                    <artifactId>libpam4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>javax.servlet</groupId>
+                    <artifactId>javax.servlet-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka_${kafka.scala.version}</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -137,6 +204,13 @@
         <!-- Required for running tests -->
 
         <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-streams</artifactId>
+            <version>${kafka.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
             <groupId>io.confluent.ksql</groupId>
             <artifactId>ksqldb-engine</artifactId>
             <version>${project.parent.version}</version>
@@ -174,6 +248,16 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-module-junit4</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-api-easymock</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

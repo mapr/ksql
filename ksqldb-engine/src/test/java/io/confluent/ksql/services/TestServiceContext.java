@@ -79,7 +79,7 @@ public final class TestServiceContext {
     return create(
         kafkaClientSupplier,
         adminClient,
-        new KafkaTopicClientImpl(() -> adminClient),
+        new KafkaTopicClientImpl(() -> adminClient, ksqlConfig.getKsqlDefaultStream()),
         srClientFactory,
         new DefaultConnectClient(
             ksqlConfig.getString(KsqlConfig.CONNECT_URL_PROPERTY),
@@ -95,6 +95,7 @@ public final class TestServiceContext {
       final ConnectClient connectClient
   ) {
     final DefaultServiceContext serviceContext = new DefaultServiceContext(
+        null,
         kafkaClientSupplier,
         () -> adminClient,
         topicClient,

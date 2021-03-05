@@ -25,6 +25,7 @@ import io.confluent.common.utils.TestUtils;
 import io.confluent.ksql.integration.IntegrationTestHarness;
 import io.confluent.ksql.integration.Retry;
 import io.confluent.ksql.rest.server.TestKsqlRestApp;
+import io.confluent.ksql.test.categories.UnsupportedTest;
 import io.confluent.ksql.test.loader.JsonTestLoader;
 import io.confluent.ksql.test.loader.TestFile;
 import io.confluent.ksql.util.KsqlConfig;
@@ -64,7 +65,7 @@ import org.junit.runners.Parameterized;
  *
  * See `ksql-functional-tests/README.md` for more info.
  */
-@Category({IntegrationTest.class})
+@Category({IntegrationTest.class, UnsupportedTest.class})
 @RunWith(Parameterized.class)
 public class RestQueryTranslationTest {
 

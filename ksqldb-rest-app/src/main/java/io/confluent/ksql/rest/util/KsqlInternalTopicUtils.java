@@ -119,11 +119,5 @@ public final class KsqlInternalTopicUtils {
           name, replicationFactor);
     }
 
-    if (topicClient.addTopicConfig(name, INTERNAL_TOPIC_CONFIG)) {
-      log.info(
-          "Corrected retention.ms on ksql internal topic. topic:{}, retention.ms:{}",
-          name,
-          INTERNAL_TOPIC_RETENTION_MS);
-    }
   }
 }

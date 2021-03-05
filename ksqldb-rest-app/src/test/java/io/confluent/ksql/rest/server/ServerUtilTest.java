@@ -50,7 +50,7 @@ public class ServerUtilTest {
     final KsqlRestConfig restConfig =
         new KsqlRestConfig(
             Collections.singletonMap(KsqlRestConfig.LISTENERS_CONFIG,
-                "http://localhost:8088, http://localhost:9099"));
+                "http://localhost:8084, http://localhost:9099"));
 
     // Then:
     ServerUtil.getServerAddress(restConfig);
@@ -59,10 +59,10 @@ public class ServerUtilTest {
   @Test
   public void shouldReturnServerPortWithTrailingSlash() {
     // When:
-    final HostInfo hostInfo = ServerUtil.parseHostInfo("http://localhost:8088/");
+    final HostInfo hostInfo = ServerUtil.parseHostInfo("http://localhost:8084/");
 
     // Then:
-    assertThat(hostInfo.port(), Matchers.is(8088));
+    assertThat(hostInfo.port(), Matchers.is(8084));
   }
 
 }

@@ -29,7 +29,7 @@
     <artifactId>ksqldb-parent</artifactId>
     <packaging>pom</packaging>
     <name>ksqldb-parent</name>
-    <version>6.0.0</version>
+    <version>6.0.0.0-mapr-SNAPSHOT</version>
     <licenses>
         <license>
             <name>Confluent Community License</name>
@@ -68,6 +68,12 @@
     </modules>
 
     <repositories>
+        <repository>
+            <id>mapr-releases</id>
+<!--            TODO put env variable here-->
+            <!--            <url>${env.MAPR_MAVEN_REPO}</url>-->
+            <url>http://maven.corp.maprtech.com/nexus/content/groups/public/</url>
+        </repository>
         <repository>
             <id>confluent</id>
             <url>https://packages.confluent.io/maven/</url>
@@ -130,6 +136,19 @@
         <jetty.version>9.4.28.v20200408</jetty.version>
         <git-commit-id-plugin.version>2.2.6</git-commit-id-plugin.version>
         <scala.version>2.13.2</scala.version>
+        <jackson.version>2.9.1</jackson.version>
+        <kafka.version>2.6.1.0-mapr-SNAPSHOT</kafka.version>
+        <schema.registry.version>6.0.0.0-mapr-SNAPSHOT</schema.registry.version>
+        <mapr.streams.version>6.2.0.0-mapr-SNAPSHOT</mapr.streams.version>
+        <version.3digit>6.0.0</version.3digit>
+        <powermock.version>2.0.2</powermock.version>
+        <junit.integration.categories>
+            io.confluent.common.utils.IntegrationTest,
+            org.apache.kafka.test.IntegrationTest
+        </junit.integration.categories>
+        <junit.unsupported.categories>
+            io.confluent.ksql.test.categories.UnsupportedTest
+        </junit.unsupported.categories>
     </properties>
 
     <dependencyManagement>
@@ -145,7 +164,7 @@
             <dependency>
                 <groupId>org.apache.kafka</groupId>
                 <artifactId>kafka-streams-test-utils</artifactId>
-                <version>${kafka.version}</version>
+                <version>2.6.1</version>
             </dependency>
 
             <dependency>
@@ -255,7 +274,7 @@
             <dependency>
                 <groupId>io.confluent</groupId>
                 <artifactId>kafka-connect-avro-converter</artifactId>
-                <version>${confluent.version}</version>
+                <version>${schema.registry.version}</version>
             </dependency>
 
             <dependency>
@@ -267,13 +286,13 @@
             <dependency>
                 <groupId>io.confluent</groupId>
                 <artifactId>kafka-avro-serializer</artifactId>
-                <version>${confluent.version}</version>
+                <version>${schema.registry.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>io.confluent</groupId>
                 <artifactId>kafka-schema-registry-client</artifactId>
-                <version>${confluent.version}</version>
+                <version>${schema.registry.version}</version>
             </dependency>
 
             <dependency>
@@ -495,6 +514,83 @@
             <groupId>io.confluent</groupId>
             <artifactId>confluent-log4j</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+            <version>${kafka.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>mapr-eco-tools</artifactId>
+            <version>${kafka.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>connect-api</artifactId>
+            <version>${kafka.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>connect-json</artifactId>
+            <version>${kafka.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.mapr.streams</groupId>
+            <artifactId>mapr-streams</artifactId>
+            <version>${mapr.streams.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka_${kafka.scala.version}</artifactId>
+            <version>${kafka.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka_${kafka.scala.version}</artifactId>
+            <classifier>test</classifier>
+            <version>${kafka.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+            <version>2.6.1</version>
+            <classifier>test</classifier>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.javassist</groupId>
+            <artifactId>javassist</artifactId>
+            <version>3.24.0-GA</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.zookeeper</groupId>
+            <artifactId>zookeeper</artifactId>
+            <version>3.5.6.0-mapr-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-beanutils</groupId>
+            <artifactId>commons-beanutils</artifactId>
+            <version>1.9.4</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -509,6 +605,12 @@
                         </descriptors>
                     </configuration>
                 </plugin>
+                <plugin>
+                    <groupId>net.alchim31.maven</groupId>
+                    <artifactId>scala-maven-plugin</artifactId>
+                    <version>3.2.1</version>
+                </plugin>
+
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>exec-maven-plugin</artifactId>
@@ -541,17 +643,6 @@
                 <configuration>
                     <propertiesLocation>checkstyle/checkstyle.properties</propertiesLocation>
                     <suppressionsLocation>checkstyle/suppressions.xml</suppressionsLocation>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <systemPropertyVariables>
-                        <log4j.configuration>file:${project.basedir}/../ksqldb-test-util/src/main/resources/log4j.properties</log4j.configuration>
-                    </systemPropertyVariables>
-                    <argLine>-verbose:gc -Xloggc:"${project.build.directory}/gc.log"</argLine>
                 </configuration>
             </plugin>
 
@@ -610,11 +701,41 @@
                     <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <excludedGroups>${junit.integration.categories},${junit.unsupported.categories}</excludedGroups>
+                    <systemPropertyVariables>
+                        <log4j.configuration>file:${project.basedir}/../ksqldb-test-util/src/main/resources/log4j.properties</log4j.configuration>
+                    </systemPropertyVariables>
+                    <argLine>-Xmx1024m</argLine>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <configuration>
+                    <groups>${junit.integration.categories}</groups>
+                    <excludedGroups>${junit.unsupported.categories}</excludedGroups>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
     <reporting>
         <plugins>
-
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <version>${findbugs-maven-plugin.version}</version>
+                <configuration>
+                    <findbugsXmlOutput>true</findbugsXmlOutput>
+                    <findbugsXmlWithMessages>true</findbugsXmlWithMessages>
+                    <xmlOutput>true</xmlOutput>
+                    <excludeFilterFile>findbugs/findbugs-exclude.xml</excludeFilterFile>
+                </configuration>
+            </plugin>
         </plugins>
     </reporting>
 </project>

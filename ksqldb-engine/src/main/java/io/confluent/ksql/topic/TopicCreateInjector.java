@@ -33,11 +33,16 @@ import io.confluent.ksql.statement.Injector;
 import io.confluent.ksql.topic.TopicProperties.Builder;
 import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.ksql.util.KsqlException;
+
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+
+import org.apache.kafka.clients.mapr.util.MapRTopicUtils;
 import org.apache.kafka.common.config.TopicConfig;
 
 /**
@@ -53,19 +58,23 @@ public class TopicCreateInjector implements Injector {
 
   private final KafkaTopicClient topicClient;
   private final MetaStore metaStore;
+  private final KsqlConfig ksqlConfig;
 
   public TopicCreateInjector(
       final KsqlExecutionContext executionContext,
       final ServiceContext serviceContext
   ) {
-    this(serviceContext.getTopicClient(), executionContext.getMetaStore());
+    this(serviceContext.getKsqlConfig(), serviceContext.getTopicClient(),
+        executionContext.getMetaStore());
   }
 
   TopicCreateInjector(
+      final KsqlConfig ksqlConfig,
       final KafkaTopicClient topicClient,
       final MetaStore metaStore) {
     this.topicClient = Objects.requireNonNull(topicClient, "topicClient");
     this.metaStore = Objects.requireNonNull(metaStore, "metaStore");
+    this.ksqlConfig = Objects.requireNonNull(ksqlConfig, "ksqlConfig");
   }
 
   @Override
@@ -211,7 +220,15 @@ public class TopicCreateInjector implements Injector {
     config.put(TopicConfig.CLEANUP_POLICY_CONFIG, topicCleanUpPolicy);
     config.putAll(additionalTopicConfigs);
 
-    topicClient.createTopic(info.getTopicName(), info.getPartitions(), info.getReplicas(), config);
+    final String defaultStream = ksqlConfig.getKsqlDefaultStream();
+    final List<String> topicList = new ArrayList<String>();
+    topicList.add(info.getTopicName());
+    final String decoratedKafkaTopicName = MapRTopicUtils
+        .decorateTopicsWithDefaultStreamIfNeeded(topicList, defaultStream)
+        .get(0);
+
+    topicClient.createTopic(
+        decoratedKafkaTopicName, info.getPartitions(), info.getReplicas(), config);
 
     return info;
   }

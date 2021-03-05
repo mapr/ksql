@@ -61,7 +61,6 @@ public class WelcomeMsgUtilsTest {
         + "                  =        for stream processing apps       =\n"
         + "                  ===========================================\n"
         + "\n"
-        + "Copyright 2017-2020 Confluent Inc.\n"
         + "\n")
     );
   }
@@ -72,7 +71,7 @@ public class WelcomeMsgUtilsTest {
     WelcomeMsgUtils.displayWelcomeMessage(35, realPrintWriter);
 
     // Then:
-    assertThat(stringWriter.toString(), is("ksqlDB, Copyright 2017-2020 Confluent Inc.\n\n"));
+    assertThat(stringWriter.toString(), is("ksqlDB:\n\n"));
   }
 
   @Test

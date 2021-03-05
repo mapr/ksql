@@ -30,14 +30,14 @@ public class ListTopicsTest {
     // Note: At the moment location does not take part in equality testing
     new EqualsTester()
         .addEqualityGroup(
-            new ListTopics(Optional.of(SOME_LOCATION), true, true),
-            new ListTopics(Optional.of(OTHER_LOCATION), true, true)
+            new ListTopics(Optional.of(SOME_LOCATION), true, true, null),
+            new ListTopics(Optional.of(OTHER_LOCATION), true, true, null)
         )
         .addEqualityGroup(
-            new ListTopics(Optional.of(SOME_LOCATION), false, true)
+            new ListTopics(Optional.of(SOME_LOCATION), false, true, null)
         )
         .addEqualityGroup(
-            new ListTopics(Optional.of(SOME_LOCATION), true,false)
+            new ListTopics(Optional.of(SOME_LOCATION), true,false, null)
         )
         .testEquals();
   }

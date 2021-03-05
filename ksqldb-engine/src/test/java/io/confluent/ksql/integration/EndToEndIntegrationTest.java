@@ -32,6 +32,7 @@ import io.confluent.ksql.function.udf.UdfDescription;
 import io.confluent.ksql.query.BlockingRowQueue;
 import io.confluent.ksql.query.QueryId;
 import io.confluent.ksql.serde.Format;
+import io.confluent.ksql.test.categories.UnsupportedTest;
 import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.ksql.util.KsqlConstants;
 import io.confluent.ksql.util.PageViewDataProvider;
@@ -75,7 +76,7 @@ import org.slf4j.LoggerFactory;
  * are what we expect. This tests a broad set of KSQL functionality and is a good catch-all.
  */
 @SuppressWarnings("ConstantConditions")
-@Category({IntegrationTest.class})
+@Category({IntegrationTest.class, UnsupportedTest.class})
 public class EndToEndIntegrationTest {
 
   private static final Logger log = LoggerFactory.getLogger(EndToEndIntegrationTest.class);

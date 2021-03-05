@@ -39,6 +39,7 @@ import io.confluent.ksql.name.ColumnName;
 import io.confluent.ksql.schema.ksql.LogicalSchema;
 import io.confluent.ksql.schema.ksql.types.SqlTypes;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.kafka.connect.data.Struct;
@@ -49,6 +50,7 @@ import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.QueryableStoreTypes.SessionStoreType;
 import org.apache.kafka.streams.state.ReadOnlySessionStore;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -66,8 +68,8 @@ public class KsMaterializedSessionTableTest {
       .keyBuilder(ColumnName.of("k0"), SqlTypes.STRING).build("x");
   private static final GenericRow A_VALUE = GenericRow.genericRow("c0l");
 
-  private static final Instant LOWER_INSTANT = Instant.now();
-  private static final Instant UPPER_INSTANT = LOWER_INSTANT.plusSeconds(10);
+  private static final Instant LOWER_INSTANT = Instant.now().truncatedTo(ChronoUnit.MILLIS);
+  private static final Instant UPPER_INSTANT = LOWER_INSTANT.truncatedTo(ChronoUnit.MILLIS).plusSeconds(10);
   private static final Range<Instant> WINDOW_START_BOUNDS = Range.closed(
       LOWER_INSTANT,
       UPPER_INSTANT

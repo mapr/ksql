@@ -41,7 +41,6 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.errors.AuthorizationException;
 import org.apache.kafka.common.errors.OutOfOrderSequenceException;
 import org.apache.kafka.common.errors.ProducerFencedException;
-import org.apache.kafka.common.errors.TimeoutException;
 
 /**
  * A {@code StatementExecutor} that encapsulates a command queue and will
@@ -112,21 +111,21 @@ public class DistributingExecutor {
 
     checkAuthorization(injected, securityContext, executionContext);
 
-    final Producer<CommandId, Command> transactionalProducer =
+    final Producer<CommandId, Command> notTransactionalProducer =
         commandQueue.createTransactionalProducer();
 
-    try {
-      transactionalProducer.initTransactions();
-    } catch (final TimeoutException e) {
-      throw new KsqlServerException(errorHandler.transactionInitTimeoutErrorMessage(e), e);
-    } catch (final Exception e) {
-      throw new KsqlServerException(String.format(
-          "Could not write the statement '%s' into the command topic: " + e.getMessage(),
-          statement.getStatementText()), e);
-    }
+    //    try {
+    //      notTransactionalProducer.initTransactions();
+    //    } catch (final TimeoutException e) {
+    //      throw new KsqlServerException(errorHandler.transactionInitTimeoutErrorMessage(e), e);
+    //    } catch (final Exception e) {
+    //      throw new KsqlServerException(String.format(
+    //          "Could not write the statement '%s' into the command topic: " + e.getMessage(),
+    //          statement.getStatementText()), e);
+    //    }
     
     try {
-      transactionalProducer.beginTransaction();
+      //      notTransactionalProducer.beginTransaction();
       commandQueue.waitForCommandConsumer();
 
       final CommandId commandId = commandIdAssigner.getCommandId(statement.getStatement());
@@ -135,9 +134,9 @@ public class DistributingExecutor {
           executionContext.createSandbox(executionContext.getServiceContext())
       );
       final QueuedCommandStatus queuedCommandStatus =
-          commandQueue.enqueueCommand(commandId, command, transactionalProducer);
+          commandQueue.enqueueCommand(commandId, command, notTransactionalProducer);
 
-      transactionalProducer.commitTransaction();
+      //      notTransactionalProducer.commitTransaction();
       final CommandStatus commandStatus = queuedCommandStatus
           .tryWaitForFinalStatus(distributedCmdResponseTimeout);
 
@@ -157,12 +156,12 @@ public class DistributingExecutor {
           "Could not write the statement '%s' into the command topic.",
           statement.getStatementText()), e);
     } catch (final Exception e) {
-      transactionalProducer.abortTransaction();
+      //      notTransactionalProducer.abortTransaction();
       throw new KsqlServerException(String.format(
           "Could not write the statement '%s' into the command topic.",
           statement.getStatementText()), e);
     } finally {
-      transactionalProducer.close();
+      notTransactionalProducer.close();
     }
   }
 

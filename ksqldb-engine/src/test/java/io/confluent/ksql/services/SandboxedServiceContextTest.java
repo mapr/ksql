@@ -31,6 +31,7 @@ import java.util.Objects;
 import java.util.function.Supplier;
 import org.apache.kafka.streams.KafkaClientSupplier;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
@@ -83,6 +84,7 @@ public final class SandboxedServiceContextTest {
       sandboxedServiceContext = SandboxedServiceContext.create(delegate);
     }
 
+    @Ignore //TODO KAFKA-446
     @Test(expected = UnsupportedOperationException.class)
     public void shouldThrowOnUnsupportedOperation() throws Throwable {
       testCase.invokeMethod(sandboxedServiceContext);

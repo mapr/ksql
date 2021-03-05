@@ -49,7 +49,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class RemoteServerSpecificCommandTest {
 
   private static final String INITIAL_SERVER_ADDRESS = "http://192.168.0.1:8080";
-  private static final String VALID_SERVER_ADDRESS = "http://localhost:8088";
+  private static final String VALID_SERVER_ADDRESS = "http://localhost:8084";
   private static final ServerInfo SERVER_INFO = mock(ServerInfo.class);
 
   @Mock
@@ -83,10 +83,10 @@ public class RemoteServerSpecificCommandTest {
   @Test(expected = KsqlRestClientException.class)
   public void shouldThrowIfRestClientThrowsOnSet() {
     // Given:
-    doThrow(new KsqlRestClientException("Boom")).when(restClient).setServerAddress("localhost:8088");
+    doThrow(new KsqlRestClientException("Boom")).when(restClient).setServerAddress("localhost:8084");
 
     // When:
-    command.execute(ImmutableList.of("localhost:8088"), terminal);
+    command.execute(ImmutableList.of("localhost:8084"), terminal);
   }
 
   @Test

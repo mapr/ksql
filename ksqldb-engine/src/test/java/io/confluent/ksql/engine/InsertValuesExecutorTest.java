@@ -90,6 +90,7 @@ import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.streams.KafkaClientSupplier;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -525,6 +526,7 @@ public class InsertValuesExecutorTest {
   }
 
   @Test
+  @Ignore //TODO KAFKA-446
   public void shouldThrowWhenInsertValuesOnProcessingLogTopic() {
     // Given
     givenDataSourceWithSchema("default_ksql_processing_log", SCHEMA,

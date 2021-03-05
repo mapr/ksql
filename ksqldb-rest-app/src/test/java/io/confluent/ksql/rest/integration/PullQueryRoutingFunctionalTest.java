@@ -70,6 +70,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -85,6 +86,8 @@ import org.junit.rules.Timeout;
  */
 @SuppressWarnings("OptionalGetWithoutIsPresent")
 @Category({IntegrationTest.class})
+//TODO KAFKA-446: Fix unit tests to support MapR environment
+@Ignore
 public class PullQueryRoutingFunctionalTest {
 
   private static final TemporaryFolder TMP = new TemporaryFolder();
@@ -147,7 +150,7 @@ public class PullQueryRoutingFunctionalTest {
       .builder(TEST_HARNESS::kafkaBootstrapServers)
       .withProperty(KSQL_STREAMS_PREFIX + StreamsConfig.NUM_STREAM_THREADS_CONFIG, 1)
       .withProperty(KSQL_STREAMS_PREFIX + StreamsConfig.STATE_DIR_CONFIG, getNewStateDir())
-      .withProperty(KsqlRestConfig.LISTENERS_CONFIG, "http://localhost:8088")
+      .withProperty(KsqlRestConfig.LISTENERS_CONFIG, "http://localhost:8084")
       .withProperty(KsqlRestConfig.INTERNAL_LISTENER_CONFIG, "http://localhost:8188")
       .withProperty(KsqlRestConfig.ADVERTISED_LISTENER_CONFIG, "http://localhost:8188")
       .withProperties(COMMON_CONFIG)

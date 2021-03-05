@@ -89,7 +89,7 @@ public class TemporaryEngine extends ExternalResource {
         ImmutableMap.<String, Object>builder()
             .putAll(configs)
             .put("ksql.command.topic.suffix", "commands")
-            .put(KsqlRestConfig.LISTENERS_CONFIG, "http://localhost:8088")
+            .put(KsqlRestConfig.LISTENERS_CONFIG, "http://localhost:8084")
             .build()
     );
 

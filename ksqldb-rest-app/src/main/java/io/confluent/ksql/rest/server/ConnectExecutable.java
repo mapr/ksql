@@ -56,6 +56,9 @@ public final class ConnectExecutable implements Executable {
   public void startAsync() {
     try {
       connect = connectDistributed.startConnect(workerProps);
+    } catch (final ClassNotFoundException e) {
+      LOG.error("MarlinClient can not be loaded", e);
+      throw new ConnectException(e);
     } catch (final ConnectException e) {
       if (e.getCause() instanceof IOException && e.getCause().getCause() instanceof BindException) {
         LOG.warn("Cannot start a local connect instance because connect is running locally!", e);

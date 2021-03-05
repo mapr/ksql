@@ -45,6 +45,8 @@ import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.ksql.util.KsqlException;
 import java.util.List;
 import java.util.Optional;
+
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
@@ -52,6 +54,7 @@ import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(Enclosed.class)
+@Ignore //TODO KAFKA-446
 public class PullQueryExecutorTest {
   private static final RoutingFilterFactory ROUTING_FILTER_FACTORY =
       (routingOptions, hosts, active, applicationQueryId, storeName, partition) ->

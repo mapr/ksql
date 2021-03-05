@@ -22,6 +22,7 @@ import static org.hamcrest.Matchers.is;
 
 import com.google.common.collect.ImmutableList;
 import io.confluent.ksql.KsqlConfigTestUtil;
+import io.confluent.ksql.test.categories.UnsupportedTest;
 import io.confluent.ksql.test.util.ConsumerGroupTestUtil;
 import io.confluent.ksql.test.util.TopicTestUtil;
 import io.confluent.ksql.util.KafkaConsumerGroupClient;
@@ -56,7 +57,7 @@ import org.junit.rules.RuleChain;
  * of stubbing results from the admin client as constructors are package-private. Mocking
  * the results would be tedious and distract from the actual testing.
  */
-@Category({IntegrationTest.class})
+@Category({IntegrationTest.class, UnsupportedTest.class})
 public class KafkaConsumerGroupClientTest {
 
   private static final int PARTITION_COUNT = 3;

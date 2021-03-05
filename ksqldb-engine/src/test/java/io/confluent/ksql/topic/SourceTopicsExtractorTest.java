@@ -47,12 +47,14 @@ import java.util.Optional;
 import org.apache.kafka.clients.admin.TopicDescription;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
+@Ignore //TODO KAFKA-446
 public class SourceTopicsExtractorTest {
 
   private static final LogicalSchema SCHEMA = LogicalSchema.builder()

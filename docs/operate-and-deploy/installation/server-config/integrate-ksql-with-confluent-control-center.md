@@ -38,7 +38,7 @@ configuration.
 
 ```
 # KSQL cluster URL
-confluent.controlcenter.ksql.<ksql-cluster-name>.url=http://<username>:<password>@localhost:8088
+confluent.controlcenter.ksql.<ksql-cluster-name>.url=http://<username>:<password>@localhost:8084
 ```
 
 You can set up KSQL Server to communicate securely with other components
@@ -53,7 +53,7 @@ connectivity between KSQL and {{ site.c3short }}.
 -   In the KSQL Server configuration file, set the
     [listeners](config-reference.md#listeners) property to the IP address of the REST
     API endpoint for KSQL Server. Typical values are
-    `http://0.0.0.0:8088` and `http://localhost:8088`.
+    `http://0.0.0.0:8084` and `http://localhost:8084`.
 -   In the {{ site.c3short }} configuration file, set the
     `confluent.controlcenter.ksql.<ksql-cluster-name>.url` property to
     the hostnames and listener ports for the KSQL cluster specified by
@@ -104,7 +104,7 @@ In the KSQL Server configuration file, set `listeners` to bind to all
 interfaces:
 
 ```
-listeners=http://0.0.0.0:8088
+listeners=http://0.0.0.0:8084
 ```
 
 Control Center Configuration
@@ -152,7 +152,7 @@ listed in the `confluent.controlcenter.ksql.<ksql-cluster-name>.url` and
 configuration settings.
 
 ```bash
-curl http://<hostname>:8088/info \
+curl http://<hostname>:8084/info \
 {"KsqlServerInfo":{"version":"{{ site.release }}","kafkaClusterId":"<ksql-cluster-name>","ksqlServiceId":"default_"}}%
 ```
 
@@ -187,13 +187,13 @@ If your KSQL server is bound to `localhost` only, your output should
 resemble:
 
 ```bash
-tcp6 0 0 127.0.0.1:8088 :::* LISTEN 64383/java
+tcp6 0 0 127.0.0.1:8084 :::* LISTEN 64383/java
 tcp6 0 0 :::34791 :::* LISTEN 64383/java
 ```
 
 If `0.0.0.0` isn't listed, KSQL Server isn't accepting external
 connections. In the `ksql-server.properties` file, set
-`listeners=http://0.0.0.0:8088` and restart KSQL Server.
+`listeners=http://0.0.0.0:8084` and restart KSQL Server.
 
 Next Steps
 ----------

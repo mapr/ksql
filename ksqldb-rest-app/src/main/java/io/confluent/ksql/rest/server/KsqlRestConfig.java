@@ -53,8 +53,8 @@ public class KsqlRestConfig extends AbstractConfig {
   public static final String LISTENERS_CONFIG = "listeners";
   protected static final String LISTENERS_DOC =
       "List of listeners. http and https are supported. Each listener must include the protocol, "
-          + "hostname, and port. For example: http://myhost:8080, https://0.0.0.0:8081";
-  protected static final String LISTENERS_DEFAULT = "http://0.0.0.0:8088";
+          + "hostname, and port. For example: http://myhost:8080, https://0.0.0.0:8087";
+  protected static final String LISTENERS_DEFAULT = "http://0.0.0.0:8084";
 
   public static final String AUTHENTICATION_SKIP_PATHS_CONFIG = "authentication.skip.paths";
   public static final String AUTHENTICATION_SKIP_PATHS_DOC = "Comma separated list of paths that "
@@ -198,6 +198,12 @@ public class KsqlRestConfig extends AbstractConfig {
       KSQL_CONFIG_PREFIX + "server.websockets.num.threads";
   private static final String KSQL_WEBSOCKETS_NUM_THREADS_DOC =
       "The number of websocket threads to handle query results";
+
+
+  static final String ENABLE_AUTHORIZATION_CONFIG =
+      "authorization.enable";
+  private static final String ENABLE_AUTHORIZATION_DOC =
+      "Set 'true' or 'false' to enable or disable authorization for KSQL service";
 
   static final String KSQL_SERVER_PRECONDITIONS =
       KSQL_CONFIG_PREFIX + "server.preconditions";
@@ -453,6 +459,12 @@ public class KsqlRestConfig extends AbstractConfig {
             5,
             Importance.LOW,
             KSQL_WEBSOCKETS_NUM_THREADS_DOC
+        ).define(
+            ENABLE_AUTHORIZATION_CONFIG,
+            ConfigDef.Type.BOOLEAN,
+            false,
+            ConfigDef.Importance.LOW,
+            ENABLE_AUTHORIZATION_DOC
         ).define(
             KSQL_SERVER_PRECONDITIONS,
             Type.LIST,

@@ -54,9 +54,9 @@ public class ClusterStatusResourceTest {
           ImmutableMap.of(1, new LagInfoEntity(2, 10, 8)))
       ), 20L);
 
-  private static final KsqlHostInfo HOST1 = new KsqlHostInfo("host1", 8088);
+  private static final KsqlHostInfo HOST1 = new KsqlHostInfo("host1", 8084);
   private static final KsqlHostInfo HOST2 = new KsqlHostInfo("host2", 8089);
-  private static final KsqlHostInfoEntity HOST1_ENTITY = new KsqlHostInfoEntity("host1", 8088);
+  private static final KsqlHostInfoEntity HOST1_ENTITY = new KsqlHostInfoEntity("host1", 8084);
   private static final KsqlHostInfoEntity HOST2_ENTITY = new KsqlHostInfoEntity("host2", 8089);
 
   private static final Map<KsqlHostInfo, HostStatus> HOSTS = ImmutableMap.of(

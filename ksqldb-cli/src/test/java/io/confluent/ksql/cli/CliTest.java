@@ -69,6 +69,7 @@ import io.confluent.ksql.schema.ksql.PhysicalSchema;
 import io.confluent.ksql.schema.ksql.types.SqlTypes;
 import io.confluent.ksql.serde.FormatFactory;
 import io.confluent.ksql.serde.SerdeOption;
+import io.confluent.ksql.test.categories.UnsupportedTest;
 import io.confluent.ksql.test.util.KsqlIdentifierTestUtil;
 import io.confluent.ksql.util.ItemDataProvider;
 import io.confluent.ksql.util.KsqlConfig;
@@ -115,7 +116,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 @SuppressWarnings("SameParameterValue")
 @SuppressFBWarnings({"NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"})
 @RunWith(MockitoJUnitRunner.class)
-@Category(IntegrationTest.class)
+@Category({IntegrationTest.class, UnsupportedTest.class})
 public class CliTest {
 
   private static final OrderDataProvider ORDER_DATA_PROVIDER = new OrderDataProvider();
