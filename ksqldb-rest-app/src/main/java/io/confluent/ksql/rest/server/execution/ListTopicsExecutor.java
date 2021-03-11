@@ -16,6 +16,7 @@
 package io.confluent.ksql.rest.server.execution;
 
 import io.confluent.ksql.KsqlExecutionContext;
+import io.confluent.ksql.name.SourceName;
 import io.confluent.ksql.parser.tree.ListTopics;
 import io.confluent.ksql.rest.SessionProperties;
 import io.confluent.ksql.rest.entity.KafkaTopicInfo;
@@ -23,6 +24,7 @@ import io.confluent.ksql.rest.entity.KafkaTopicInfoExtended;
 import io.confluent.ksql.rest.entity.KafkaTopicsList;
 import io.confluent.ksql.rest.entity.KafkaTopicsListExtended;
 import io.confluent.ksql.rest.entity.KsqlEntity;
+import io.confluent.ksql.schema.utils.FormatOptions;
 import io.confluent.ksql.services.KafkaTopicClient;
 import io.confluent.ksql.services.ServiceContext;
 import io.confluent.ksql.statement.ConfiguredStatement;
@@ -57,7 +59,9 @@ public final class ListTopicsExecutor {
       final ServiceContext serviceContext
   ) {
     final KafkaTopicClient client = serviceContext.getTopicClient();
-    final Map<String, TopicDescription> topicDescriptions = listTopics(client, statement);
+    final String defaultStream = serviceContext.getKsqlConfig().getKsqlDefaultStream();
+    final Map<String, TopicDescription> topicDescriptions =
+        listTopics(client, statement, defaultStream);
 
     if (statement.getStatement().getShowExtended()) {
 
@@ -77,18 +81,29 @@ public final class ListTopicsExecutor {
     }
   }
 
+  private static Set<String> decorateTopicsWithStreamName(final Collection<String> topics,
+                                                          final String stream) {
+    return topics.stream().map(x -> String.format("%s:%s", stream, x)).collect(Collectors.toSet());
+  }
+
   private static Map<String, TopicDescription> listTopics(
       final KafkaTopicClient topicClient,
-      final ConfiguredStatement<ListTopics> statement
+      final ConfiguredStatement<ListTopics> statement,
+      final String defaultStream
   ) {
     final ReservedInternalTopics internalTopics = new ReservedInternalTopics(statement.getConfig());
+    final Optional<SourceName> stream = statement.getStatement().getStream();
 
-    final Set<String> topics = statement.getStatement().getShowAll()
-        ? topicClient.listTopicNames()
-        : internalTopics.removeHiddenTopics(topicClient.listTopicNames());
-
+    final String streamName = stream.isPresent()
+        ? stream.get().toString(FormatOptions.noEscape())
+        : defaultStream;
+    final Set<String> topics =
+        decorateTopicsWithStreamName(topicClient.listTopicNames(streamName),
+            streamName);
     // TreeMap is used to keep elements sorted
-    return new TreeMap<>(topicClient.describeTopics(topics));
+    return statement.getStatement().getShowAll()
+        ? new TreeMap<>(topicClient.describeTopics(topics))
+        : new TreeMap<>(topicClient.describeTopics(internalTopics.removeHiddenTopics(topics)));
   }
 
   private static KafkaTopicInfo topicDescriptionToTopicInfo(final TopicDescription description) {
