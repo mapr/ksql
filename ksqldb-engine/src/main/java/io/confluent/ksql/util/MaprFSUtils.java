@@ -52,7 +52,7 @@ public final class MaprFSUtils {
       if (!fs.exists(KsqlConfig.KSQL_SERVICES_COMMON_FOLDER)) {
         throw new KsqlException(KsqlConfig.KSQL_SERVICES_COMMON_FOLDER + " doesn't exist");
       }
-      if (!fs.exists(config.getInternalStreamsFolder())) {
+      if (!fs.exists(config.getCommandsStreamFolder())) {
         // Creation of application folder with appropriate ACEs
         final ArrayList<MapRFileAce> aceList = new ArrayList<MapRFileAce>();
 
@@ -69,10 +69,10 @@ public final class MaprFSUtils {
         ace.setBooleanExpression("u:" + currentUser);
         aceList.add(ace);
 
-        fs.mkdirs(config.getInternalStreamsFolder());
-        fs.setAces(config.getInternalStreamsFolder(), aceList);
+        fs.mkdirs(config.getCommandsStreamFolder());
+        fs.setAces(config.getCommandsStreamFolder(), aceList);
       } else {
-        if (!fs.isAccessibleAsDirectory(config.getInternalStreamsFolder())) {
+        if (!fs.isAccessibleAsDirectory(config.getCommandsStreamFolder())) {
           final String errorMessage =
               String.format("User: %s has no permissions to run KSQL service with ID: %s",
                   currentUser,
@@ -91,7 +91,7 @@ public final class MaprFSUtils {
   ) {
     createAppDirIfNotExists(ksqlConfig);
     try (KafkaMaprStreams maprStreams = KafkaMaprTools.tools().streams()) {
-      maprStreams.createStreamForAllUsers(ksqlConfig.getInternalStreamsFolder()
+      maprStreams.createStreamForAllUsers(ksqlConfig.getCommandsStreamFolder()
           + config.getString(ProcessingLogConfig.STREAM_NAME));
     }
   }

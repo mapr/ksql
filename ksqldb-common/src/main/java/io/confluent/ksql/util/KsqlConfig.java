@@ -295,7 +295,7 @@ public class KsqlConfig extends AbstractConfig {
    */
   public static final String KSQL_SERVICES_COMMON_FOLDER = "/apps/ksql/";
 
-  private final String internalStreamsFolder;
+  private final String commandsStreamFolder;
   private final String commandsStream;
 
   private final Supplier<String> schemaRegistryUrl = Suppliers.memoize(this::initSchemaRegistryUrl);
@@ -863,8 +863,8 @@ public class KsqlConfig extends AbstractConfig {
                 ? config.defaultValueCurrent : config.defaultValueLegacy));
     this.ksqlStreamConfigProps = buildStreamingConfig(streamsConfigDefaults, originals());
 
-    internalStreamsFolder = KSQL_SERVICES_COMMON_FOLDER + getString(KSQL_SERVICE_ID_CONFIG) + "/";
-    commandsStream = internalStreamsFolder + "ksql-commands";
+    commandsStreamFolder = KSQL_SERVICES_COMMON_FOLDER + getString(KSQL_SERVICE_ID_CONFIG) + "/";
+    commandsStream = commandsStreamFolder + "ksql-commands";
 
   }
 
@@ -882,8 +882,8 @@ public class KsqlConfig extends AbstractConfig {
     super(configDef(generation), values);
     this.ksqlStreamConfigProps = ksqlStreamConfigProps;
 
-    internalStreamsFolder = KSQL_SERVICES_COMMON_FOLDER + getString(KSQL_SERVICE_ID_CONFIG) + "/";
-    commandsStream = internalStreamsFolder + "ksql-commands";
+    commandsStreamFolder = KSQL_SERVICES_COMMON_FOLDER + getString(KSQL_SERVICE_ID_CONFIG) + "/";
+    commandsStream = commandsStreamFolder + "ksql-commands";
   }
 
   public Map<String, Object> getKsqlStreamConfigProps(final String applicationId) {
@@ -966,8 +966,8 @@ public class KsqlConfig extends AbstractConfig {
     return getString(KSQL_DEFAULT_STREAM_CONFIG);
   }
 
-  public String getInternalStreamsFolder() {
-    return internalStreamsFolder;
+  public String getCommandsStreamFolder() {
+    return commandsStreamFolder;
   }
 
   public String getCommandsStream() {
