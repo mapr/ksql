@@ -73,9 +73,13 @@ public class KsqlTest {
   }
 
   @Test
-  public void shouldBuildClientWithCorrectServerAddress() {
+  public void shouldBuildClientWithCorrectServerAddress() throws Exception {
     // Given:
     when(options.getServer()).thenReturn("in a galaxy far far away");
+    givenConfigFile(
+        "ssl.truststore.location=some/path" + System.lineSeparator()
+            + "ssl.truststore.password=letmein"
+    );
 
     // When:
     ksql.run();

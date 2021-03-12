@@ -16,6 +16,8 @@
 package io.confluent.ksql;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.mapr.web.security.SslConfig;
+import com.mapr.web.security.WebSecurityManager;
 import io.confluent.ksql.cli.Cli;
 import io.confluent.ksql.cli.Options;
 import io.confluent.ksql.cli.console.OutputFormat;
@@ -29,11 +31,14 @@ import java.io.Console;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.function.Predicate;
+
+import org.apache.kafka.common.config.SslConfigs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -125,7 +130,25 @@ public final class Ksql {
     final String server = options.getServer();
     final Optional<BasicCredentials> creds = options.getUserNameAndPassword();
 
-    return clientBuilder.build(server, localProps, clientProps, creds);
+    return clientBuilder.build(
+        server, localProps, updateClientSslWithDefaultsIfNeeded(clientProps), creds);
+  }
+
+  private Map<String, String> updateClientSslWithDefaultsIfNeeded(final Map<String, String> props) {
+    if (!props.containsKey(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG)) {
+      final SslConfig sslConfig = WebSecurityManager.getSslConfig();
+      final Map<String, String> updatedProps = new HashMap<>();
+
+      updatedProps.put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG,
+          sslConfig.getClientTruststoreLocation());
+      updatedProps.put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG,
+          String.valueOf(sslConfig.getClientTruststorePassword()));
+      updatedProps.put(SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG,
+          sslConfig.getClientTruststoreType().toUpperCase());
+      updatedProps.putAll(props);
+      return updatedProps;
+    }
+    return Collections.unmodifiableMap(props);
   }
 
   private static Map<String, String> stripClientSideProperties(final Map<String, String> props) {

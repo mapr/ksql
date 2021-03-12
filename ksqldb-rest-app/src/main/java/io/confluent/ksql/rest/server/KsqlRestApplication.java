@@ -25,6 +25,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.mapr.web.security.SslConfig;
+import com.mapr.web.security.WebSecurityManager;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.ksql.ServiceInfo;
 import io.confluent.ksql.api.auth.AuthenticationPlugin;
@@ -136,6 +138,8 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.kafka.common.config.SslConfigs;
+import org.apache.kafka.common.config.types.Password;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.log4j.LogManager;
 import org.slf4j.Logger;
@@ -279,7 +283,10 @@ public final class KsqlRestApplication implements Executable {
         ErrorMessages.class
     ));
 
-    final KsqlRestConfig ksqlRestConfig = new KsqlRestConfig(ksqlConfigNoPort.originals());
+    // It's already a copy, ok to update it
+    final Map<String, Object> props = ksqlConfigNoPort.originals();
+    final KsqlRestConfig ksqlRestConfig =
+        new KsqlRestConfig(updateServerSslWithDefaultsIfNeeded(props));
 
     oldApiWebsocketExecutor = MoreExecutors.listeningDecorator(
         Executors.newScheduledThreadPool(
@@ -342,6 +349,26 @@ public final class KsqlRestApplication implements Executable {
     } finally {
       startAsyncThreadRef.set(null);
     }
+  }
+
+  private Map<?, ?> updateServerSslWithDefaultsIfNeeded(final Map<String, Object> props) {
+    if (!props.containsKey(SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG)) {
+      final SslConfig sslConfig = WebSecurityManager.getSslConfig();
+
+      props.put(SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG, sslConfig.getServerKeystoreLocation());
+      props.put(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG,
+          new Password(String.valueOf(sslConfig.getServerKeystorePassword())));
+      props.put(SslConfigs.SSL_KEYSTORE_TYPE_CONFIG,
+          sslConfig.getServerKeystoreType().toUpperCase());
+      props.put(SslConfigs.SSL_KEY_PASSWORD_CONFIG, sslConfig.getServerKeyPassword());
+
+      props.put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, sslConfig.getServerTruststoreLocation());
+      props.put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG,
+          new Password(String.valueOf(sslConfig.getServerTruststorePassword())));
+      props.put(SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG,
+          sslConfig.getServerTruststoreType().toUpperCase());
+    }
+    return props;
   }
 
   @VisibleForTesting
