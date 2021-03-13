@@ -18,6 +18,7 @@ package io.confluent.ksql.rest.client;
 import io.confluent.ksql.parser.json.KsqlTypesDeserializationModule;
 import io.confluent.ksql.properties.LocalProperties;
 import io.confluent.ksql.rest.ApiJsonMapper;
+import io.confluent.rest.RestConfig;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxException;
 import io.vertx.core.http.HttpClient;
@@ -131,6 +132,13 @@ public final class KsqlClient implements AutoCloseable {
       final boolean tls) {
     if (tls) {
       httpClientOptions.setVerifyHost(false);
+      if (clientProps.containsKey(RestConfig.SSL_TRUSTALLCERTS_CONFIG)) {
+        final boolean trustAll =
+            Boolean.valueOf(clientProps.get(RestConfig.SSL_TRUSTALLCERTS_CONFIG));
+        httpClientOptions.setTrustAll(trustAll);
+        httpClientOptions.setVerifyHost(!trustAll);
+      }
+
       httpClientOptions.setSsl(true);
       final String trustStoreLocation = clientProps.get(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG);
       if (trustStoreLocation != null) {

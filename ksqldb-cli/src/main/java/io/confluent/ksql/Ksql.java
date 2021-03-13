@@ -24,9 +24,11 @@ import io.confluent.ksql.cli.console.OutputFormat;
 import io.confluent.ksql.properties.PropertiesUtil;
 import io.confluent.ksql.rest.client.BasicCredentials;
 import io.confluent.ksql.rest.client.KsqlRestClient;
+import io.confluent.ksql.rest.client.KsqlRestClientException;
 import io.confluent.ksql.util.ErrorMessageUtil;
 import io.confluent.ksql.version.metrics.KsqlVersionCheckerAgent;
 import io.confluent.ksql.version.metrics.collector.KsqlModuleType;
+import io.confluent.rest.RestConfig;
 import java.io.Console;
 import java.io.File;
 import java.io.IOException;
@@ -135,20 +137,33 @@ public final class Ksql {
   }
 
   private Map<String, String> updateClientSslWithDefaultsIfNeeded(final Map<String, String> props) {
+    final Map<String, String> updatedProps = new HashMap<>(props);
     if (!props.containsKey(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG)) {
       final SslConfig sslConfig = WebSecurityManager.getSslConfig();
-      final Map<String, String> updatedProps = new HashMap<>();
-
       updatedProps.put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG,
           sslConfig.getClientTruststoreLocation());
       updatedProps.put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG,
           String.valueOf(sslConfig.getClientTruststorePassword()));
       updatedProps.put(SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG,
           sslConfig.getClientTruststoreType().toUpperCase());
-      updatedProps.putAll(props);
-      return updatedProps;
     }
-    return Collections.unmodifiableMap(props);
+    if (options.getSslTrustAllCertsEnable().isPresent()) {
+      updatedProps.put(RestConfig.SSL_TRUSTALLCERTS_CONFIG,
+          options.getSslTrustAllCertsEnable().get().toString());
+    }
+
+    if (options.getSslTruststore().isPresent()) {
+      updatedProps.put(RestConfig.SSL_TRUSTSTORE_LOCATION_CONFIG,
+          options.getSslTruststore().get());
+      if (options.getSslTruststorePassword().isPresent()) {
+        updatedProps.put(RestConfig.SSL_TRUSTSTORE_PASSWORD_CONFIG,
+            options.getSslTruststorePassword().get());
+      }
+    } else if (options.getSslTruststorePassword().isPresent()) {
+      throw new KsqlRestClientException("SSL truststore is not specified, "
+          + "but truststore password is specified. Truststore cannot be blank.");
+    }
+    return Collections.unmodifiableMap(updatedProps);
   }
 
   private static Map<String, String> stripClientSideProperties(final Map<String, String> props) {
