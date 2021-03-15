@@ -75,7 +75,7 @@ public class CommandTest {
     final Command command = new Command(
         "test statement;",
         Collections.singletonMap("foo", "bar"), Collections.singletonMap("biz", "baz"),
-        Optional.empty());
+        Optional.empty(), Optional.empty());
     final ObjectMapper mapper = PlanJsonMapper.INSTANCE.get();
     final String serialized = mapper.writeValueAsString(command);
     grep(serialized, ".*\"streamsProperties\" *: *\\{ *\"foo\" *: *\"bar\" *\\}.*");

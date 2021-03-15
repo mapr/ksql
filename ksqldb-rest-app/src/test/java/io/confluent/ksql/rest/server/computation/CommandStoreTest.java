@@ -85,6 +85,7 @@ public class CommandStoreTest {
       statementText,
       Collections.emptyMap(),
       Collections.emptyMap(),
+      Optional.empty(),
       Optional.empty()
   );
   private final RecordMetadata recordMetadata = new RecordMetadata(

@@ -172,6 +172,7 @@ public class InteractiveStatementExecutorTest {
         CREATE_STREAM_FOO_STATMENT,
         emptyMap(),
         ksqlConfig.getAllConfigPropsWithSecretsObfuscated(),
+        Optional.empty(),
         Optional.of(plan)
     );
   }
@@ -237,6 +238,7 @@ public class InteractiveStatementExecutorTest {
         statementText,
         emptyMap(),
         emptyMap(),
+        Optional.empty(),
         Optional.empty()
     );
     final CommandId commandId = new CommandId(
@@ -283,6 +285,7 @@ public class InteractiveStatementExecutorTest {
         statementText,
         emptyMap(),
         originalConfig.getAllConfigPropsWithSecretsObfuscated(),
+        Optional.empty(),
         Optional.empty()
     );
     final CommandId csasCommandId = new CommandId(
@@ -313,6 +316,7 @@ public class InteractiveStatementExecutorTest {
         CREATE_STREAM_FOO_STATMENT,
         emptyMap(),
         ksqlConfig.getAllConfigPropsWithSecretsObfuscated(),
+        Optional.empty(),
         Optional.empty()
     );
 
@@ -419,6 +423,7 @@ public class InteractiveStatementExecutorTest {
         CREATE_STREAM_FOO_STATMENT,
         emptyMap(),
         savedConfigs,
+        Optional.empty(),
         Optional.of(plan)
     );
     final KsqlConfig mockConfig = mock(KsqlConfig.class);
@@ -446,6 +451,7 @@ public class InteractiveStatementExecutorTest {
         CREATE_STREAM_FOO_STATMENT,
         emptyMap(),
         ksqlConfig.getAllConfigPropsWithSecretsObfuscated(),
+        Optional.empty(),
         Optional.empty()
     );
     final CommandStatusFuture status = mock(CommandStatusFuture.class);
@@ -557,6 +563,7 @@ public class InteractiveStatementExecutorTest {
         "drop table table1;",
         emptyMap(),
         ksqlConfig.getAllConfigPropsWithSecretsObfuscated(),
+        Optional.empty(),
         Optional.empty()
     );
     final CommandId dropTableCommandId2 =
@@ -576,6 +583,7 @@ public class InteractiveStatementExecutorTest {
         "drop stream pageview;",
         emptyMap(),
         ksqlConfig.getAllConfigPropsWithSecretsObfuscated(),
+        Optional.empty(),
         Optional.empty()
     );
     final CommandId dropStreamCommandId3 =
@@ -598,7 +606,8 @@ public class InteractiveStatementExecutorTest {
     statementExecutorWithMocks.handleRestore(
         new QueuedCommand(
             new CommandId(Type.STREAM, "foo", Action.CREATE),
-            new Command("CSAS", emptyMap(), emptyMap(), Optional.empty()),
+            new Command("CSAS", emptyMap(), emptyMap(),
+                Optional.empty(), Optional.empty()),
             Optional.empty(),
             2L
         )
@@ -619,7 +628,8 @@ public class InteractiveStatementExecutorTest {
     statementExecutorWithMocks.handleRestore(
         new QueuedCommand(
             new CommandId(Type.STREAM, name, Action.CREATE),
-            new Command("CSAS", emptyMap(), emptyMap(), Optional.empty()),
+            new Command("CSAS", emptyMap(), emptyMap(),
+                Optional.empty(), Optional.empty()),
             Optional.empty(),
             0L
         )
@@ -684,7 +694,7 @@ public class InteractiveStatementExecutorTest {
     statementExecutorWithMocks.handleRestore(
         new QueuedCommand(
             new CommandId(Type.STREAM, "foo", Action.DROP),
-            new Command(drop, emptyMap(), emptyMap(), Optional.empty()),
+            new Command(drop, emptyMap(), emptyMap(), Optional.empty(), Optional.empty()),
             Optional.empty(),
             0L
         )
@@ -711,7 +721,8 @@ public class InteractiveStatementExecutorTest {
     statementExecutorWithMocks.handleStatement(
         new QueuedCommand(
             new CommandId(Type.TERMINATE, "-", Action.EXECUTE),
-            new Command("terminate all", emptyMap(), emptyMap(), Optional.empty()),
+            new Command("terminate all", emptyMap(), emptyMap(),
+                Optional.empty(), Optional.empty()),
             Optional.empty(),
             0L
         )
@@ -741,7 +752,7 @@ public class InteractiveStatementExecutorTest {
 
     final QueuedCommand cmd = new QueuedCommand(
         new CommandId(Type.TERMINATE, "-", Action.EXECUTE),
-        new Command("terminate all", emptyMap(), emptyMap(), Optional.empty()),
+        new Command("terminate all", emptyMap(), emptyMap(), Optional.empty(), Optional.empty()),
         Optional.empty(),
         0L
     );
@@ -763,6 +774,7 @@ public class InteractiveStatementExecutorTest {
             + "value_format = 'json');",
         emptyMap(),
         ksqlConfig.getAllConfigPropsWithSecretsObfuscated(),
+        Optional.empty(),
         Optional.empty()
     );
     final CommandId csCommandId =  new CommandId(CommandId.Type.STREAM,
@@ -776,6 +788,7 @@ public class InteractiveStatementExecutorTest {
             + " WHERE userid = 'user1';",
         emptyMap(),
         ksqlConfig.getAllConfigPropsWithSecretsObfuscated(),
+        Optional.empty(),
         Optional.empty()
     );
 
@@ -792,6 +805,7 @@ public class InteractiveStatementExecutorTest {
             + "GROUP BY pageid;",
         emptyMap(),
         ksqlConfig.getAllConfigPropsWithSecretsObfuscated(),
+        Optional.empty(),
         Optional.empty()
     );
 
@@ -810,6 +824,7 @@ public class InteractiveStatementExecutorTest {
         "drop stream pageview;",
         emptyMap(),
         ksqlConfig.getAllConfigPropsWithSecretsObfuscated(),
+        Optional.empty(),
         Optional.empty()
     );
     final CommandId dropStreamCommandId1 =  new CommandId(CommandId.Type.STREAM,
@@ -851,6 +866,7 @@ public class InteractiveStatementExecutorTest {
         "drop stream user1pv;",
         emptyMap(),
         ksqlConfig.getAllConfigPropsWithSecretsObfuscated(),
+        Optional.empty(),
         Optional.empty()
     );
     final CommandId dropStreamCommandId2 =
@@ -888,6 +904,7 @@ public class InteractiveStatementExecutorTest {
         "drop table table1;",
         emptyMap(),
         ksqlConfig.getAllConfigPropsWithSecretsObfuscated(),
+        Optional.empty(),
         Optional.empty()
     );
     final CommandId dropTableCommandId1 =
@@ -944,6 +961,7 @@ public class InteractiveStatementExecutorTest {
         "TERMINATE CSAS_USER1PV_0;",
         emptyMap(),
         ksqlConfig.getAllConfigPropsWithSecretsObfuscated(),
+        Optional.empty(),
         Optional.empty()
     );
     final CommandId terminateCommandId1 =
@@ -957,6 +975,7 @@ public class InteractiveStatementExecutorTest {
         "TERMINATE CTAS_TABLE1_2;",
         emptyMap(),
         ksqlConfig.getAllConfigPropsWithSecretsObfuscated(),
+        Optional.empty(),
         Optional.empty()
     );
     final CommandId terminateCommandId2 =

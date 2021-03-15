@@ -24,6 +24,8 @@ public final class DefaultApiSecurityContext implements ApiSecurityContext {
 
   private final Optional<Principal> principal;
   private final Optional<String> authToken;
+  // getting null here is expected by external lib
+  private final Optional<String> cookie;
 
   public static DefaultApiSecurityContext create(final RoutingContext routingContext) {
     final User user = routingContext.user();
@@ -32,13 +34,16 @@ public final class DefaultApiSecurityContext implements ApiSecurityContext {
     }
     final ApiUser apiUser = (ApiUser) user;
     final String authToken = routingContext.request().getHeader("Authorization");
+    final String cookie = routingContext.request().getHeader("Cookie");
     return new DefaultApiSecurityContext(apiUser != null ? apiUser.getPrincipal() : null,
-        authToken);
+        authToken, cookie);
   }
 
-  private DefaultApiSecurityContext(final Principal principal, final String authToken) {
+  private DefaultApiSecurityContext(final Principal principal, final String authToken,
+                                    final String cookie) {
     this.principal = Optional.ofNullable(principal);
     this.authToken = Optional.ofNullable(authToken);
+    this.cookie = Optional.ofNullable(cookie);
   }
 
   @Override
@@ -51,4 +56,8 @@ public final class DefaultApiSecurityContext implements ApiSecurityContext {
     return authToken;
   }
 
+  @Override
+  public Optional<String> getCookie() {
+    return cookie;
+  }
 }

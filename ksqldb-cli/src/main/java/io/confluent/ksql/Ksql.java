@@ -104,6 +104,7 @@ public final class Ksql {
     return password;
   }
 
+  //set default location?
   void run() {
     final Map<String, String> configProps = options.getConfigFile()
         .map(Ksql::loadProperties)

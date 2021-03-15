@@ -680,6 +680,7 @@ public class RecoveryTest {
                     + "WITH (KAFKA_TOPIC='B', VALUE_FORMAT='JSON');",
                 Collections.emptyMap(),
                 Collections.emptyMap(),
+                Optional.empty(),
                 Optional.empty()
             ),
             Optional.empty(),
@@ -687,7 +688,8 @@ public class RecoveryTest {
         ),
         new QueuedCommand(
             new CommandId(Type.STREAM, "B", Action.DROP),
-            new Command("DROP STREAM B DELETE TOPIC;", ImmutableMap.of(), ImmutableMap.of(), Optional.empty()),
+            new Command("DROP STREAM B DELETE TOPIC;", ImmutableMap.of(),
+                ImmutableMap.of(), Optional.empty(), Optional.empty()),
             Optional.empty(),
             0L
         )
@@ -707,6 +709,7 @@ public class RecoveryTest {
                         + "WITH (KAFKA_TOPIC='A', VALUE_FORMAT='JSON');",
                     Collections.emptyMap(),
                     Collections.emptyMap(),
+                    Optional.empty(),
                     Optional.empty()
                 ),
                 Optional.empty(),
@@ -718,6 +721,7 @@ public class RecoveryTest {
                     "CREATE STREAM C AS SELECT * FROM A;",
                     Collections.emptyMap(),
                     Collections.emptyMap(),
+                    Optional.empty(),
                     Optional.empty()
                 ),
                 Optional.empty(),

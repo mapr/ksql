@@ -23,4 +23,6 @@ public interface ApiSecurityContext {
   Optional<Principal> getPrincipal();
 
   Optional<String> getAuthToken();
+
+  Optional<String> getCookie();
 }

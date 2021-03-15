@@ -19,11 +19,14 @@ import com.google.common.annotations.VisibleForTesting;
 import io.confluent.ksql.properties.PropertiesUtil;
 import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.ksql.util.KsqlServerException;
+import io.confluent.rest.RestConfig;
+import io.confluent.rest.impersonation.ImpersonationUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import org.apache.kafka.streams.StreamsConfig;
@@ -114,6 +117,14 @@ public class KsqlServerMain {
     }
 
     final KsqlRestConfig restConfig = new KsqlRestConfig(properties);
+
+    final Properties impersonationProps = new Properties();
+    impersonationProps.put(RestConfig.IMPERSONATION,
+        properties.containsKey(RestConfig.IMPERSONATION)
+            ? properties.get(RestConfig.IMPERSONATION)
+            : String.valueOf(false));
+    ImpersonationUtils.initialize(new RestConfig(RestConfig.baseConfigDef(), impersonationProps));
+
     final Executable restApp = KsqlRestApplication
         .buildApplication(restConfig);
 

@@ -108,7 +108,7 @@ public enum CustomExecutors {
       final SessionProperties sessionProperties,
       final KsqlExecutionContext executionCtx,
       final ServiceContext serviceCtx
-  ) {
+  ) { //impersonationutils here ?
     return executor.execute(statement, sessionProperties, executionCtx, serviceCtx);
   }
 

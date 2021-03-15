@@ -31,6 +31,7 @@ public class KsqlSecurityContext {
       final Optional<Principal> userPrincipal,
       final ServiceContext serviceContext
   ) {
+    //
     this.userPrincipal = userPrincipal;
     this.serviceContext = serviceContext;
   }

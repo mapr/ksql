@@ -26,10 +26,13 @@ import io.confluent.ksql.engine.KsqlPlan;
 import io.confluent.ksql.planner.plan.ConfiguredKsqlPlan;
 import io.confluent.ksql.statement.ConfiguredStatement;
 import io.confluent.ksql.util.KsqlException;
+import io.confluent.rest.impersonation.ImpersonationUtils;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import org.apache.hadoop.security.UserGroupInformation;
 
 @JsonSubTypes({})
 public class Command {
@@ -40,6 +43,7 @@ public class Command {
   private final String statement;
   private final Map<String, Object> overwriteProperties;
   private final Map<String, String> originalProperties;
+  private final Optional<String> user;
   private final Optional<KsqlPlan> plan;
   private final Optional<Integer> version;
 
@@ -48,6 +52,7 @@ public class Command {
       @JsonProperty(value = "statement", required = true) final String statement,
       @JsonProperty("streamsProperties") final Optional<Map<String, Object>> overwriteProperties,
       @JsonProperty("originalProperties") final Optional<Map<String, String>> originalProperties,
+      @JsonProperty("user") final Optional<String> user,
       @JsonProperty("plan") final Optional<KsqlPlan> plan,
       @JsonProperty("version") final Optional<Integer> version
   ) {
@@ -55,6 +60,7 @@ public class Command {
         statement,
         overwriteProperties.orElseGet(ImmutableMap::of),
         originalProperties.orElseGet(ImmutableMap::of),
+        user,
         plan,
         version,
         VERSION
@@ -66,12 +72,14 @@ public class Command {
       final String statement,
       final Map<String, Object> overwriteProperties,
       final Map<String, String> originalProperties,
+      final Optional<String> user,
       final Optional<KsqlPlan> plan
   ) {
     this(
         statement,
         overwriteProperties,
         originalProperties,
+        user,
         plan,
         Optional.of(VERSION),
         VERSION
@@ -83,6 +91,7 @@ public class Command {
       final String statement,
       final Map<String, Object> overwriteProperties,
       final Map<String, String> originalProperties,
+      final Optional<String> user,
       final Optional<KsqlPlan> plan,
       final Optional<Integer> version,
       final int expectedVersion
@@ -92,6 +101,7 @@ public class Command {
         requireNonNull(overwriteProperties, "overwriteProperties"));
     this.originalProperties = Collections.unmodifiableMap(
         requireNonNull(originalProperties, "originalProperties"));
+    this.user = requireNonNull(user, "user");
     this.plan = requireNonNull(plan, "plan");
     this.version = requireNonNull(version, "version");
 
@@ -115,6 +125,10 @@ public class Command {
     return originalProperties;
   }
 
+  public Optional<String> getUser() {
+    return user;
+  }
+
   public Optional<KsqlPlan> getPlan() {
     return plan;
   }
@@ -124,10 +138,22 @@ public class Command {
   }
 
   public static Command of(final ConfiguredKsqlPlan configuredPlan) {
+    final String userName;
+    if (ImpersonationUtils.isImpersonationEnabled()) {
+      try {
+        userName = UserGroupInformation.getCurrentUser().getUserName();
+      } catch (IOException e) {
+        //another exception here ?
+        throw io.confluent.rest.impersonation.Errors.serverLoginException(e);
+      }
+    } else {
+      userName = "mapr";
+    }
     return new Command(
         configuredPlan.getPlan().getStatementText(),
         configuredPlan.getOverrides(),
         configuredPlan.getConfig().getAllConfigPropsWithSecretsObfuscated(),
+        Optional.of(userName),
         Optional.of(configuredPlan.getPlan()),
         Optional.of(VERSION),
         VERSION
@@ -135,10 +161,21 @@ public class Command {
   }
 
   public static Command of(final ConfiguredStatement<?> configuredStatement) {
+    final String userName;
+    if (ImpersonationUtils.isImpersonationEnabled()) {
+      try {
+        userName = UserGroupInformation.getCurrentUser().getUserName();
+      } catch (IOException e) {
+        throw io.confluent.rest.impersonation.Errors.serverLoginException(e);
+      }
+    } else {
+      userName = "mapr";
+    }
     return new Command(
         configuredStatement.getStatementText(),
         configuredStatement.getConfigOverrides(),
         configuredStatement.getConfig().getAllConfigPropsWithSecretsObfuscated(),
+        Optional.of(userName),
         Optional.empty(),
         Optional.of(VERSION),
         VERSION
@@ -151,12 +188,13 @@ public class Command {
         o instanceof Command
         && Objects.equals(statement, ((Command)o).statement)
         && Objects.equals(overwriteProperties, ((Command)o).overwriteProperties)
-        && Objects.equals(originalProperties, ((Command)o).originalProperties);
+        && Objects.equals(originalProperties, ((Command)o).originalProperties)
+        && Objects.equals(user, ((Command)o).user);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(statement, overwriteProperties, originalProperties);
+    return Objects.hash(statement, overwriteProperties, originalProperties, user);
   }
 
   @Override

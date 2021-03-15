@@ -20,10 +20,14 @@ import io.confluent.ksql.rest.entity.ClusterTerminateRequest;
 import io.confluent.ksql.rest.server.state.ServerState;
 import io.confluent.ksql.rest.util.ClusterTerminator;
 import io.confluent.ksql.rest.util.TerminateCluster;
+import io.confluent.ksql.util.KsqlException;
 import io.confluent.ksql.util.Pair;
 import io.confluent.ksql.util.PersistentQueryMetadata;
 import io.confluent.ksql.util.RetryUtil;
+import io.confluent.rest.impersonation.ImpersonationUtils;
 import java.io.Closeable;
+import java.io.IOException;
+import java.security.PrivilegedAction;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -36,6 +40,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.kafka.common.errors.WakeupException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -234,7 +239,21 @@ public class CommandRunner implements Closeable {
       if (closed) {
         LOG.info("Execution aborted as system is closing down");
       } else {
-        statementExecutor.handleStatement(queuedCommand);
+        final Optional<String> user = queuedCommand.getCommand().getUser();
+        if (ImpersonationUtils.isImpersonationEnabled() && user.isPresent()) {
+          try {
+            final UserGroupInformation ugi = UserGroupInformation.createProxyUser(user.get(),
+                UserGroupInformation.getLoginUser());
+            ugi.doAs((PrivilegedAction<Object>) () -> {
+              statementExecutor.handleStatement(queuedCommand);
+              return null;
+            });
+          } catch (IOException e) {
+            throw new KsqlException(e);
+          }
+        } else {
+          statementExecutor.handleStatement(queuedCommand);
+        }
         LOG.info("Executed statement: " + queuedCommand.getCommand().getStatement());
       }
     };

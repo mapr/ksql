@@ -31,7 +31,7 @@ import java.util.Set;
  * Handler that calls a KsqlAuthorizationProvider plugin that can be used for custom authorization
  */
 public class KsqlAuthorizationProviderHandler implements Handler<RoutingContext> {
-
+  //
   public static final Set<String> PATHS_WITHOUT_AUTHORIZATION = ImmutableSet
       .of("/v1/metadata", "/v1/metadata/id", "/healthcheck");
 

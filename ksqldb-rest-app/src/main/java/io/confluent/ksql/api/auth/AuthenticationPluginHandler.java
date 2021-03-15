@@ -51,7 +51,7 @@ public class AuthenticationPluginHandler implements Handler<RoutingContext> {
     this.server = Objects.requireNonNull(server);
     this.securityHandlerPlugin = Objects.requireNonNull(securityHandlerPlugin);
     // We add in all the paths that don't require authorization from
-    // KsqlAuthorizationProviderHandler
+    // KsqlAuthorizationProviderHandler //
     final Set<String> unauthenticatedPaths = new HashSet<>(
         KsqlAuthorizationProviderHandler.PATHS_WITHOUT_AUTHORIZATION);
     // And then we add anything from the property authentication.skip.paths
