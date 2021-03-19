@@ -1,0 +1,89 @@
+#!/bin/bash
+
+MAPR_HOME=${MAPR_HOME:-/opt/mapr}
+KSQL_VERSION="5.1.2"
+KSQL_HOME="$MAPR_HOME"/ksql/ksql-"$KSQL_VERSION"
+KAFKA_KSQL_CONF_FILE="${KAFKA_KSQL_CONF_FILE:-${KSQL_HOME}/etc/ksql/ksql-server.properties}"
+LOGFILE_BASE=${LOGFILE_BASE:-${KSQL_HOME}/var/log/kafka-ksql/verify_service}
+PID_FILE=${MAPR_HOME}/pid/ksql.pid
+
+EXIT_SUCCESS=0
+EXIT_NOT_RUNNING=1
+EXIT_RUNNING_NOT_RESPONDING=2
+EXIT_USAGE=3
+EXIT_HTTP_ERROR=4
+CONNECT_TIMEOUT=15
+USAGE="$0 [-q]"
+QUIET=0
+NOW=`date "+%Y%m%d_%H%M%S"`
+
+if [ $# -eq 1 ] && [ "$1" == '-q' ]; then
+    QUIET=1
+elif [ $# -ge 1 ]; then
+    echo $USAGE
+    exit $EXIT_USAGE
+fi
+
+# Create log directory
+mkdir -p "${LOGFILE_BASE%/*}"
+
+# Check if the process is running
+echo "Starting verifier at $(date)" >> $LOGFILE_BASE.$NOW
+if [ -e "$PID_FILE" ] || [ -h "$PID_FILE" ]; then
+    ksql_pid=$(cat $PID_FILE 2> /dev/null)
+    if [ $? -ne 0 ]; then
+        PID_FILE=$(ls -l $PID_FILE | awk '{print $11}')
+        ksql_pid=$(cat $PID_FILE 2> /dev/null)
+    fi
+    if [ -z "$ksql_pid" ]; then
+        echo "ERROR - could not get pid for KSQL" >> $LOGFILE_BASE.$NOW
+        exit $EXIT_NOT_RUNNING
+    fi
+    echo "checking to see if pid $ksql_pid is alive" >> $LOGFILE_BASE.$NOW
+    if kill -s 0 $ksql_pid ; then
+        echo "pid $ksql_pid is alive" >> $LOGFILE_BASE.$NOW
+        RC=$EXIT_RUNNING_NOT_RESPONDING
+    else
+        echo "pid $ksql_pid is NOT running" >> $LOGFILE_BASE.$NOW
+        [ $QUIET -eq 1 ] || cat $LOGFILE_BASE.$NOW
+        exit $EXIT_NOT_RUNNING
+    fi
+else
+    echo "no pid file, KSQL is NOT running" >> $LOGFILE_BASE.$NOW
+    [ $QUIET -eq 1 ] || cat $LOGFILE_BASE.$NOW
+    exit $EXIT_NOT_RUNNING
+fi
+
+# Check if the process is responding
+echo "checking to see if KSQL pid $ksql_pid is responsive" >> $LOGFILE_BASE.$NOW
+listeners=$(grep listeners "$KAFKA_KSQL_CONF_FILE" | cut -d'=' -f 2 | sed -e 's/ //g')
+protocol=$(echo $listeners | cut -d':' -f 1 | sed -e 's/ //g')
+ksql_port=$(echo $listeners | cut -d':' -f 3 | sed -e 's/ //g')
+ksql_ip=$(hostname -i | head -n 1 | cut -d' ' -f1)
+
+auth_enabled=$(grep authentication.enable "$KAFKA_KSQL_CONF_FILE" | cut -d'=' -f 2 | sed -e 's/ //g')
+
+if [ "$auth_enabled"  == "true" ]; then
+  # Getting MAPRSASL token
+  token=$(java -cp `mapr classpath` com.mapr.security.client.examples.MapRClient gettoken -url "$protocol://${ksql_ip}:${ksql_port}" 2> /dev/null \
+  |  grep 'Obtained challenge string' \
+  |  sed -E 's/Obtained challenge string (.*)/\1/')
+  OUTPUT=$(curl -s --write-out '%{http_code}' -k -H "Authorization: MAPR-Negotiate ${token}" "$protocol://${ksql_ip}:${ksql_port}/info")
+else
+  OUTPUT=$(curl -s --write-out '%{http_code}' "$protocol://${ksql_ip}:${ksql_port}/info")
+fi
+
+CRC=$?
+if [ $CRC -ne 0 ]; then
+    echo "KSQL didn't respond - rc=$CRC, output = $OUTPUT" >> $LOGFILE_BASE.$NOW
+else
+    echo "KSQL responded - rc=$CRC, output = $OUTPUT" >> $LOGFILE_BASE.$NOW
+    http_code=${OUTPUT: -3}
+    if [ $http_code -ne 200 ]; then
+      RC=$EXIT_HTTP_ERROR
+    else
+      RC=$EXIT_SUCCESS
+    fi
+fi
+[ $QUIET -eq 1 ] || cat $LOGFILE_BASE.$NOW
+exit $RC
