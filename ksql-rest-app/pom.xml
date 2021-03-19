@@ -204,6 +204,13 @@
             <groupId>com.mapr.streams</groupId>
             <artifactId>mapr-streams</artifactId>
         </dependency>
+
+        <!-- Overriding hadoop version coming as mapr-streams dependency-->
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-common</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>
