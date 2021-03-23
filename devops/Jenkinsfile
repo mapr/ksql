@@ -56,8 +56,6 @@ pipeline {
             ID = sh (returnStdout: true, script: "date +%Y%m%d%H%M").trim()
             // Autogenerate PROJECT variable
             PROJECT = REPOSITORY_NAME.replace("private-kafka","mapr")
-
-            BRANCH_NAME="branch-5.1.2-mapr"
             COMPONENT_VERSION = BRANCH_NAME.find("\\d+\\.[^\\-]{1,}")
             PROJECT += "-"+COMPONENT_VERSION
 
