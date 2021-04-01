@@ -1,10 +1,10 @@
 #!/bin/bash
 
 MAPR_HOME=${MAPR_HOME:-/opt/mapr}
-KSQL_VERSION="5.1.2"
+KSQL_VERSION=`cat "${MAPR_HOME}/ksql/ksqlversion"`
 KSQL_HOME="$MAPR_HOME"/ksql/ksql-"$KSQL_VERSION"
 KAFKA_KSQL_CONF_FILE="${KAFKA_KSQL_CONF_FILE:-${KSQL_HOME}/etc/ksql/ksql-server.properties}"
-LOGFILE_BASE=${LOGFILE_BASE:-${KSQL_HOME}/var/log/kafka-ksql/verify_service}
+LOGFILE_BASE=${LOGFILE_BASE:-${KSQL_HOME}/logs/verify_service}
 PID_FILE=${MAPR_HOME}/pid/ksql.pid
 
 EXIT_SUCCESS=0
