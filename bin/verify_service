@@ -60,7 +60,10 @@ echo "checking to see if KSQL pid $ksql_pid is responsive" >> $LOGFILE
 listeners=$(grep listeners "$KAFKA_KSQL_CONF_FILE" | cut -d'=' -f 2 | sed -e 's/ //g')
 protocol=$(echo $listeners | cut -d':' -f 1 | sed -e 's/ //g')
 ksql_port=$(echo $listeners | cut -d':' -f 3 | sed -e 's/ //g')
-ksql_ip=$(hostname -i | head -n 1 | cut -d' ' -f1)
+ksql_ip=$(echo $listeners | cut -d':' -f 2 | sed -e 's/\///g')
+if [ "$ksql_ip" = "0.0.0.0" ]; then
+  ksql_ip="localhost"
+fi
 
 auth_enabled=$(grep authentication.enable "$KAFKA_KSQL_CONF_FILE" | cut -d'=' -f 2 | sed -e 's/ //g')
 
@@ -69,9 +72,9 @@ if [ "$auth_enabled"  == "true" ]; then
   token=$(java -cp `mapr classpath` com.mapr.security.client.examples.MapRClient gettoken -url "$protocol://${ksql_ip}:${ksql_port}" 2> /dev/null \
   |  grep 'Obtained challenge string' \
   |  sed -E 's/Obtained challenge string (.*)/\1/')
-  OUTPUT=$(curl -s --write-out '%{http_code}' -k -H "Authorization: MAPR-Negotiate ${token}" "$protocol://${ksql_ip}:${ksql_port}/info")
+  OUTPUT=$(curl --noproxy '*' -s --write-out '%{http_code}' -k -H "Authorization: MAPR-Negotiate ${token}" "$protocol://${ksql_ip}:${ksql_port}/info")
 else
-  OUTPUT=$(curl -s --write-out '%{http_code}' "$protocol://${ksql_ip}:${ksql_port}/info")
+  OUTPUT=$(curl --noproxy '*' -s --write-out '%{http_code}' "$protocol://${ksql_ip}:${ksql_port}/info")
 fi
 
 CRC=$?
