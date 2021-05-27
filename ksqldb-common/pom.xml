@@ -53,9 +53,9 @@
 
         <!-- admin utils dependencies -->
         <dependency>
-            <groupId>com.mapr.streams</groupId>
-            <artifactId>mapr-streams</artifactId>
-            <version>${mapr.streams.version}</version>
+            <groupId>com.mapr.kafka</groupId>
+            <artifactId>kafka-eventstreams</artifactId>
+            <version>${eventstreams.version}</version>
             <scope>provided</scope>
         </dependency>
 

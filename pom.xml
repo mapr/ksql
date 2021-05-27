@@ -70,9 +70,7 @@
     <repositories>
         <repository>
             <id>mapr-releases</id>
-<!--            TODO put env variable here-->
-            <!--            <url>${env.MAPR_MAVEN_REPO}</url>-->
-            <url>http://maven.corp.maprtech.com/nexus/content/groups/public/</url>
+            <url>${env.MAPR_MAVEN_REPO}</url>
         </repository>
         <repository>
             <id>confluent</id>
@@ -139,7 +137,8 @@
         <jackson.version>2.9.1</jackson.version>
         <kafka.version>2.6.1.0-mapr-SNAPSHOT</kafka.version>
         <schema.registry.version>6.0.0.0-mapr-SNAPSHOT</schema.registry.version>
-        <mapr.streams.version>6.2.0.0-mapr-SNAPSHOT</mapr.streams.version>
+        <mapr.security.version>6.2.0.0-mapr-SNAPSHOT</mapr.security.version>
+        <eventstreams.version>0.1.0-SNAPSHOT</eventstreams.version>
         <version.3digit>6.0.0</version.3digit>
         <powermock.version>2.0.2</powermock.version>
         <junit.integration.categories>
@@ -543,9 +542,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.mapr.streams</groupId>
-            <artifactId>mapr-streams</artifactId>
-            <version>${mapr.streams.version}</version>
+            <groupId>com.mapr.kafka</groupId>
+            <artifactId>kafka-eventstreams</artifactId>
+            <version>${eventstreams.version}</version>
             <scope>provided</scope>
         </dependency>
 

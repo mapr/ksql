@@ -72,7 +72,7 @@
         <dependency>
             <groupId>com.mapr.security</groupId>
             <artifactId>mapr-security-web</artifactId>
-            <version>${mapr.streams.version}</version>
+            <version>${mapr.security.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.mapr.hadoop</groupId>
