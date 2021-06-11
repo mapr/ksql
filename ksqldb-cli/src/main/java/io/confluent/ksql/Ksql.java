@@ -22,6 +22,7 @@ import io.confluent.ksql.cli.Cli;
 import io.confluent.ksql.cli.Options;
 import io.confluent.ksql.cli.console.OutputFormat;
 import io.confluent.ksql.properties.PropertiesUtil;
+import io.confluent.ksql.rest.client.AuthenticationUtils;
 import io.confluent.ksql.rest.client.BasicCredentials;
 import io.confluent.ksql.rest.client.KsqlRestClient;
 import io.confluent.ksql.rest.client.KsqlRestClientException;
@@ -41,6 +42,7 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.function.Predicate;
 
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.kafka.common.config.SslConfigs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,7 +70,14 @@ public final class Ksql {
   }
 
   public static void main(final String[] args) throws IOException {
-    final Options options = Options.parse(args);
+    final boolean secureCluster = UserGroupInformation.isSecurityEnabled();
+    final String defaultKsqlServerUrl = secureCluster ? "https://localhost:8084"
+        : "http://localhost:8084";
+    final Options options = args.length == 0 ? Options.parse(defaultKsqlServerUrl)
+        : Options.parse(args);
+    if (secureCluster && !options.getAuthMethod().isPresent()) {
+      options.setAuthMethod("maprsasl");
+    }
     if (options == null) {
       System.exit(-1);
     }
@@ -129,14 +138,21 @@ public final class Ksql {
     final String server = options.getServer();
     final Optional<String> authMethod = options.getAuthMethod();
     Optional<BasicCredentials> creds = Optional.empty();
+    Optional<String> challengeString = Optional.empty();
 
-    if (authMethod.isPresent() && "basic".equals(authMethod.get())) {
-      final  Pair<String, String> credentials = readUsernameAndPassword();
-      creds = Optional.of(BasicCredentials.of(credentials.left, credentials.right));
+    if (authMethod.isPresent()) {
+      if ("basic".equals(authMethod.get())) {
+        final  Pair<String, String> credentials = AuthenticationUtils.readUsernameAndPassword();
+        creds = Optional.of(BasicCredentials.of(credentials.left, credentials.right));
+      }
+      if ("maprsasl".equals(authMethod.get())) {
+        final String readChallangeString = AuthenticationUtils.readChallengeString();
+        challengeString = Optional.of(readChallangeString);
+      }
     }
 
-    return clientBuilder.build(
-        server, localProps, updateClientSslWithDefaultsIfNeeded(clientProps), creds);
+    return clientBuilder.build(server, localProps,
+        updateClientSslWithDefaultsIfNeeded(clientProps),creds, challengeString);
   }
 
   private Map<String, String> updateClientSslWithDefaultsIfNeeded(final Map<String, String> props) {
@@ -177,26 +193,13 @@ public final class Ksql {
     return PropertiesUtil.loadProperties(new File(propertiesFile));
   }
 
-  private static Pair<String, String> readUsernameAndPassword() {
-    final Console console = System.console();
-
-    console.printf("Username: ");
-    final String username = console.readLine();
-
-    console.printf("Password: ");
-    final char[] passwordChars = console.readPassword();
-    final String password = new String(passwordChars);
-
-    return new Pair<>(username, password);
-  }
-
   interface KsqlClientBuilder {
     KsqlRestClient build(
         String serverAddress,
         Map<String, ?> localProperties,
         Map<String, String> clientProps,
-        Optional<BasicCredentials> creds
-    );
+        Optional<BasicCredentials> creds,
+        Optional<String> challengeString);
   }
 
   interface CliBuilder {

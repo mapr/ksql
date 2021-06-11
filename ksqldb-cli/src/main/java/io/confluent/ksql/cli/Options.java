@@ -196,4 +196,8 @@ public class Options {
     return Optional.ofNullable(sslTrustAllCertsEnable);
   }
 
+  public void setAuthMethod(final String authMethod) {
+    this.authMethod = authMethod;
+  }
+
 }

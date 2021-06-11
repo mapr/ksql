@@ -73,6 +73,7 @@ public final class KsqlTarget {
   private final SocketAddress socketAddress;
   private final LocalProperties localProperties;
   private final Optional<String> authHeader;
+  private Optional<String> maprSaslAuthHeader = Optional.empty();
 
   KsqlTarget(
       final HttpClient httpClient,
@@ -204,7 +205,7 @@ public final class KsqlTarget {
     return executeRequestSync(HttpMethod.GET, path, null, r -> deserialize(r.getBody(), type));
   }
 
-  private <T> RestResponse<T> post(
+  private <T> RestResponse<T> post(//
       final String path,
       final Object jsonEntity,
       final Function<ResponseWithBody, T> mapper
@@ -302,6 +303,8 @@ public final class KsqlTarget {
 
     httpClientRequest.putHeader("Accept", "application/json");
     authHeader.ifPresent(v -> httpClientRequest.putHeader("Authorization", v));
+    maprSaslAuthHeader.ifPresent(v -> httpClientRequest.putHeader("Authorization",
+        String.format("MAPR-Negotiate %s", String.format("MAPR-Negotiate %s", v))));
 
     if (requestBody != null) {
       httpClientRequest.end(serialize(requestBody));
@@ -310,6 +313,10 @@ public final class KsqlTarget {
     }
 
     return vcf;
+  }
+
+  public void setMaprSaslAuthHeader(final Optional<String> maprSaslAuthHeader) {
+    this.maprSaslAuthHeader = maprSaslAuthHeader;
   }
 
   private static List<StreamedRow> toRows(final ResponseWithBody resp) {

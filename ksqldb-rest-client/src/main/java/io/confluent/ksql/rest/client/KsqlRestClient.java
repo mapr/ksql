@@ -50,6 +50,8 @@ public final class KsqlRestClient implements Closeable {
   private final KsqlClient client;
   private final LocalProperties localProperties;
 
+  private Optional<String> maprSaslAuthHeader;
+
   private List<URI> serverAddresses;
 
   /**
@@ -62,13 +64,15 @@ public final class KsqlRestClient implements Closeable {
       final String serverAddress,
       final Map<String, ?> localProps,
       final Map<String, String> clientProps,
-      final Optional<BasicCredentials> creds
+      final Optional<BasicCredentials> creds,
+      final Optional<String> challengeString
   ) {
     return create(
         serverAddress,
         localProps,
         clientProps,
         creds,
+        challengeString,
         (cprops, credz, lprops) -> new KsqlClient(cprops, credz, lprops,
             new HttpClientOptions())
     );
@@ -80,11 +84,12 @@ public final class KsqlRestClient implements Closeable {
       final Map<String, ?> localProps,
       final Map<String, String> clientProps,
       final Optional<BasicCredentials> creds,
+      final Optional<String> challengeString,
       final KsqlClientSupplier clientSupplier
   ) {
     final LocalProperties localProperties = new LocalProperties(localProps);
     final KsqlClient client = clientSupplier.get(clientProps, creds, localProperties);
-    return new KsqlRestClient(client, serverAddress, localProperties);
+    return new KsqlRestClient(client, serverAddress, localProperties, challengeString);
   }
 
   @FunctionalInterface
@@ -99,11 +104,12 @@ public final class KsqlRestClient implements Closeable {
   private KsqlRestClient(
       final KsqlClient client,
       final String serverAddress,
-      final LocalProperties localProps
-  ) {
+      final LocalProperties localProps,
+      final Optional<String> challengeString) {
     this.client = requireNonNull(client, "client");
     this.serverAddresses = parseServerAddresses(serverAddress);
     this.localProperties = requireNonNull(localProps, "localProps");
+    this.maprSaslAuthHeader = challengeString;
   }
 
   public URI getServerAddress() {
@@ -213,7 +219,9 @@ public final class KsqlRestClient implements Closeable {
   }
 
   private KsqlTarget target() {
-    return client.target(getServerAddress());
+    final KsqlTarget target = client.target(getServerAddress());
+    target.setMaprSaslAuthHeader(maprSaslAuthHeader);
+    return target;
   }
 
   private static List<URI> parseServerAddresses(final String serverAddresses) {
