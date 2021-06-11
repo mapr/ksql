@@ -26,6 +26,7 @@ import io.confluent.ksql.rest.client.BasicCredentials;
 import io.confluent.ksql.rest.client.KsqlRestClient;
 import io.confluent.ksql.rest.client.KsqlRestClientException;
 import io.confluent.ksql.util.ErrorMessageUtil;
+import io.confluent.ksql.util.Pair;
 import io.confluent.ksql.version.metrics.KsqlVersionCheckerAgent;
 import io.confluent.ksql.version.metrics.collector.KsqlModuleType;
 import io.confluent.rest.RestConfig;
@@ -70,11 +71,6 @@ public final class Ksql {
     final Options options = Options.parse(args);
     if (options == null) {
       System.exit(-1);
-    }
-
-    // ask for password if not set through command parameters
-    if (options.requiresPassword()) {
-      options.setPassword(readPassword());
     }
 
     try {
@@ -131,7 +127,13 @@ public final class Ksql {
     final Map<String, String> localProps = stripClientSideProperties(configProps);
     final Map<String, String> clientProps = PropertiesUtil.applyOverrides(configProps, systemProps);
     final String server = options.getServer();
-    final Optional<BasicCredentials> creds = options.getUserNameAndPassword();
+    final Optional<String> authMethod = options.getAuthMethod();
+    Optional<BasicCredentials> creds = Optional.empty();
+
+    if (authMethod.isPresent() && "basic".equals(authMethod.get())) {
+      final  Pair<String, String> credentials = readUsernameAndPassword();
+      creds = Optional.of(BasicCredentials.of(credentials.left, credentials.right));
+    }
 
     return clientBuilder.build(
         server, localProps, updateClientSslWithDefaultsIfNeeded(clientProps), creds);
@@ -173,6 +175,19 @@ public final class Ksql {
 
   private static Map<String, String> loadProperties(final String propertiesFile) {
     return PropertiesUtil.loadProperties(new File(propertiesFile));
+  }
+
+  private static Pair<String, String> readUsernameAndPassword() {
+    final Console console = System.console();
+
+    console.printf("Username: ");
+    final String username = console.readLine();
+
+    console.printf("Password: ");
+    final char[] passwordChars = console.readPassword();
+    final String password = new String(passwordChars);
+
+    return new Pair<>(username, password);
   }
 
   interface KsqlClientBuilder {

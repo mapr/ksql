@@ -25,22 +25,18 @@ import com.github.rvesse.airline.annotations.restrictions.ranges.LongRange;
 import com.github.rvesse.airline.help.Help;
 import com.github.rvesse.airline.parser.errors.ParseException;
 import io.confluent.ksql.cli.console.OutputFormat;
-import io.confluent.ksql.rest.client.BasicCredentials;
 import java.io.IOException;
 import java.util.Optional;
 import javax.inject.Inject;
-import org.apache.kafka.common.config.ConfigException;
 
 @Command(name = "ksql", description = "KSQL CLI")
 public class Options {
 
   private static final String STREAMED_QUERY_ROW_LIMIT_OPTION_NAME = "--query-row-limit";
   private static final String STREAMED_QUERY_TIMEOUT_OPTION_NAME = "--query-timeout";
-  private static final String USERNAME_OPTION = "--user";
-  private static final String USERNAME_SHORT_OPTION = "-u";
-  private static final String PASSWORD_OPTION = "--password";
-  private static final String PASSWORD_SHORT_OPTION = "-p";
   private static final String OUTPUT_FORMAT_OPTION_NAME = "--output";
+  private static final String AUTH_METHOD_SHORT_OPTION = "-a";
+  private static final String AUTH_METHOD_OPTION_NAME = "--auth";
   private static final String SSL_TRUSTSTORE_SHORT_OPTION_NAME = "-t";
   private static final String SSL_TRUSTSTORE_OPTION_NAME = "--truststore";
   private static final String SSL_TRUSTSTORE_PASSWORD_SHORT_OPTION_NAME = "-tp";
@@ -68,30 +64,17 @@ public class Options {
           + "instance(s). Refer to KSQL documentation for a list of available configs.")
   private String configFile;
 
-
-  @SuppressWarnings({"unused", "FieldMayBeFinal"}) // Accessed via reflection
   @Option(
-      name = {USERNAME_OPTION, USERNAME_SHORT_OPTION},
+      name = {AUTH_METHOD_OPTION_NAME, AUTH_METHOD_SHORT_OPTION},
       description =
-          "If your KSQL server is configured for authentication, then provide your user name here. "
-              + "The password must be specified separately with the "
-              + PASSWORD_SHORT_OPTION
+          "If your KSQL server is configured for authentication, then provide your auth"
+              + " method. The auth method must be specified separately with the "
+              + AUTH_METHOD_OPTION_NAME
               + "/"
-              + PASSWORD_OPTION
-              + " flag")
-  private String userName = "";
-
-  @SuppressWarnings("unused") // Accessed via reflection
-  @Option(
-      name = {PASSWORD_OPTION, PASSWORD_SHORT_OPTION},
-      description =
-          "If your KSQL server is configured for authentication, then provide your password here. "
-              + "The username must be specified separately with the "
-              + USERNAME_SHORT_OPTION
-              + "/"
-              + USERNAME_OPTION
-              + " flag")
-  private String password = "";
+              + AUTH_METHOD_SHORT_OPTION
+              + " flag",
+      hidden = true)
+  private String authMethod;
 
   @Option(
       name = {SSL_TRUSTSTORE_OPTION_NAME, SSL_TRUSTSTORE_SHORT_OPTION_NAME},
@@ -197,38 +180,8 @@ public class Options {
     return OutputFormat.valueOf(outputFormat);
   }
 
-  public boolean requiresPassword() {
-    if (userName.isEmpty()) {
-      return false;
-    }
-
-    return password.trim().isEmpty();
-  }
-
-  public void setPassword(final String password) {
-    if (password.isEmpty()) {
-      throw new IllegalArgumentException("Password must not be empty");
-    }
-
-    this.password = password;
-  }
-
-  public Optional<BasicCredentials> getUserNameAndPassword() {
-    if (userName.isEmpty() != password.isEmpty()) {
-      throw new ConfigException(
-          "You must specify both a username and a password. If you don't want to use an "
-              + "authenticated session, don't specify either of the "
-              + USERNAME_OPTION
-              + " or the "
-              + PASSWORD_OPTION
-              + " flags on the command line");
-    }
-
-    if (userName.isEmpty()) {
-      return Optional.empty();
-    }
-
-    return Optional.of(BasicCredentials.of(userName, password));
+  public Optional<String> getAuthMethod() {
+    return Optional.ofNullable(authMethod);
   }
 
   public Optional<String> getSslTruststore() {
