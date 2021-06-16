@@ -304,7 +304,7 @@ public final class KsqlTarget {
     httpClientRequest.putHeader("Accept", "application/json");
     authHeader.ifPresent(v -> httpClientRequest.putHeader("Authorization", v));
     maprSaslAuthHeader.ifPresent(v -> httpClientRequest.putHeader("Authorization",
-        String.format("MAPR-Negotiate %s", String.format("MAPR-Negotiate %s", v))));
+        String.format("MAPR-Negotiate %s", v)));
 
     if (requestBody != null) {
       httpClientRequest.end(serialize(requestBody));
