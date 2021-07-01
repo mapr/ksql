@@ -74,6 +74,7 @@ public final class KsqlTarget {
   private final LocalProperties localProperties;
   private final Optional<String> authHeader;
   private Optional<String> maprSaslAuthHeader = Optional.empty();
+  private Optional<KsqlRestClient> restClient = Optional.empty();
 
   KsqlTarget(
       final HttpClient httpClient,
@@ -205,7 +206,7 @@ public final class KsqlTarget {
     return executeRequestSync(HttpMethod.GET, path, null, r -> deserialize(r.getBody(), type));
   }
 
-  private <T> RestResponse<T> post(//
+  private <T> RestResponse<T> post(
       final String path,
       final Object jsonEntity,
       final Function<ResponseWithBody, T> mapper
@@ -272,7 +273,24 @@ public final class KsqlTarget {
       throw new KsqlRestClientException(
           "Error issuing " + httpMethod + " to KSQL server. path:" + path, e);
     }
+    extractAuthCookieFromResponse(response);
     return KsqlClientUtil.toRestResponse(response, path, mapper);
+  }
+
+  private void extractAuthCookieFromResponse(final ResponseWithBody response) {
+    for (String cookie: response.getResponse().cookies()) {
+      if (this.restClient.isPresent() && cookie.startsWith("hadoop.auth=")) {
+        this.restClient.get().setHadoopAuth(Optional.of(cookie));
+        //should contain Domain, etc.
+        //this.restClient.get().setHadoopAuth(Optional.of(cookie.split(";")[0]));
+
+        break;
+      }
+    }
+  }
+
+  public void setRestClient(final KsqlRestClient restClient) {
+    this.restClient = Optional.of(restClient);
   }
 
   private <T> CompletableFuture<RestResponse<T>> executeAsync(
@@ -303,8 +321,12 @@ public final class KsqlTarget {
 
     httpClientRequest.putHeader("Accept", "application/json");
     authHeader.ifPresent(v -> httpClientRequest.putHeader("Authorization", v));
-    maprSaslAuthHeader.ifPresent(v -> httpClientRequest.putHeader("Authorization",
-        String.format("MAPR-Negotiate %s", v)));
+    if (restClient.isPresent() && restClient.get().getHadoopAuth().isPresent()) {
+      httpClientRequest.putHeader("Cookie", restClient.get().getHadoopAuth().get());
+    } else {
+      maprSaslAuthHeader.ifPresent(v -> httpClientRequest.putHeader("Authorization",
+          String.format("MAPR-Negotiate %s", v)));
+    }
 
     if (requestBody != null) {
       httpClientRequest.end(serialize(requestBody));

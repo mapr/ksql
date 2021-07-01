@@ -184,7 +184,6 @@ public class KsqlServerEndpoints implements Endpoints {
   @Override
   public CompletableFuture<EndpointResponse> executeInfo(
       final ApiSecurityContext apiSecurityContext) {
-    // this is an example for /info
     return ImpersonationUtils.runAsUserIfImpersonationEnabled(() ->
             executeOldApiEndpoint(apiSecurityContext,
                 ksqlSecurityContext -> serverInfoResource.get()),

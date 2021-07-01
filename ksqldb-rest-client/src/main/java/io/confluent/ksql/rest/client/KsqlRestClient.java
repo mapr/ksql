@@ -50,7 +50,8 @@ public final class KsqlRestClient implements Closeable {
   private final KsqlClient client;
   private final LocalProperties localProperties;
 
-  private Optional<String> maprSaslAuthHeader;
+  private Optional<String> maprSaslAuthHeader = Optional.empty();
+  private Optional<String> hadoopAuth = Optional.empty();
 
   private List<URI> serverAddresses;
 
@@ -214,6 +215,14 @@ public final class KsqlRestClient implements Closeable {
     return localProperties.set(property, value);
   }
 
+  public Optional<String> getHadoopAuth() {
+    return hadoopAuth;
+  }
+
+  public void setHadoopAuth(final Optional<String> hadoopAuth) {
+    this.hadoopAuth = hadoopAuth;
+  }
+
   public Object unsetProperty(final String property) {
     return localProperties.unset(property);
   }
@@ -221,6 +230,7 @@ public final class KsqlRestClient implements Closeable {
   private KsqlTarget target() {
     final KsqlTarget target = client.target(getServerAddress());
     target.setMaprSaslAuthHeader(maprSaslAuthHeader);
+    target.setRestClient(this);
     return target;
   }
 

@@ -239,7 +239,6 @@ public class ServerVerticle extends AbstractVerticle {
   }
 
   private void handleInfoRequest(final RoutingContext routingContext) {
-    //info
     handleOldApiRequest(server, routingContext, null,
         (request, apiSecurityContext) ->
             endpoints.executeInfo(DefaultApiSecurityContext.create(routingContext))

@@ -55,4 +55,8 @@ For a detailed description of findbugs bug categories, see http://findbugs.sourc
     <Match>
         <Class name="~io.confluent.ksql.execution.streams.StreamAggregateBuilderTest"/>
     </Match>
+    <Match>
+        <Class name="~io.confluent.ksql.api.auth.MaprAuthenticationPlugin"/>
+        <Bug pattern="NP_NULL_ON_SOME_PATH"/>
+    </Match>
 </FindBugsFilter>

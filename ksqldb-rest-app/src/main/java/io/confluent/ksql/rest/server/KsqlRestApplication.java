@@ -25,7 +25,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.mapr.security.ClusterServerTicketGeneration;
 import com.mapr.web.security.SslConfig;
 import com.mapr.web.security.WebSecurityManager;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
@@ -112,7 +111,6 @@ import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.dropwizard.DropwizardMetricsOptions;
 import io.vertx.ext.dropwizard.Match;
 import java.io.Console;
-import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
@@ -140,7 +138,6 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.kafka.common.config.SslConfigs;
 import org.apache.kafka.common.config.types.Password;
 import org.apache.kafka.streams.StreamsConfig;
@@ -470,15 +467,6 @@ public final class KsqlRestApplication implements Executable {
       lagReportingAgent.get().startAgent();
     }
 
-    // KsqlRestApplication doesn't extend Application class from rest-utils' ,
-    // so MaprSasl server-side part should be initiated manually
-    if (UserGroupInformation.isSecurityEnabled()) {
-      try {
-        ClusterServerTicketGeneration.getInstance().generateTicketAndSetServerKey();
-      } catch (IOException e) {
-        throw new AbortApplicationStartException(e.getMessage());
-      }
-    }
     serverState.setReady();
   }
 

@@ -20,6 +20,8 @@
   "http://www.puppycrawl.com/dtds/suppressions_1_1.dtd">
 
 <suppressions>
+  <suppress checks="RegexpHeader"
+            files="MaprAuthenticationPlugin.java"/>
 
   <!--
       DO NOT USE THIS SUPPRESSION FILE
