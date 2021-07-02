@@ -28,9 +28,12 @@ public final class AuthenticationUtils {
     // hiding constructor
   }
 
-  public static Pair<String, String> readUsernameAndPassword() {
+  public static Pair<String, String> readUsernameAndPassword(final boolean sesssionExpired) {
     final Console console = System.console();
 
+    if (sesssionExpired) {
+      console.printf("Session is expired. Please, relogin...\n");
+    }
     console.printf("Username: ");
     final String username = console.readLine();
 

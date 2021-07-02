@@ -22,16 +22,13 @@ import io.confluent.ksql.cli.Cli;
 import io.confluent.ksql.cli.Options;
 import io.confluent.ksql.cli.console.OutputFormat;
 import io.confluent.ksql.properties.PropertiesUtil;
-import io.confluent.ksql.rest.client.AuthenticationUtils;
 import io.confluent.ksql.rest.client.BasicCredentials;
 import io.confluent.ksql.rest.client.KsqlRestClient;
 import io.confluent.ksql.rest.client.KsqlRestClientException;
 import io.confluent.ksql.util.ErrorMessageUtil;
-import io.confluent.ksql.util.Pair;
 import io.confluent.ksql.version.metrics.KsqlVersionCheckerAgent;
 import io.confluent.ksql.version.metrics.collector.KsqlModuleType;
 import io.confluent.rest.RestConfig;
-import java.io.Console;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
@@ -92,24 +89,6 @@ public final class Ksql {
     }
   }
 
-  private static String readPassword() {
-    final Console console = System.console();
-    if (console == null) {
-      System.err.println("Could not get console for enter password; use -p option instead.");
-      System.exit(-1);
-    }
-
-    String password = "";
-    while (password.isEmpty()) {
-      password = new String(console.readPassword("Enter password: "));
-      if (password.isEmpty()) {
-        console.writer().println("Error: password can not be empty");
-      }
-    }
-    return password;
-  }
-
-  //set default location?
   void run() {
     final Map<String, String> configProps = options.getConfigFile()
         .map(Ksql::loadProperties)
@@ -137,22 +116,10 @@ public final class Ksql {
     final Map<String, String> clientProps = PropertiesUtil.applyOverrides(configProps, systemProps);
     final String server = options.getServer();
     final Optional<String> authMethod = options.getAuthMethod();
-    Optional<BasicCredentials> creds = Optional.empty();
-    Optional<String> challengeString = Optional.empty();
-
-    if (authMethod.isPresent()) {
-      if ("basic".equals(authMethod.get())) {
-        final  Pair<String, String> credentials = AuthenticationUtils.readUsernameAndPassword();
-        creds = Optional.of(BasicCredentials.of(credentials.left, credentials.right));
-      }
-      if ("maprsasl".equals(authMethod.get())) {
-        final String readChallangeString = AuthenticationUtils.readChallengeString();
-        challengeString = Optional.of(readChallangeString);
-      }
-    }
+    final Optional<BasicCredentials> creds = Optional.empty();
 
     return clientBuilder.build(server, localProps,
-        updateClientSslWithDefaultsIfNeeded(clientProps),creds, challengeString);
+        updateClientSslWithDefaultsIfNeeded(clientProps),creds, authMethod);
   }
 
   private Map<String, String> updateClientSslWithDefaultsIfNeeded(final Map<String, String> props) {

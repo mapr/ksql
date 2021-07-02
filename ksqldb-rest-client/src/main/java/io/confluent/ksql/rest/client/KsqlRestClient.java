@@ -33,14 +33,18 @@ import io.confluent.ksql.rest.entity.ServerClusterId;
 import io.confluent.ksql.rest.entity.ServerInfo;
 import io.confluent.ksql.rest.entity.ServerMetadata;
 import io.confluent.ksql.rest.entity.StreamedRow;
+import io.confluent.ksql.util.Pair;
 import io.vertx.core.http.HttpClientOptions;
 import java.io.Closeable;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -50,8 +54,8 @@ public final class KsqlRestClient implements Closeable {
   private final KsqlClient client;
   private final LocalProperties localProperties;
 
-  private Optional<String> maprSaslAuthHeader = Optional.empty();
-  private Optional<String> hadoopAuth = Optional.empty();
+  private Optional<String> authMethod = Optional.empty();
+  private String authHeader;
 
   private List<URI> serverAddresses;
 
@@ -66,14 +70,14 @@ public final class KsqlRestClient implements Closeable {
       final Map<String, ?> localProps,
       final Map<String, String> clientProps,
       final Optional<BasicCredentials> creds,
-      final Optional<String> challengeString
+      final Optional<String> authMethod
   ) {
     return create(
         serverAddress,
         localProps,
         clientProps,
         creds,
-        challengeString,
+        authMethod,
         (cprops, credz, lprops) -> new KsqlClient(cprops, credz, lprops,
             new HttpClientOptions())
     );
@@ -85,12 +89,12 @@ public final class KsqlRestClient implements Closeable {
       final Map<String, ?> localProps,
       final Map<String, String> clientProps,
       final Optional<BasicCredentials> creds,
-      final Optional<String> challengeString,
+      final Optional<String> authMethod,
       final KsqlClientSupplier clientSupplier
   ) {
     final LocalProperties localProperties = new LocalProperties(localProps);
     final KsqlClient client = clientSupplier.get(clientProps, creds, localProperties);
-    return new KsqlRestClient(client, serverAddress, localProperties, challengeString);
+    return new KsqlRestClient(client, serverAddress, localProperties, authMethod);
   }
 
   @FunctionalInterface
@@ -106,11 +110,45 @@ public final class KsqlRestClient implements Closeable {
       final KsqlClient client,
       final String serverAddress,
       final LocalProperties localProps,
-      final Optional<String> challengeString) {
+      final Optional<String> authMethod) {
     this.client = requireNonNull(client, "client");
     this.serverAddresses = parseServerAddresses(serverAddress);
     this.localProperties = requireNonNull(localProps, "localProps");
-    this.maprSaslAuthHeader = challengeString;
+    if (authMethod.isPresent()) {
+      this.authMethod = authMethod;
+      setupAuthenticationCredentials(false);
+    } else {
+      this.authMethod = Optional.of("None");
+    }
+  }
+
+  public void setupAuthenticationCredentials(final boolean sessionExpired) {
+    if (authMethod.get().equalsIgnoreCase("basic")) {
+      final Pair<String, String> credentials = AuthenticationUtils
+          .readUsernameAndPassword(sessionExpired);
+      this.setBasicAuthHeader(Objects.requireNonNull(credentials.left),
+          Objects.requireNonNull(credentials.right));
+    }
+    if (authMethod.get().equalsIgnoreCase("maprsasl")) {
+      final String readChallangeString = AuthenticationUtils.readChallengeString();
+      this.setMapRSaslAuthHeader(readChallangeString);
+    }
+  }
+
+  private void setMapRSaslAuthHeader(final String challangeString) {
+    authHeader = String.format("MAPR-Negotiate %s", challangeString);
+  }
+
+  private void setBasicAuthHeader(final String user,
+                                  final String password) {
+    final byte[] userPass;
+    try {
+      userPass = String.format("%s:%s",user, password).getBytes("UTF-8");
+    } catch (UnsupportedEncodingException e) {
+      throw new RuntimeException(e);
+    }
+    final String encoding = Base64.getEncoder().encodeToString(userPass);
+    authHeader = String.format("Basic %s", encoding);
   }
 
   public URI getServerAddress() {
@@ -215,12 +253,12 @@ public final class KsqlRestClient implements Closeable {
     return localProperties.set(property, value);
   }
 
-  public Optional<String> getHadoopAuth() {
-    return hadoopAuth;
+  public String getAuthHeader() {
+    return authHeader;
   }
 
-  public void setHadoopAuth(final Optional<String> hadoopAuth) {
-    this.hadoopAuth = hadoopAuth;
+  public void setAuthHeader(final String authHeader) {
+    this.authHeader = authHeader;
   }
 
   public Object unsetProperty(final String property) {
@@ -229,7 +267,6 @@ public final class KsqlRestClient implements Closeable {
 
   private KsqlTarget target() {
     final KsqlTarget target = client.target(getServerAddress());
-    target.setMaprSaslAuthHeader(maprSaslAuthHeader);
     target.setRestClient(this);
     return target;
   }

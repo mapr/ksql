@@ -73,7 +73,6 @@ public final class KsqlTarget {
   private final SocketAddress socketAddress;
   private final LocalProperties localProperties;
   private final Optional<String> authHeader;
-  private Optional<String> maprSaslAuthHeader = Optional.empty();
   private Optional<KsqlRestClient> restClient = Optional.empty();
 
   KsqlTarget(
@@ -263,27 +262,46 @@ public final class KsqlTarget {
       final Function<ResponseWithBody, T> mapper,
       final BiConsumer<HttpClientResponse, CompletableFuture<ResponseWithBody>> responseHandler
   ) {
-    final CompletableFuture<ResponseWithBody> vcf =
+    CompletableFuture<ResponseWithBody> vcf =
         execute(httpMethod, path, requestBody, responseHandler);
 
-    final ResponseWithBody response;
+    ResponseWithBody response;
     try {
       response = vcf.get();
+      extractAuthCookieFromResponse(response);
+      final boolean retry = reAuthenticateIfNeeded(response);
+      if (retry) {
+        vcf = execute(httpMethod, path, requestBody, responseHandler);
+        response = vcf.get();
+        extractAuthCookieFromResponse(response);
+      }
     } catch (Exception e) {
       throw new KsqlRestClientException(
           "Error issuing " + httpMethod + " to KSQL server. path:" + path, e);
     }
-    extractAuthCookieFromResponse(response);
     return KsqlClientUtil.toRestResponse(response, path, mapper);
   }
 
+  private boolean reAuthenticateIfNeeded(final ResponseWithBody response) {
+    if (!authHeader.isPresent()) {
+      return false;
+    }
+
+    if (response.getResponse().statusCode() == 401 && authHeader.get().startsWith("hadoop.auth")) {
+      this.restClient.ifPresent(ksqlRestClient ->
+          ksqlRestClient.setupAuthenticationCredentials(true));
+      return true;
+    }
+    return false;
+  }
+
   private void extractAuthCookieFromResponse(final ResponseWithBody response) {
+    if (restClient.isPresent() && restClient.get().getAuthHeader() == null) {
+      return;
+    }
     for (String cookie: response.getResponse().cookies()) {
       if (this.restClient.isPresent() && cookie.startsWith("hadoop.auth=")) {
-        this.restClient.get().setHadoopAuth(Optional.of(cookie));
-        //should contain Domain, etc.
-        //this.restClient.get().setHadoopAuth(Optional.of(cookie.split(";")[0]));
-
+        this.restClient.get().setAuthHeader(cookie);
         break;
       }
     }
@@ -321,11 +339,13 @@ public final class KsqlTarget {
 
     httpClientRequest.putHeader("Accept", "application/json");
     authHeader.ifPresent(v -> httpClientRequest.putHeader("Authorization", v));
-    if (restClient.isPresent() && restClient.get().getHadoopAuth().isPresent()) {
-      httpClientRequest.putHeader("Cookie", restClient.get().getHadoopAuth().get());
-    } else {
-      maprSaslAuthHeader.ifPresent(v -> httpClientRequest.putHeader("Authorization",
-          String.format("MAPR-Negotiate %s", v)));
+    if (restClient.isPresent() && restClient.get().getAuthHeader() != null) {
+      final String clientAuthHeader = restClient.get().getAuthHeader();
+      if (clientAuthHeader.startsWith("hadoop.auth=")) {
+        httpClientRequest.putHeader("Cookie", clientAuthHeader);
+      } else {
+        httpClientRequest.putHeader("Authorization", clientAuthHeader);
+      }
     }
 
     if (requestBody != null) {
@@ -335,10 +355,6 @@ public final class KsqlTarget {
     }
 
     return vcf;
-  }
-
-  public void setMaprSaslAuthHeader(final Optional<String> maprSaslAuthHeader) {
-    this.maprSaslAuthHeader = maprSaslAuthHeader;
   }
 
   private static List<StreamedRow> toRows(final ResponseWithBody resp) {
