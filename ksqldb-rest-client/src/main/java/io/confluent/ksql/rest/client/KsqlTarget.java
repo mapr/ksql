@@ -268,13 +268,12 @@ public final class KsqlTarget {
     ResponseWithBody response;
     try {
       response = vcf.get();
-      extractAuthCookieFromResponse(response);
       final boolean retry = reAuthenticateIfNeeded(response);
       if (retry) {
         vcf = execute(httpMethod, path, requestBody, responseHandler);
         response = vcf.get();
-        extractAuthCookieFromResponse(response);
       }
+      extractAuthCookieFromResponse(response);
     } catch (Exception e) {
       throw new KsqlRestClientException(
           "Error issuing " + httpMethod + " to KSQL server. path:" + path, e);
@@ -283,7 +282,8 @@ public final class KsqlTarget {
   }
 
   private boolean reAuthenticateIfNeeded(final ResponseWithBody response) {
-    if (!authHeader.isPresent()) {
+    if (!authHeader.isPresent()
+        || (restClient.isPresent() && restClient.get().getAuthHeader() == null)) {
       return false;
     }
 
@@ -299,6 +299,11 @@ public final class KsqlTarget {
     if (restClient.isPresent() && restClient.get().getAuthHeader() == null) {
       return;
     }
+
+    if (response.getResponse().statusCode() != 200) {
+      return;
+    }
+
     for (String cookie: response.getResponse().cookies()) {
       if (this.restClient.isPresent() && cookie.startsWith("hadoop.auth=")) {
         this.restClient.get().setAuthHeader(cookie);
