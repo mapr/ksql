@@ -22,6 +22,12 @@
 <suppressions>
   <suppress checks="RegexpHeader"
             files="MaprAuthenticationPlugin.java"/>
+  <suppress checks="RegexpHeader"
+            files="AuthorizationException.java"/>
+  <suppress checks="RegexpHeader"
+            files="ByteProducerPool.java"/>
+  <suppress checks="RegexpHeader"
+            files="ByteConsumerPool.java"/>
 
   <!--
       DO NOT USE THIS SUPPRESSION FILE
