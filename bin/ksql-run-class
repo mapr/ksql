@@ -287,6 +287,7 @@ OPTIONS+=($KSQL_GC_LOG_OPTS)
 
 
 MAPR_CLIENT_CLASSPATH=$(mapr clientclasspath)
+MAPR_CLIENT_CLASSPATH=$MAPR_CLIENT_CLASSPATH:${find ${BASEMAPR:-/opt/mapr}/kafka -name "kafka-eventstreams-*.jar"}
 KSQL_CLASSPATH=$KSQL_CLASSPATH:$MAPR_CLIENT_CLASSPATH
 KAFKA_VERSION=$(cat "/opt/mapr/kafka/kafkaversion")
 KSQL_CLASSPATH=$KSQL_CLASSPATH:/opt/mapr/kafka/kafka-$KAFKA_VERSION/libs/*
