@@ -28,6 +28,12 @@
             files="ByteProducerPool.java"/>
   <suppress checks="RegexpHeader"
             files="ByteConsumerPool.java"/>
+  <suppress checks="RegexpHeader"
+            files="AuthorizationFilter.java"/>
+  <suppress checks="RegexpHeader"
+            files="AuthorizationFilterProvider.java"/>
+  <suppress checks="RegexpHeader"
+            files="UnixUserIdUtils.java"/>
 
   <!--
       DO NOT USE THIS SUPPRESSION FILE

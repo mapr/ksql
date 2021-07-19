@@ -16,47 +16,45 @@
  * limitations under the License.
  */
 
-package io.confluent.ksql.rest.server.filter.util;
+package io.confluent.ksql.security.filter.util;
 
 import io.confluent.rest.impersonation.Errors;
 
-import java.io.IOException;
 import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
+import java.util.function.Function;
 
+import org.apache.hadoop.security.IdMappingServiceProvider;
 import org.apache.hadoop.security.UserGroupInformation;
-import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.streams.KafkaClientSupplier;
 
 public class ByteProducerPool {
+  private final Map<Integer, Producer<byte[], byte[]>> producers = new ConcurrentHashMap<>();
+  private final Function<Integer, Producer<byte[], byte[]>> factory;
+  private final IdMappingServiceProvider uidMapper;
 
-  private Map<UserGroupInformation, KafkaProducer<byte[], byte[]>> producers =
-      new ConcurrentHashMap<>();
-
-  private Properties properties;
-
-  public ByteProducerPool(final Properties properties) {
-    this.properties = properties;
+  public ByteProducerPool(final Map<String, Object> config,
+                          final KafkaClientSupplier clientSupplier,
+                          final IdMappingServiceProvider uidMapper) {
+    this.factory = uid -> clientSupplier.getProducer(config);
+    this.uidMapper = uidMapper;
   }
 
   public Future<RecordMetadata> send(final ProducerRecord<byte[], byte[]> record) {
     try {
-      final UserGroupInformation user = UserGroupInformation.getCurrentUser();
-
-      final KafkaProducer<byte[], byte[]> producer
-          = producers.computeIfAbsent(user, k -> new KafkaProducer<>(properties));
-
-      return producer.send(record);
-    } catch (IOException e) {
+      final String userName = UserGroupInformation.getCurrentUser().getUserName();
+      return producers.computeIfAbsent(uidMapper.getUid(userName), factory).send(record);
+    } catch (Exception e) {
       throw Errors.serverLoginException(e);
     }
   }
 
   public void close() {
-    for (KafkaProducer<byte[], byte[]> producer : producers.values()) {
+    for (Producer<byte[], byte[]> producer : producers.values()) {
       producer.close();
     }
   }

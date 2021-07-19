@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package io.confluent.ksql.rest.client.exception;
+package io.confluent.ksql.security.filter;
 
 import io.confluent.rest.exceptions.RestException;
 

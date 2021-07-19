@@ -175,10 +175,13 @@ public class KsqlServerEndpoints implements Endpoints {
       final ClusterTerminateRequest request,
       final WorkerExecutor workerExecutor,
       final ApiSecurityContext apiSecurityContext) {
-    return executeOldApiEndpointOnWorker(apiSecurityContext,
-        ksqlSecurityContext -> ksqlResource.terminateCluster(
-            ksqlSecurityContext,
-            request), workerExecutor);
+    return ImpersonationUtils.runAsUserIfImpersonationEnabled(() ->
+            executeOldApiEndpointOnWorker(apiSecurityContext,
+                ksqlSecurityContext -> ksqlResource.terminateCluster(
+                    ksqlSecurityContext,
+                    request), workerExecutor),
+        apiSecurityContext.getAuthToken().orElse(null),
+        apiSecurityContext.getCookie().orElse(null));
   }
 
   @Override
