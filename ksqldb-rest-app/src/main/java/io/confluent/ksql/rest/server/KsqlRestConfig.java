@@ -199,6 +199,10 @@ public class KsqlRestConfig extends AbstractConfig {
   private static final String KSQL_WEBSOCKETS_NUM_THREADS_DOC =
       "The number of websocket threads to handle query results";
 
+  static final String ENABLE_AUTHENTICATION_CONFIG = "authentication.enable";
+
+  private static final String ENABLE_AUTHENTICATION_DOC =
+      "Set to true if you want authentication for streams to be enabled.";
 
   static final String ENABLE_AUTHORIZATION_CONFIG =
       "authorization.enable";
@@ -465,6 +469,12 @@ public class KsqlRestConfig extends AbstractConfig {
             false,
             ConfigDef.Importance.LOW,
             ENABLE_AUTHORIZATION_DOC
+        ).define(
+            ENABLE_AUTHENTICATION_CONFIG,
+            ConfigDef.Type.BOOLEAN,
+            false,
+            ConfigDef.Importance.LOW,
+            ENABLE_AUTHENTICATION_DOC
         ).define(
             KSQL_SERVER_PRECONDITIONS,
             Type.LIST,

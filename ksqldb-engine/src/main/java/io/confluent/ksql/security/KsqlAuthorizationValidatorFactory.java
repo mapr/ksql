@@ -37,10 +37,9 @@ public final class KsqlAuthorizationValidatorFactory {
 
   public static Optional<KsqlAuthorizationValidator> create(
       final KsqlConfig ksqlConfig,
-      final ServiceContext serviceContext
+      final ServiceContext serviceContext,
+      final boolean authorizationEnabled
   ) {
-    final Boolean authorizationEnabled = Boolean.parseBoolean(
-        ksqlConfig.getKsqlStreamConfigProps().get("authorization.enable").toString());
 
     if (authorizationEnabled) {
       return Optional.of(AuthorizationFilterProvider.configure(ksqlConfig));

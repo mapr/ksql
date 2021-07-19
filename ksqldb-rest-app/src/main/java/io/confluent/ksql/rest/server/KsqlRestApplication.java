@@ -276,17 +276,31 @@ public final class KsqlRestApplication implements Executable {
     log.debug("Starting the ksqlDB API server");
     this.serverMetadataResource = ServerMetadataResource.create(serviceContext, ksqlConfigNoPort);
     final StatementParser statementParser = new StatementParser(ksqlEngine);
-    final Optional<KsqlAuthorizationValidator> authorizationValidator =
-        KsqlAuthorizationValidatorFactory.create(ksqlConfigNoPort, serviceContext);
-    final Errors errorHandler = new Errors(restConfig.getConfiguredInstance(
-        KsqlRestConfig.KSQL_SERVER_ERROR_MESSAGES,
-        ErrorMessages.class
-    ));
 
     // It's already a copy, ok to update it
     final Map<String, Object> props = ksqlConfigNoPort.originals();
     final KsqlRestConfig ksqlRestConfig =
         new KsqlRestConfig(updateServerSslWithDefaultsIfNeeded(props));
+
+    final boolean authorizationEnabled =
+        ksqlRestConfig.getBoolean(KsqlRestConfig.ENABLE_AUTHORIZATION_CONFIG);
+
+    final boolean authenticationEnabled =
+        ksqlRestConfig.getBoolean(KsqlRestConfig.ENABLE_AUTHENTICATION_CONFIG);
+    
+    if (authorizationEnabled && !authenticationEnabled) {
+      throw new KsqlException(String.format(
+          "Authorization is not allowed without authentication. Configure %s=true",
+          KsqlRestConfig.ENABLE_AUTHENTICATION_CONFIG));
+    }
+    final Optional<KsqlAuthorizationValidator> authorizationValidator =
+        KsqlAuthorizationValidatorFactory.create(
+            ksqlConfigNoPort, serviceContext, authorizationEnabled);
+
+    final Errors errorHandler = new Errors(restConfig.getConfiguredInstance(
+        KsqlRestConfig.KSQL_SERVER_ERROR_MESSAGES,
+        ErrorMessages.class
+    ));
 
     oldApiWebsocketExecutor = MoreExecutors.listeningDecorator(
         Executors.newScheduledThreadPool(
@@ -694,8 +708,11 @@ public final class KsqlRestApplication implements Executable {
     final Optional<AuthenticationPlugin> securityHandlerPlugin = loadAuthenticationPlugin(
         restConfig);
 
+    final Boolean authorizationEnabled =
+        restConfig.getBoolean(KsqlRestConfig.ENABLE_AUTHORIZATION_CONFIG);
+
     final Optional<KsqlAuthorizationValidator> authorizationValidator =
-        KsqlAuthorizationValidatorFactory.create(ksqlConfig, serviceContext);
+        KsqlAuthorizationValidatorFactory.create(ksqlConfig, serviceContext, authorizationEnabled);
 
     final Errors errorHandler = new Errors(restConfig.getConfiguredInstance(
         KsqlRestConfig.KSQL_SERVER_ERROR_MESSAGES,
