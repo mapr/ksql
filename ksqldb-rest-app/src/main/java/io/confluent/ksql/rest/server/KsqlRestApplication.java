@@ -293,6 +293,15 @@ public final class KsqlRestApplication implements Executable {
           "Authorization is not allowed without authentication. Configure %s=true",
           KsqlRestConfig.ENABLE_AUTHENTICATION_CONFIG));
     }
+
+    if (ksqlRestConfig.getBoolean(KsqlRestConfig.ENABLE_IMPERSONATION_CONFIG)) {
+      if (!ksqlRestConfig.getBoolean(KsqlRestConfig.ENABLE_AUTHENTICATION_CONFIG)) {
+        throw new KsqlException(String.format(
+            "Impersonation is not allowed without authentication. Configure %s=true",
+            KsqlRestConfig.ENABLE_AUTHENTICATION_CONFIG));
+      }
+    }
+
     final Optional<KsqlAuthorizationValidator> authorizationValidator =
         KsqlAuthorizationValidatorFactory.create(
             ksqlConfigNoPort, serviceContext, authorizationEnabled);

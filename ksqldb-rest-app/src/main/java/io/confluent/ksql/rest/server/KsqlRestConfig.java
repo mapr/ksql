@@ -200,7 +200,6 @@ public class KsqlRestConfig extends AbstractConfig {
       "The number of websocket threads to handle query results";
 
   static final String ENABLE_AUTHENTICATION_CONFIG = "authentication.enable";
-
   private static final String ENABLE_AUTHENTICATION_DOC =
       "Set to true if you want authentication for streams to be enabled.";
 
@@ -208,6 +207,11 @@ public class KsqlRestConfig extends AbstractConfig {
       "authorization.enable";
   private static final String ENABLE_AUTHORIZATION_DOC =
       "Set 'true' or 'false' to enable or disable authorization for KSQL service";
+
+  static final String ENABLE_IMPERSONATION_CONFIG = "impersonation.enable";
+  private static final String ENABLE_IMPERSONATION_DOC =
+      "Set to true if you want impersonations for streams to be enabled, if false "
+          + "- all manipulation will be performed from admin of cluster user";
 
   static final String KSQL_SERVER_PRECONDITIONS =
       KSQL_CONFIG_PREFIX + "server.preconditions";
@@ -475,6 +479,12 @@ public class KsqlRestConfig extends AbstractConfig {
             false,
             ConfigDef.Importance.LOW,
             ENABLE_AUTHENTICATION_DOC
+        ).define(
+            ENABLE_IMPERSONATION_CONFIG,
+            ConfigDef.Type.BOOLEAN,
+            false,
+            ConfigDef.Importance.LOW,
+            ENABLE_IMPERSONATION_DOC
         ).define(
             KSQL_SERVER_PRECONDITIONS,
             Type.LIST,
