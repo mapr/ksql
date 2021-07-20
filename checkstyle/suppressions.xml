@@ -34,6 +34,8 @@
             files="AuthorizationFilterProvider.java"/>
   <suppress checks="RegexpHeader"
             files="UnixUserIdUtils.java"/>
+  <suppress checks="RegexpHeader"
+            files="ProducerPool.java"/>
 
   <!--
       DO NOT USE THIS SUPPRESSION FILE

@@ -36,7 +36,6 @@ import java.util.concurrent.TimeoutException;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -62,6 +61,7 @@ public class CommandStore implements CommandQueue, Closeable {
   private final Duration commandQueueCatchupTimeout;
   private final Map<String, Object> kafkaConsumerProperties;
   private final Map<String, Object> kafkaProducerProperties;
+  private final ProducerPool commandProducerPool;
 
   public static final class Factory {
 
@@ -118,6 +118,12 @@ public class CommandStore implements CommandQueue, Closeable {
     this.kafkaProducerProperties =
         Objects.requireNonNull(kafkaProducerProperties, "kafkaProducerProperties");
     this.commandTopicName = Objects.requireNonNull(commandTopicName, "commandTopicName");
+
+    commandProducerPool = new ProducerPool(
+        kafkaProducerProperties,
+        InternalTopicSerdes.serializer(),
+        InternalTopicSerdes.serializer());
+
   }
 
   @Override
@@ -139,6 +145,7 @@ public class CommandStore implements CommandQueue, Closeable {
   @Override
   public void close() {
     commandTopic.close();
+    commandProducerPool.close();
   }
 
   @Override
@@ -239,11 +246,7 @@ public class CommandStore implements CommandQueue, Closeable {
 
   @Override
   public Producer<CommandId, Command> createTransactionalProducer() {
-    return new KafkaProducer<>(
-        kafkaProducerProperties,
-        InternalTopicSerdes.serializer(),
-        InternalTopicSerdes.serializer()
-    );
+    return commandProducerPool.getProducer();
   }
 
   @Override
