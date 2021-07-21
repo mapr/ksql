@@ -29,7 +29,6 @@ import io.confluent.ksql.util.ErrorMessageUtil;
 import io.confluent.ksql.version.metrics.KsqlVersionCheckerAgent;
 import io.confluent.ksql.version.metrics.collector.KsqlModuleType;
 import io.confluent.rest.RestConfig;
-import java.io.Console;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
@@ -40,6 +39,7 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.function.Predicate;
 
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.kafka.common.config.SslConfigs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,14 +67,18 @@ public final class Ksql {
   }
 
   public static void main(final String[] args) throws IOException {
-    final Options options = Options.parse(args);
+    final boolean secureCluster = UserGroupInformation.isSecurityEnabled();
+    final String defaultKsqlServerUrl = secureCluster ? "https://localhost:8084"
+        : "http://localhost:8084";
+    final Options options = args.length == 0 ? Options.parse(defaultKsqlServerUrl)
+        : Options.parse(args);
+
     if (options == null) {
       System.exit(-1);
     }
 
-    // ask for password if not set through command parameters
-    if (options.requiresPassword()) {
-      options.setPassword(readPassword());
+    if (secureCluster && !options.getAuthMethod().isPresent()) {
+      options.setAuthMethod("maprsasl");
     }
 
     try {
@@ -87,24 +91,6 @@ public final class Ksql {
     }
   }
 
-  private static String readPassword() {
-    final Console console = System.console();
-    if (console == null) {
-      System.err.println("Could not get console for enter password; use -p option instead.");
-      System.exit(-1);
-    }
-
-    String password = "";
-    while (password.isEmpty()) {
-      password = new String(console.readPassword("Enter password: "));
-      if (password.isEmpty()) {
-        console.writer().println("Error: password can not be empty");
-      }
-    }
-    return password;
-  }
-
-  //set default location?
   void run() {
     final Map<String, String> configProps = options.getConfigFile()
         .map(Ksql::loadProperties)
@@ -131,10 +117,11 @@ public final class Ksql {
     final Map<String, String> localProps = stripClientSideProperties(configProps);
     final Map<String, String> clientProps = PropertiesUtil.applyOverrides(configProps, systemProps);
     final String server = options.getServer();
-    final Optional<BasicCredentials> creds = options.getUserNameAndPassword();
+    final Optional<String> authMethod = options.getAuthMethod();
+    final Optional<BasicCredentials> creds = Optional.empty();
 
-    return clientBuilder.build(
-        server, localProps, updateClientSslWithDefaultsIfNeeded(clientProps), creds);
+    return clientBuilder.build(server, localProps,
+        updateClientSslWithDefaultsIfNeeded(clientProps),creds, authMethod);
   }
 
   private Map<String, String> updateClientSslWithDefaultsIfNeeded(final Map<String, String> props) {
@@ -180,8 +167,8 @@ public final class Ksql {
         String serverAddress,
         Map<String, ?> localProperties,
         Map<String, String> clientProps,
-        Optional<BasicCredentials> creds
-    );
+        Optional<BasicCredentials> creds,
+        Optional<String> challengeString);
   }
 
   interface CliBuilder {

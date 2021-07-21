@@ -15,6 +15,7 @@
 
 package io.confluent.ksql.security;
 
+import io.confluent.ksql.security.filter.AuthorizationFilterProvider;
 import io.confluent.ksql.services.KafkaClusterUtil;
 import io.confluent.ksql.services.ServiceContext;
 import io.confluent.ksql.util.KsqlConfig;
@@ -36,8 +37,14 @@ public final class KsqlAuthorizationValidatorFactory {
 
   public static Optional<KsqlAuthorizationValidator> create(
       final KsqlConfig ksqlConfig,
-      final ServiceContext serviceContext
+      final ServiceContext serviceContext,
+      final boolean authorizationEnabled
   ) {
+
+    if (authorizationEnabled) {
+      return Optional.of(AuthorizationFilterProvider.configure(ksqlConfig));
+    }
+
     final String enabled = ksqlConfig.getString(KsqlConfig.KSQL_ENABLE_TOPIC_ACCESS_VALIDATOR);
     if (enabled.equals(KsqlConfig.KSQL_ACCESS_VALIDATOR_ON)) {
       LOG.info("Forcing topic access validator");
@@ -78,7 +85,7 @@ public final class KsqlAuthorizationValidatorFactory {
   private static boolean isKafkaAuthorizerEnabled(final Admin adminClient) {
     try {
       final ConfigEntry configEntry =
-          KafkaClusterUtil.getConfig(adminClient).get(KAFKA_AUTHORIZER_CLASS_NAME);
+          KafkaClusterUtil.getConfig(adminClient).get(KAFKA_AUTHORIZER_CLASS_NAME);//
 
       return configEntry != null
           && configEntry.value() != null

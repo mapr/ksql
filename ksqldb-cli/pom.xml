@@ -139,6 +139,12 @@
             <scope>provided</scope>
         </dependency>
 
+        <dependency>
+            <groupId>io.confluent</groupId>
+            <artifactId>kafka-connect-avro-converter</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <!-- Only required to provide LoginModule implementation in tests -->
         <dependency>
             <groupId>org.eclipse.jetty</groupId>

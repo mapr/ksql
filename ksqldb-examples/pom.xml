@@ -46,6 +46,11 @@
             <artifactId>kafka-connect-avro-converter</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>io.confluent</groupId>
+            <artifactId>kafka-schema-registry-client</artifactId>
+        </dependency>
+
         <!-- Required for running tests -->
 
         <dependency>

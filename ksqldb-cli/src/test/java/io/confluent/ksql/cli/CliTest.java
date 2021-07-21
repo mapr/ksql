@@ -181,6 +181,7 @@ public class CliTest {
         REST_APP.getHttpListener().toString(),
         ImmutableMap.of(),
         ImmutableMap.of(),
+        Optional.empty(),
         Optional.empty()
     );
 

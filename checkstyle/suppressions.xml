@@ -20,6 +20,22 @@
   "http://www.puppycrawl.com/dtds/suppressions_1_1.dtd">
 
 <suppressions>
+  <suppress checks="RegexpHeader"
+            files="MaprAuthenticationPlugin.java"/>
+  <suppress checks="RegexpHeader"
+            files="AuthorizationException.java"/>
+  <suppress checks="RegexpHeader"
+            files="ByteProducerPool.java"/>
+  <suppress checks="RegexpHeader"
+            files="ByteConsumerPool.java"/>
+  <suppress checks="RegexpHeader"
+            files="AuthorizationFilter.java"/>
+  <suppress checks="RegexpHeader"
+            files="AuthorizationFilterProvider.java"/>
+  <suppress checks="RegexpHeader"
+            files="UnixUserIdUtils.java"/>
+  <suppress checks="RegexpHeader"
+            files="ProducerPool.java"/>
 
   <!--
       DO NOT USE THIS SUPPRESSION FILE

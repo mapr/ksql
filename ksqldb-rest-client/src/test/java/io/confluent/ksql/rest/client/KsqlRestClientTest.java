@@ -121,6 +121,7 @@ public class KsqlRestClientTest {
         LOCAL_PROPS,
         CLIENT_PROPS,
         Optional.empty(),
+        Optional.empty(),
         clientSupplier
     );
   }

@@ -83,7 +83,8 @@ public class KsqlAuthorizationValidatorFactoryTest {
     // When:
     final Optional<KsqlAuthorizationValidator> validator = KsqlAuthorizationValidatorFactory.create(
         ksqlConfig,
-        serviceContext
+        serviceContext,
+        false
     );
 
     // Then
@@ -99,7 +100,8 @@ public class KsqlAuthorizationValidatorFactoryTest {
     // When:
     final Optional<KsqlAuthorizationValidator> validator = KsqlAuthorizationValidatorFactory.create(
         ksqlConfig,
-        serviceContext
+        serviceContext,
+        false
     );
 
     // Then
@@ -115,7 +117,8 @@ public class KsqlAuthorizationValidatorFactoryTest {
     // When:
     final Optional<KsqlAuthorizationValidator> validator = KsqlAuthorizationValidatorFactory.create(
         ksqlConfig,
-        serviceContext
+        serviceContext,
+        false
     );
 
     // Then:
@@ -134,7 +137,8 @@ public class KsqlAuthorizationValidatorFactoryTest {
     // When:
     final Optional<KsqlAuthorizationValidator> validator = KsqlAuthorizationValidatorFactory.create(
         ksqlConfig,
-        serviceContext
+        serviceContext,
+        false
     );
 
     // Then:
@@ -156,7 +160,8 @@ public class KsqlAuthorizationValidatorFactoryTest {
     // When:
     final Optional<KsqlAuthorizationValidator> validator = KsqlAuthorizationValidatorFactory.create(
         ksqlConfig,
-        serviceContext
+        serviceContext,
+        false
     );
 
     // Then:
@@ -175,7 +180,8 @@ public class KsqlAuthorizationValidatorFactoryTest {
     // When:
     final Optional<KsqlAuthorizationValidator> validator = KsqlAuthorizationValidatorFactory.create(
         ksqlConfig,
-        serviceContext
+        serviceContext,
+        false
     );
 
     // Then
@@ -202,7 +208,8 @@ public class KsqlAuthorizationValidatorFactoryTest {
     // When:
     final Optional<KsqlAuthorizationValidator> validator = KsqlAuthorizationValidatorFactory.create(
         ksqlConfig,
-        serviceContext
+        serviceContext,
+        false
     );
 
     // Then

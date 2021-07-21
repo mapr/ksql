@@ -176,6 +176,7 @@ public class SslClientAuthFunctionalTest {
         serverAddress,
         emptyMap(),
         clientProps,
+        Optional.empty(),
         Optional.empty()
     )) {
       final RestResponse<?> response = restClient.makeKsqlRequest("show topics;");
