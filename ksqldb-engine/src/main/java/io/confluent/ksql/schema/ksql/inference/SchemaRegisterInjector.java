@@ -117,8 +117,8 @@ public class SchemaRegisterInjector implements Injector {
       return;
     }
 
-    if (config.getString(KsqlConfig.SCHEMA_REGISTRY_URL_PROPERTY) != null
-        && !config.getString(KsqlConfig.SCHEMA_REGISTRY_URL_PROPERTY).isEmpty()) {
+    if (config.getSchemaRegistryUrl() != null
+        && !config.getSchemaRegistryUrl().isEmpty()) {
       try {
         final SchemaRegistryClient srClient = serviceContext.getSchemaRegistryClient();
         final String subject = topic + KsqlConstants.SCHEMA_REGISTRY_VALUE_SUFFIX;
@@ -134,7 +134,8 @@ public class SchemaRegisterInjector implements Injector {
     } else {
       throw new KsqlSchemaRegistryNotConfiguredException(
           String.format(
-              "Cannot create topic '%s' with format %s without configuring '%s'",
+              "Cannot create topic '%s' with format %s without configuring '%s' "
+                  + "or getting Schema Registry URL from Zookeeper.",
               topic, format.name(), KsqlConfig.SCHEMA_REGISTRY_URL_PROPERTY)
       );
     }

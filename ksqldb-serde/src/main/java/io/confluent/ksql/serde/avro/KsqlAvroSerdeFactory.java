@@ -140,7 +140,7 @@ public class KsqlAvroSerdeFactory implements KsqlSerdeFactory {
         .originalsWithPrefix(KsqlConfig.KSQL_SCHEMA_REGISTRY_PREFIX);
 
     avroConfig.put(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG,
-        ksqlConfig.getString(KsqlConfig.SCHEMA_REGISTRY_URL_PROPERTY));
+        ksqlConfig.getSchemaRegistryUrl());
 
     avroConfig.put(AvroDataConfig.CONNECT_META_DATA_CONFIG, false);
 
