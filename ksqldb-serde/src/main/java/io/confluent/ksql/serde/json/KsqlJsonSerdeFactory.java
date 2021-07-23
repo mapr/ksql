@@ -109,7 +109,7 @@ public class KsqlJsonSerdeFactory implements KsqlSerdeFactory {
 
     config.put(
         JsonSchemaConverterConfig.SCHEMA_REGISTRY_URL_CONFIG,
-        ksqlConfig.getString(KsqlConfig.SCHEMA_REGISTRY_URL_PROPERTY)
+        ksqlConfig.getSchemaRegistryUrl()
     );
     config.put(JsonConverterConfig.DECIMAL_FORMAT_CONFIG, DecimalFormat.NUMERIC.name());
 

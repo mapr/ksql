@@ -65,14 +65,14 @@ public class KsqlSchemaRegistryClientFactory {
       final Map<String, String> schemaRegistryHttpHeaders
   ) {
     this(config,
-        () -> new RestService(config.getString(KsqlConfig.SCHEMA_REGISTRY_URL_PROPERTY)),
+        () -> new RestService(config.getSchemaRegistryUrl()),
         sslContext,
         CachedSchemaRegistryClient::new,
         schemaRegistryHttpHeaders
     );
 
     // Force config exception now:
-    config.getString(KsqlConfig.SCHEMA_REGISTRY_URL_PROPERTY);
+    // config.getString(KsqlConfig.SCHEMA_REGISTRY_URL_PROPERTY);
   }
 
   @VisibleForTesting
@@ -88,7 +88,7 @@ public class KsqlSchemaRegistryClientFactory {
 
     this.schemaRegistryClientFactory = schemaRegistryClientFactory;
     this.httpHeaders = httpHeaders;
-    this.schemaRegistryUrl = config.getString(KsqlConfig.SCHEMA_REGISTRY_URL_PROPERTY).trim();
+    this.schemaRegistryUrl = config.getSchemaRegistryUrl();
   }
 
   /**

@@ -350,7 +350,7 @@ public final class SourceBuilder {
   ) {
     final boolean schemaRegistryEnabled = !builder
         .getKsqlConfig()
-        .getString(KsqlConfig.SCHEMA_REGISTRY_URL_PROPERTY)
+        .getSchemaRegistryUrl()
         .isEmpty();
 
     final boolean useSR = FormatFactory

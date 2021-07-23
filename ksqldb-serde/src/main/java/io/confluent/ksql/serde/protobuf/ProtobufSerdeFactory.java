@@ -107,7 +107,7 @@ public class ProtobufSerdeFactory implements KsqlSerdeFactory {
 
     protobufConfig.put(
         ProtobufConverterConfig.SCHEMA_REGISTRY_URL_CONFIG,
-        ksqlConfig.getString(KsqlConfig.SCHEMA_REGISTRY_URL_PROPERTY)
+        ksqlConfig.getSchemaRegistryUrl()
     );
 
     final ProtobufConverter converter = new ProtobufConverter(schemaRegistryClient);

@@ -41,6 +41,7 @@ import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.Executors;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("UnstableApiUsage")
 public final class DataGen {
@@ -129,7 +130,16 @@ public final class DataGen {
     props.put(KsqlConfig.SCHEMA_REGISTRY_URL_PROPERTY, arguments.schemaRegistryUrl);
 
     if (arguments.propertiesFile != null) {
-      props.load(arguments.propertiesFile);
+      final Properties tmp = new Properties();
+      tmp.load(arguments.propertiesFile);
+      final Map<Object, Object> map = tmp
+          .entrySet()
+          .stream()
+          .collect(Collectors
+              .toMap(
+                  Map.Entry::getKey,
+                  e -> ((String)e.getValue()).trim()));
+      props.putAll(map);
     }
 
     return props;
