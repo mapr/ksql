@@ -384,6 +384,9 @@ public final class KsqlRestApplication implements Executable {
       props.put(SslConfigs.SSL_KEYSTORE_TYPE_CONFIG,
           sslConfig.getServerKeystoreType().toUpperCase());
       props.put(SslConfigs.SSL_KEY_PASSWORD_CONFIG, sslConfig.getServerKeyPassword());
+    }
+    if (!props.containsKey(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG)) {
+      final SslConfig sslConfig = WebSecurityManager.getSslConfig();
 
       props.put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, sslConfig.getServerTruststoreLocation());
       props.put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG,
