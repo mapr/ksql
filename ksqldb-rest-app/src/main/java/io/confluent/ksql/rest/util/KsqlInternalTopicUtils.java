@@ -18,6 +18,7 @@ package io.confluent.ksql.rest.util;
 import com.google.common.collect.ImmutableMap;
 import io.confluent.ksql.services.KafkaTopicClient;
 import io.confluent.ksql.util.KsqlConfig;
+import io.confluent.ksql.util.MaprFSUtils;
 import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.common.config.TopicConfig;
 import org.slf4j.Logger;
@@ -60,6 +61,7 @@ public final class KsqlInternalTopicUtils {
       final KsqlConfig ksqlConfig,
       final KafkaTopicClient topicClient
   ) {
+    MaprFSUtils.createAppDirAndInternalStreamsIfNotExist(ksqlConfig);
     if (topicClient.isTopicExists(name)) {
       validateTopicConfig(name, ksqlConfig, topicClient);
       return;
