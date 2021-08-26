@@ -160,8 +160,6 @@ public class DistributingExecutor {
       throw new KsqlServerException(String.format(
           "Could not write the statement '%s' into the command topic.",
           statement.getStatementText()), e);
-    } finally {
-      notTransactionalProducer.close();
     }
   }
 
