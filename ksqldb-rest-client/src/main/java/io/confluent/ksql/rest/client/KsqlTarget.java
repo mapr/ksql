@@ -282,12 +282,12 @@ public final class KsqlTarget {
   }
 
   private boolean reAuthenticateIfNeeded(final ResponseWithBody response) {
-    if (!authHeader.isPresent()
-        || (restClient.isPresent() && restClient.get().getAuthHeader() == null)) {
+    if (restClient.isPresent() && restClient.get().getAuthHeader() == null) {
       return false;
     }
 
-    if (response.getResponse().statusCode() == 401 && authHeader.get().startsWith("hadoop.auth")) {
+    if (response.getResponse().statusCode() == 401 && restClient.isPresent()
+        && restClient.get().getAuthHeader().startsWith("hadoop.auth")) {
       this.restClient.ifPresent(ksqlRestClient ->
           ksqlRestClient.setupAuthenticationCredentials(true));
       return true;

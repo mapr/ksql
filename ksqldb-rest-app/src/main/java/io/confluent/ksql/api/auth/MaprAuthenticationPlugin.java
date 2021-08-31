@@ -73,6 +73,9 @@ public class MaprAuthenticationPlugin implements AuthenticationPlugin {
   private String cookieDomain;
   private String cookiePath;
 
+  public static final String AUTHENTICATION_COOKIE_EXPIRATION_CONFIG =
+      "authentication.cookie.expiration";
+
   @Override
   public void configure(final Map<String, ?> map) {
     // MaprSasl server-side part should be initiated manually
@@ -84,7 +87,12 @@ public class MaprAuthenticationPlugin implements AuthenticationPlugin {
       }
     }
     try {
+      if (map.containsKey(AUTHENTICATION_COOKIE_EXPIRATION_CONFIG)) {
+        validity = Long.parseLong(map.get("authentication.cookie.expiration").toString()) * 1000L;
+      }
       this.secretProvider.init(null, null, this.validity);
+      LOG.info("Initialized secret provider " + this.secretProvider.getClass().getName()
+          + " with validity=" + this.validity);
     } catch (Exception e) {
       if (LOG.isDebugEnabled()) {
         e.printStackTrace();
