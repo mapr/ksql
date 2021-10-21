@@ -278,6 +278,11 @@ if [ "x$HELP" = "xtrue" ]; then
   exit 1
 fi
 
+# if FIPS mode is enabled, add security java options
+env=${MAPR_HOME:-/opt/mapr}/conf/env.sh
+[ -f "${env}" ] && . "${env}"
+KSQL_OPTS="${KSQL_OPTS} ${MAPR_COMMON_JAVA_OPTS}"
+
 OPTIONS=($KSQL_HEAP_OPTS)
 OPTIONS+=($KSQL_JVM_PERFORMANCE_OPTS)
 OPTIONS+=($KSQL_JMX_OPTS)
