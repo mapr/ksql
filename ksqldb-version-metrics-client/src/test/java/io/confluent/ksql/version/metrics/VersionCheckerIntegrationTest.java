@@ -56,6 +56,8 @@ public class VersionCheckerIntegrationTest {
     );
     final Properties versionCheckProps = new Properties();
     versionCheckProps.setProperty(BaseSupportConfig
+        .CONFLUENT_SUPPORT_METRICS_ENABLE_CONFIG, "true");
+    versionCheckProps.setProperty(BaseSupportConfig
         .CONFLUENT_SUPPORT_METRICS_ENDPOINT_SECURE_ENABLE_CONFIG, "false");
     versionCheckProps.setProperty(
         BaseSupportConfig.CONFLUENT_SUPPORT_PROXY_CONFIG,

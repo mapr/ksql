@@ -128,6 +128,7 @@ public class BaseSupportConfigTest {
   public void testGetDefaultProps() {
     // Given
     Properties overrideProps = new Properties();
+    overrideProps.setProperty(BaseSupportConfig.CONFLUENT_SUPPORT_METRICS_ENABLE_CONFIG, "true");
     // When
     BaseSupportConfig supportConfig = new TestSupportConfig(overrideProps);
 
@@ -230,6 +231,8 @@ public class BaseSupportConfigTest {
   public void isProactiveSupportEnabledTopicOnly() {
     // Given
     Properties serverProperties = new Properties();
+    serverProperties.setProperty(BaseSupportConfig.CONFLUENT_SUPPORT_METRICS_ENABLE_CONFIG,
+        "true");
     BaseSupportConfig supportConfig = new TestSupportConfig(serverProperties);
     // When/Then
     assertTrue(supportConfig.isProactiveSupportEnabled());
@@ -239,6 +242,8 @@ public class BaseSupportConfigTest {
   public void isProactiveSupportEnabledHTTPOnly() {
     // Given
     Properties serverProperties = new Properties();
+    serverProperties.setProperty(BaseSupportConfig.CONFLUENT_SUPPORT_METRICS_ENABLE_CONFIG,
+        "true");
     serverProperties.setProperty(
         BaseSupportConfig.CONFLUENT_SUPPORT_METRICS_ENDPOINT_INSECURE_ENABLE_CONFIG,
         "true"
@@ -252,6 +257,8 @@ public class BaseSupportConfigTest {
   public void isProactiveSupportEnabledHTTPSOnly() {
     // Given
     Properties serverProperties = new Properties();
+    serverProperties.setProperty(BaseSupportConfig.CONFLUENT_SUPPORT_METRICS_ENABLE_CONFIG,
+        "true");
     serverProperties.setProperty(
         BaseSupportConfig.CONFLUENT_SUPPORT_METRICS_ENDPOINT_SECURE_ENABLE_CONFIG, "true");
     BaseSupportConfig supportConfig = new TestSupportConfig(serverProperties);
@@ -263,6 +270,8 @@ public class BaseSupportConfigTest {
   public void proactiveSupportIsDisabledByDefaultWhenBrokerConfigurationIsEmpty() {
     // Given
     Properties serverProperties = new Properties();
+    serverProperties.setProperty(BaseSupportConfig.CONFLUENT_SUPPORT_METRICS_ENABLE_CONFIG,
+        "true");
     BaseSupportConfig supportConfig = new TestSupportConfig(serverProperties);
     // When/Then
     assertTrue(supportConfig.isProactiveSupportEnabled());
