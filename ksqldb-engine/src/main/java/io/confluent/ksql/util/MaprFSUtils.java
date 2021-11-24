@@ -16,6 +16,8 @@
 
 package io.confluent.ksql.util;
 
+import static org.apache.kafka.mapr.tools.KafkaMaprStreams.PUBLIC_PERMISSIONS;
+
 import com.mapr.fs.MapRFileAce;
 import io.confluent.ksql.logging.processing.ProcessingLogConfig;
 import java.io.IOException;
@@ -40,9 +42,14 @@ public final class MaprFSUtils {
   public static void createAppDirAndInternalStreamsIfNotExist(final KsqlConfig config) {
     createAppDirIfNotExists(config);
     try (KafkaMaprStreams maprStreams = KafkaMaprTools.tools().streams()) {
-      maprStreams.createStreamForAllUsers(config.getCommandsStream());
+      final String streamName = config.getCommandsStream();
+      if (!maprStreams.streamExists(streamName)) {
+        maprStreams.createStreamForAllUsers(streamName);
+      }
+      if (!maprStreams.streamHasPerms(streamName, PUBLIC_PERMISSIONS, PUBLIC_PERMISSIONS)) {
+        maprStreams.setStreamPerms(streamName, PUBLIC_PERMISSIONS, PUBLIC_PERMISSIONS);
+      }
     }
-
   }
 
   public static void createAppDirIfNotExists(final KsqlConfig config) {
@@ -91,8 +98,14 @@ public final class MaprFSUtils {
   ) {
     createAppDirIfNotExists(ksqlConfig);
     try (KafkaMaprStreams maprStreams = KafkaMaprTools.tools().streams()) {
-      maprStreams.createStreamForAllUsers(ksqlConfig.getCommandsStreamFolder()
-          + config.getString(ProcessingLogConfig.STREAM_NAME));
+      final String streamName = ksqlConfig.getCommandsStreamFolder()
+          + config.getString(ProcessingLogConfig.STREAM_NAME);
+      if (!maprStreams.streamExists(streamName)) {
+        maprStreams.createStreamForAllUsers(streamName);
+      }
+      if (!maprStreams.streamHasPerms(streamName, PUBLIC_PERMISSIONS, PUBLIC_PERMISSIONS)) {
+        maprStreams.setStreamPerms(streamName, PUBLIC_PERMISSIONS, PUBLIC_PERMISSIONS);
+      }
     }
   }
 
