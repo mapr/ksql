@@ -48,7 +48,9 @@ public class VersionCheckerIntegrationTest {
     clientAndProxy = ClientAndProxy.startClientAndProxy(proxyPort);
   }
 
+  //Ignoring. Metrics are not supported
   @Test
+  @Ignore
   public void testMetricsAgent() throws InterruptedException {
 
     final KsqlVersionCheckerAgent versionCheckerAgent = new KsqlVersionCheckerAgent(

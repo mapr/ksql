@@ -318,10 +318,13 @@ public class ServerVerticle extends AbstractVerticle {
 
   private void handleWebsocket(final RoutingContext routingContext) {
     final ApiSecurityContext apiSecurityContext = DefaultApiSecurityContext.create(routingContext);
-    final ServerWebSocket serverWebSocket = routingContext.request().upgrade();
-    endpoints
-        .executeWebsocketStream(serverWebSocket, routingContext.request().params(),
-            server.getWorkerExecutor(), apiSecurityContext);
+    routingContext.request().toWebSocket(ar -> {
+      final ServerWebSocket serverWebSocket = ar.result();
+      endpoints
+              .executeWebsocketStream(serverWebSocket, routingContext.request().params(),
+                      server.getWorkerExecutor(), apiSecurityContext);
+    });
+
   }
 
   private static void chcHandler(final RoutingContext routingContext) {
