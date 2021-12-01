@@ -32,7 +32,6 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.metrics.Metrics;
 import org.apache.kafka.common.record.TimestampType;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class ConsumerCollectorTest {
@@ -62,7 +61,6 @@ public class ConsumerCollectorTest {
     assertThat( stats.toString(), containsString("total-messages, value=100.0"));
   }
 
-  @Ignore("Throws an NPE only when built with Maven locally?")
   @Test
   public void shouldDisplayByteThroughputAcrossAllTopics() {
 
