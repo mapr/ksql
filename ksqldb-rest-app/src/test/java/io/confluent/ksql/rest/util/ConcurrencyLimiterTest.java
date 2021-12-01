@@ -22,6 +22,8 @@ import static org.junit.Assert.assertThrows;
 
 import io.confluent.ksql.rest.util.ConcurrencyLimiter.Decrementer;
 import io.confluent.ksql.util.KsqlException;
+import java.util.Collections;
+import org.apache.kafka.common.metrics.Metrics;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -32,7 +34,12 @@ public class ConcurrencyLimiterTest {
   @Test
   public void shouldSucceedUnderLimit() {
     // Given:
-    ConcurrencyLimiter limiter = new ConcurrencyLimiter(1, "pull queries");
+    ConcurrencyLimiter limiter = new ConcurrencyLimiter(
+        1,
+        "pull queries",
+        new Metrics(),
+        Collections.emptyMap()
+    );
 
     // When:
     Decrementer decrementer = limiter.increment();
@@ -47,7 +54,12 @@ public class ConcurrencyLimiterTest {
   @Test
   public void shouldError_atLimit() {
     // Given:
-    ConcurrencyLimiter limiter = new ConcurrencyLimiter(1, "pull queries");
+    ConcurrencyLimiter limiter = new ConcurrencyLimiter(
+        1,
+        "pull queries",
+        new Metrics(),
+        Collections.emptyMap()
+    );
 
     // When:
     Decrementer decrementer = limiter.increment();

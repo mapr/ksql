@@ -23,7 +23,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.google.common.util.concurrent.RateLimiter;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.ksql.ServiceInfo;
@@ -94,6 +93,7 @@ import io.confluent.ksql.rest.util.ConcurrencyLimiter;
 import io.confluent.ksql.rest.util.KsqlInternalTopicUtils;
 import io.confluent.ksql.rest.util.KsqlUncaughtExceptionHandler;
 import io.confluent.ksql.rest.util.PersistentQueryCleanupImpl;
+import io.confluent.ksql.rest.util.RateLimiter;
 import io.confluent.ksql.rest.util.RocksDBConfigSetterHandler;
 import io.confluent.ksql.schema.registry.KsqlSchemaRegistryClientFactory;
 import io.confluent.ksql.security.KsqlAuthorizationValidator;
@@ -689,10 +689,13 @@ public final class KsqlRestApplication implements Executable {
           StreamsConfig.configDef().defaultValues().get(StreamsConfig.STATE_DIR_CONFIG))
           .toString();
 
+    final ServiceInfo serviceInfo = ServiceInfo.create(ksqlConfig, metricsPrefix);
+    final Map<String, String> metricsTags = serviceInfo.customMetricsTags();
+
     StorageUtilizationMetricsReporter.configureShared(
       new File(stateDir), 
         MetricCollectors.getMetrics(),
-        ksqlConfig.getStringAsMap(KsqlConfig.KSQL_CUSTOM_METRICS_TAGS)
+        metricsTags
     );
 
     final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1,
@@ -704,7 +707,7 @@ public final class KsqlRestApplication implements Executable {
         serviceContext,
         processingLogContext,
         functionRegistry,
-        ServiceInfo.create(ksqlConfig, metricsPrefix),
+        serviceInfo,
         specificQueryIdGenerator,
         new KsqlConfig(restConfig.getKsqlConfigProperties()),
         Collections.emptyList()
@@ -716,7 +719,7 @@ public final class KsqlRestApplication implements Executable {
             MetricCollectors.getMetrics(), "ksqldb_utilization", Duration.ofMinutes(1)),
         Duration.ofMinutes(5),
         Duration.ofSeconds(30),
-        ksqlConfig.getStringAsMap(KsqlConfig.KSQL_CUSTOM_METRICS_TAGS)
+        metricsTags
     );
     executorService.scheduleAtFixedRate(
         saturation,
@@ -776,18 +779,31 @@ public final class KsqlRestApplication implements Executable {
         initializeHeartbeatAgent(restConfig, ksqlEngine, serviceContext, lagReportingAgent);
     final RoutingFilterFactory routingFilterFactory = initializeRoutingFilterFactory(ksqlConfig,
         heartbeatAgent, lagReportingAgent);
-    final RateLimiter pullQueryRateLimiter = RateLimiter.create(
-        ksqlConfig.getInt(KsqlConfig.KSQL_QUERY_PULL_MAX_QPS_CONFIG));
+    final RateLimiter pullQueryRateLimiter = new RateLimiter(
+        ksqlConfig.getInt(KsqlConfig.KSQL_QUERY_PULL_MAX_QPS_CONFIG),
+        MetricCollectors.getMetrics(),
+        metricsTags
+    );
     final ConcurrencyLimiter pullQueryConcurrencyLimiter = new ConcurrencyLimiter(
         ksqlConfig.getInt(KsqlConfig.KSQL_QUERY_PULL_MAX_CONCURRENT_REQUESTS_CONFIG),
-        "pull queries");
-    final SlidingWindowRateLimiter pullBandRateLimiter = new SlidingWindowRateLimiter(
+        "pull queries",
+        MetricCollectors.getMetrics(),
+        metricsTags
+    );
+    final SlidingWindowRateLimiter pullBandRateLimiter =
+        new SlidingWindowRateLimiter(
             ksqlConfig.getInt(KsqlConfig.KSQL_QUERY_PULL_MAX_HOURLY_BANDWIDTH_MEGABYTES_CONFIG),
-            NUM_MILLISECONDS_IN_HOUR);
-    final SlidingWindowRateLimiter scalablePushBandRateLimiter = new SlidingWindowRateLimiter(
-        ksqlConfig.getInt(
-            KsqlConfig.KSQL_QUERY_PUSH_V2_MAX_HOURLY_BANDWIDTH_MEGABYTES_CONFIG),
-        NUM_MILLISECONDS_IN_HOUR);
+            NUM_MILLISECONDS_IN_HOUR,
+            MetricCollectors.getMetrics(),
+            metricsTags
+        );
+    final SlidingWindowRateLimiter scalablePushBandRateLimiter =
+        new SlidingWindowRateLimiter(
+            ksqlConfig.getInt(KsqlConfig.KSQL_QUERY_PUSH_V2_MAX_HOURLY_BANDWIDTH_MEGABYTES_CONFIG),
+            NUM_MILLISECONDS_IN_HOUR,
+            MetricCollectors.getMetrics(),
+            metricsTags
+        );
     final DenyListPropertyValidator denyListPropertyValidator = new DenyListPropertyValidator(
         ksqlConfig.getList(KsqlConfig.KSQL_PROPERTIES_OVERRIDES_DENYLIST));
 
@@ -795,7 +811,7 @@ public final class KsqlRestApplication implements Executable {
         KsqlConfig.KSQL_QUERY_PULL_METRICS_ENABLED)
         ? Optional.of(new PullQueryExecutorMetrics(
         ksqlEngine.getServiceId(),
-        ksqlConfig.getStringAsMap(KsqlConfig.KSQL_CUSTOM_METRICS_TAGS),
+        metricsTags,
         Time.SYSTEM))
         : Optional.empty();
 
@@ -803,7 +819,7 @@ public final class KsqlRestApplication implements Executable {
         ksqlConfig.getBoolean(KsqlConfig.KSQL_QUERY_PUSH_V2_ENABLED)
         ? Optional.of(new ScalablePushQueryMetrics(
         ksqlEngine.getServiceId(),
-        ksqlConfig.getStringAsMap(KsqlConfig.KSQL_CUSTOM_METRICS_TAGS),
+            metricsTags,
         Time.SYSTEM))
         : Optional.empty();
 

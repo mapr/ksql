@@ -6,6 +6,8 @@ import static org.junit.Assert.fail;
 
 import io.confluent.ksql.util.KsqlConstants.KsqlQueryType;
 import io.confluent.ksql.util.KsqlException;
+import java.util.Collections;
+import org.apache.kafka.common.metrics.Metrics;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -19,7 +21,12 @@ public class SlidingWindowRateLimiterTest {
 
     @Before
     public void setUp() {
-        limiter = new SlidingWindowRateLimiter(1, 5L * 1000L);
+        limiter = new SlidingWindowRateLimiter(
+            1,
+            5L * 1000L,
+            new Metrics(),
+            Collections.emptyMap()
+        );
     }
 
     @Test
