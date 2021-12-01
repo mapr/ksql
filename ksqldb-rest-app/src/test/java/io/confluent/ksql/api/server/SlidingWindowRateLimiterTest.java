@@ -17,9 +17,9 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SlidingWindowRateLimiterTest {
-    private SlidingWindowRateLimiter limiter;
-    private static String RATE_LIMIT_MESSAGE = "Host is at bandwidth rate limit for pull queries.";
-    private static String TEST_SHOULD_NOT_FAIL = "This test should not throw an exception";
+    private static final String RATE_LIMIT_MESSAGE =
+        "Host is at bandwidth rate limit for pull queries.";
+    private static final String TEST_SHOULD_NOT_FAIL = "This test should not throw an exception";
 
     @Test
     public void addingToTheLimiter() {
@@ -180,8 +180,7 @@ public class SlidingWindowRateLimiterTest {
             tags
         );
         final KafkaMetric rejectMetric = metrics.metrics().get(rejectMetricName);
-        final double reject = (double) rejectMetric.metricValue();
-        return reject;
+        return (double) rejectMetric.metricValue();
     }
 
     private double getRemaining(final Metrics metrics, final Map<String, String> tags) {

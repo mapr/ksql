@@ -23,6 +23,9 @@ import static org.junit.Assert.assertThrows;
 import io.confluent.ksql.rest.util.ConcurrencyLimiter.Decrementer;
 import io.confluent.ksql.util.KsqlException;
 import java.util.Collections;
+import java.util.Map;
+import org.apache.kafka.common.MetricName;
+import org.apache.kafka.common.metrics.KafkaMetric;
 import org.apache.kafka.common.metrics.Metrics;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,45 +36,88 @@ public class ConcurrencyLimiterTest {
 
   @Test
   public void shouldSucceedUnderLimit() {
-    // Given:
+    final Metrics metrics = new Metrics();
+    final Map<String, String> tags = Collections.emptyMap();
     ConcurrencyLimiter limiter = new ConcurrencyLimiter(
         1,
         "pull queries",
-        new Metrics(),
-        Collections.emptyMap()
+        metrics,
+        tags
     );
 
-    // When:
+    assertThat(getReject(metrics, tags), is(0.0));
+    assertThat(getRemaining(metrics, tags), is(1.0));
+
     Decrementer decrementer = limiter.increment();
 
-    // Then:
     assertThat(limiter.getCount(), is(1));
+    assertThat(getReject(metrics, tags), is(0.0));
+    assertThat(getRemaining(metrics, tags), is(0.0));
+
     decrementer.decrementAtMostOnce();
     decrementer.decrementAtMostOnce();
+
     assertThat(limiter.getCount(), is(0));
+    assertThat(getReject(metrics, tags), is(0.0));
+    assertThat(getRemaining(metrics, tags), is(1.0));
+
   }
 
   @Test
   public void shouldError_atLimit() {
-    // Given:
+    final Metrics metrics = new Metrics();
+    final Map<String, String> tags = Collections.emptyMap();
     ConcurrencyLimiter limiter = new ConcurrencyLimiter(
         1,
         "pull queries",
-        new Metrics(),
-        Collections.emptyMap()
+        metrics,
+        tags
     );
 
-    // When:
+    assertThat(getReject(metrics, tags), is(0.0));
+    assertThat(getRemaining(metrics, tags), is(1.0));
+
     Decrementer decrementer = limiter.increment();
+
+    assertThat(getReject(metrics, tags), is(0.0));
+    assertThat(getRemaining(metrics, tags), is(0.0));
+
     final Exception e = assertThrows(
         KsqlException.class,
         limiter::increment
     );
 
-    // Then:
     assertThat(e.getMessage(), containsString("Host is at concurrency limit for pull queries."));
     assertThat(limiter.getCount(), is(1));
+    assertThat(getReject(metrics, tags), is(1.0));
+    assertThat(getRemaining(metrics, tags), is(0.0));
+
     decrementer.decrementAtMostOnce();
+
     assertThat(limiter.getCount(), is(0));
+    assertThat(getReject(metrics, tags), is(1.0));
+    assertThat(getRemaining(metrics, tags), is(1.0));
+  }
+
+  private double getReject(final Metrics metrics, final Map<String, String> tags) {
+    final MetricName rejectMetricName = new MetricName(
+        "concurrency-limit-reject-count",
+        "_confluent-ksql-limits",
+        "The number of requests rejected by this limiter",
+        tags
+    );
+    final KafkaMetric rejectMetric = metrics.metrics().get(rejectMetricName);
+    return (double) rejectMetric.metricValue();
+  }
+
+  private double getRemaining(final Metrics metrics, final Map<String, String> tags) {
+    final MetricName remainingMetricName = new MetricName(
+        "concurrency-limit-remaining",
+        "_confluent-ksql-limits",
+        "The current value of the concurrency limiter",
+        tags
+    );
+    final KafkaMetric remainingMetric = metrics.metrics().get(remainingMetricName);
+    return (double) remainingMetric.metricValue();
   }
 }
