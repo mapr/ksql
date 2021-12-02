@@ -794,6 +794,7 @@ public final class KsqlRestApplication implements Executable {
         new SlidingWindowRateLimiter(
             ksqlConfig.getInt(KsqlConfig.KSQL_QUERY_PULL_MAX_HOURLY_BANDWIDTH_MEGABYTES_CONFIG),
             NUM_MILLISECONDS_IN_HOUR,
+            "pull",
             MetricCollectors.getMetrics(),
             metricsTags
         );
@@ -801,6 +802,7 @@ public final class KsqlRestApplication implements Executable {
         new SlidingWindowRateLimiter(
             ksqlConfig.getInt(KsqlConfig.KSQL_QUERY_PUSH_V2_MAX_HOURLY_BANDWIDTH_MEGABYTES_CONFIG),
             NUM_MILLISECONDS_IN_HOUR,
+            "push",
             MetricCollectors.getMetrics(),
             metricsTags
         );

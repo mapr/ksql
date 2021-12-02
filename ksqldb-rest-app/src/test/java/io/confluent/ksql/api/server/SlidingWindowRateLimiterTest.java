@@ -20,6 +20,7 @@ public class SlidingWindowRateLimiterTest {
     private static final String RATE_LIMIT_MESSAGE =
         "Host is at bandwidth rate limit for pull queries.";
     private static final String TEST_SHOULD_NOT_FAIL = "This test should not throw an exception";
+    private static final String METRIC_PREFIX = "test";
 
     @Test
     public void addingToTheLimiter() {
@@ -28,6 +29,7 @@ public class SlidingWindowRateLimiterTest {
         final SlidingWindowRateLimiter limiter = new SlidingWindowRateLimiter(
             1,
             5L * 1000L,
+            METRIC_PREFIX,
             metrics,
             tags
         );
@@ -52,6 +54,7 @@ public class SlidingWindowRateLimiterTest {
         final SlidingWindowRateLimiter limiter = new SlidingWindowRateLimiter(
             1,
             5L * 1000L,
+            METRIC_PREFIX,
             metrics,
             tags
         );
@@ -76,6 +79,7 @@ public class SlidingWindowRateLimiterTest {
         final SlidingWindowRateLimiter limiter = new SlidingWindowRateLimiter(
             1,
             5L * 1000L,
+            METRIC_PREFIX,
             metrics,
             tags
         );
@@ -103,6 +107,7 @@ public class SlidingWindowRateLimiterTest {
         final SlidingWindowRateLimiter limiter = new SlidingWindowRateLimiter(
             1,
             5L * 1000L,
+            METRIC_PREFIX,
             metrics,
             tags
         );
@@ -130,6 +135,7 @@ public class SlidingWindowRateLimiterTest {
         final SlidingWindowRateLimiter limiter = new SlidingWindowRateLimiter(
             1,
             5L * 1000L,
+            METRIC_PREFIX,
             metrics,
             tags
         );
@@ -174,7 +180,7 @@ public class SlidingWindowRateLimiterTest {
 
     private double getReject(final Metrics metrics, final Map<String, String> tags) {
         final MetricName rejectMetricName = new MetricName(
-            "bandwidth-limit-reject-count",
+            METRIC_PREFIX + "-bandwidth-limit-reject-count",
             "_confluent-ksql-limits",
             "The number of requests rejected by this limiter",
             tags
@@ -185,7 +191,7 @@ public class SlidingWindowRateLimiterTest {
 
     private double getRemaining(final Metrics metrics, final Map<String, String> tags) {
         final MetricName remainingMetricName = new MetricName(
-            "bandwidth-limit-remaining",
+            METRIC_PREFIX + "-bandwidth-limit-remaining",
             "_confluent-ksql-limits",
             "The current value of the bandwidth limiter",
             tags
