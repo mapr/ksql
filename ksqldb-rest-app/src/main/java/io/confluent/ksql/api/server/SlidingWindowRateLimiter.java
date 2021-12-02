@@ -74,7 +74,7 @@ public class SlidingWindowRateLimiter {
   public SlidingWindowRateLimiter(
       final int requestLimitInMB,
       final long slidingWindowSizeMs,
-      final String metricNamePrefix,
+      final String metricNamespace,
       final Metrics metrics,
       final Map<String, String> metricsTags) {
 
@@ -90,7 +90,7 @@ public class SlidingWindowRateLimiter {
 
     metrics.addMetric(
         new MetricName(
-            metricNamePrefix + "-bandwidth-limit-remaining",
+            metricNamespace + "-bandwidth-limit-remaining",
             ReservedInternalTopics.KSQL_INTERNAL_TOPIC_PREFIX + "limits",
             "The current value of the bandwidth limiter",
             metricsTags
@@ -101,7 +101,7 @@ public class SlidingWindowRateLimiter {
     this.rejectSensor = metrics.sensor("bandwidth-limit-rejects");
     rejectSensor.add(
         new MetricName(
-            metricNamePrefix + "-bandwidth-limit-reject-count",
+            metricNamespace + "-bandwidth-limit-reject-count",
             ReservedInternalTopics.KSQL_INTERNAL_TOPIC_PREFIX + "limits",
             "The number of requests rejected by this limiter",
             metricsTags

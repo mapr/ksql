@@ -52,7 +52,7 @@ public class ConcurrencyLimiter {
 
     metrics.addMetric(
         new MetricName(
-            "concurrency-limit-remaining",
+            operationType + "-concurrency-limit-remaining",
             ReservedInternalTopics.KSQL_INTERNAL_TOPIC_PREFIX + "limits",
             "The current value of the concurrency limiter",
             metricsTags
@@ -63,7 +63,7 @@ public class ConcurrencyLimiter {
     this.rejectSensor = metrics.sensor("concurrency-limit-rejects");
     rejectSensor.add(
         new MetricName(
-            "concurrency-limit-reject-count",
+            operationType + "-concurrency-limit-reject-count",
             ReservedInternalTopics.KSQL_INTERNAL_TOPIC_PREFIX + "limits",
             "The number of requests rejected by this limiter",
             metricsTags
@@ -76,7 +76,7 @@ public class ConcurrencyLimiter {
     if (!semaphore.tryAcquire()) {
       rejectSensor.record();
       throw new KsqlException(
-          String.format("Host is at concurrency limit for %s. Currently set to %d maximum "
+          String.format("Host is at concurrency limit for %s queries. Currently set to %d maximum "
               + "concurrent operations.", operationType, limit));
     }
     return new Decrementer();

@@ -34,13 +34,15 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class RateLimiterTest {
 
+  public static final String METRIC_NAMESPACE = "test";
+
   @Test
   public void shouldSucceedUnderLimit() {
     final Metrics metrics = new Metrics();
     final Map<String, String> tags = Collections.emptyMap();
     // It doesn't look like the underlying guava rate limiter has a way to control time, so we're
     // just going to have to hope that these tests reliably run in under a second.
-    final RateLimiter limiter = new RateLimiter(1, metrics, tags);
+    final RateLimiter limiter = new RateLimiter(1, METRIC_NAMESPACE, metrics, tags);
 
     assertThat(getReject(metrics, tags), is(0.0));
 
@@ -55,7 +57,7 @@ public class RateLimiterTest {
     final Map<String, String> tags = Collections.emptyMap();
     // It doesn't look like the underlying guava rate limiter has a way to control time, so we're
     // just going to have to hope that these tests reliably run in under a second.
-    final RateLimiter limiter = new RateLimiter(1, metrics, tags);
+    final RateLimiter limiter = new RateLimiter(1, METRIC_NAMESPACE, metrics, tags);
 
     assertThat(getReject(metrics, tags), is(0.0));
 
@@ -72,7 +74,7 @@ public class RateLimiterTest {
 
   private double getReject(final Metrics metrics, final Map<String, String> tags) {
     final MetricName rejectMetricName = new MetricName(
-        "pull-rate-limit-reject-count",
+        METRIC_NAMESPACE + "-rate-limit-reject-count",
         "_confluent-ksql-limits",
         "The number of requests rejected by this limiter",
         tags

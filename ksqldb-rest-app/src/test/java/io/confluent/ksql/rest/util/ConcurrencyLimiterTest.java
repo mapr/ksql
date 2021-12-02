@@ -40,7 +40,7 @@ public class ConcurrencyLimiterTest {
     final Map<String, String> tags = Collections.emptyMap();
     ConcurrencyLimiter limiter = new ConcurrencyLimiter(
         1,
-        "pull queries",
+        "pull",
         metrics,
         tags
     );
@@ -69,7 +69,7 @@ public class ConcurrencyLimiterTest {
     final Map<String, String> tags = Collections.emptyMap();
     ConcurrencyLimiter limiter = new ConcurrencyLimiter(
         1,
-        "pull queries",
+        "pull",
         metrics,
         tags
     );
@@ -101,7 +101,7 @@ public class ConcurrencyLimiterTest {
 
   private double getReject(final Metrics metrics, final Map<String, String> tags) {
     final MetricName rejectMetricName = new MetricName(
-        "concurrency-limit-reject-count",
+        "pull-concurrency-limit-reject-count",
         "_confluent-ksql-limits",
         "The number of requests rejected by this limiter",
         tags
@@ -112,7 +112,7 @@ public class ConcurrencyLimiterTest {
 
   private double getRemaining(final Metrics metrics, final Map<String, String> tags) {
     final MetricName remainingMetricName = new MetricName(
-        "concurrency-limit-remaining",
+        "pull-concurrency-limit-remaining",
         "_confluent-ksql-limits",
         "The current value of the concurrency limiter",
         tags

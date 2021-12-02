@@ -781,12 +781,13 @@ public final class KsqlRestApplication implements Executable {
         heartbeatAgent, lagReportingAgent);
     final RateLimiter pullQueryRateLimiter = new RateLimiter(
         ksqlConfig.getInt(KsqlConfig.KSQL_QUERY_PULL_MAX_QPS_CONFIG),
+        "pull",
         MetricCollectors.getMetrics(),
         metricsTags
     );
     final ConcurrencyLimiter pullQueryConcurrencyLimiter = new ConcurrencyLimiter(
         ksqlConfig.getInt(KsqlConfig.KSQL_QUERY_PULL_MAX_CONCURRENT_REQUESTS_CONFIG),
-        "pull queries",
+        "pull",
         MetricCollectors.getMetrics(),
         metricsTags
     );

@@ -170,7 +170,12 @@ public class QueryExecutorTest {
     when(scalablePushQueryMetadata.getTotalRowsProcessed()).thenReturn(ROWS_PROCESSED);
     when(scalablePushQueryMetadata.getTotalRowsReturned()).thenReturn(ROWS_RETURNED);
 
-    rateLimiter = new RateLimiter(1, new Metrics(), Collections.emptyMap());
+    rateLimiter = new RateLimiter(
+        1,
+        "pull",
+        new Metrics(),
+        Collections.emptyMap()
+    );
     final Query pullQueryQuery = mock(Query.class);
     when(pullQueryQuery.isPullQuery()).thenReturn(true);
     final Query pushQueryQuery = mock(Query.class);

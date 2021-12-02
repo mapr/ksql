@@ -29,7 +29,9 @@ public class RateLimiter {
   private final com.google.common.util.concurrent.RateLimiter rateLimiter;
   private final Sensor rejectSensor;
 
-  public RateLimiter(final double permitsPerSecond,
+  public RateLimiter(
+      final double permitsPerSecond,
+      final String metricNamespace,
       final Metrics metrics,
       final Map<String, String> metricsTags) {
     this.rateLimiter = com.google.common.util.concurrent.RateLimiter.create(permitsPerSecond);
@@ -37,7 +39,7 @@ public class RateLimiter {
     this.rejectSensor = metrics.sensor("pull-rate-limit-rejects");
     rejectSensor.add(
         new MetricName(
-            "pull-rate-limit-reject-count",
+            metricNamespace + "-rate-limit-reject-count",
             ReservedInternalTopics.KSQL_INTERNAL_TOPIC_PREFIX + "limits",
             "The number of requests rejected by this limiter",
             metricsTags
