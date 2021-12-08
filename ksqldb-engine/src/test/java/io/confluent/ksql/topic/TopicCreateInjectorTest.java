@@ -71,8 +71,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
-//TODO KAFKA-446: Fix unit tests to support MapR environment
-@Ignore
 public class TopicCreateInjectorTest {
 
   private static final LogicalSchema SCHEMA = LogicalSchema.builder()
@@ -101,7 +99,7 @@ public class TopicCreateInjectorTest {
     overrides = new HashMap<>();
     config = new KsqlConfig(new HashMap<>());
 
-    injector = new TopicCreateInjector(null, topicClient, metaStore);
+    injector = new TopicCreateInjector(new KsqlConfig(ImmutableMap.of(KsqlConfig.KSQL_DEFAULT_STREAM_CONFIG, "/sample-stream")), topicClient, metaStore);
 
     final KsqlTopic sourceTopic = new KsqlTopic(
         "source",
@@ -346,7 +344,7 @@ public class TopicCreateInjectorTest {
 
     // Then:
     verify(topicClient).createTopic(
-        "expectedName",
+        "/sample-stream:expectedName",
         10,
         (short) 10,
         ImmutableMap.of(TopicConfig.CLEANUP_POLICY_CONFIG, TopicConfig.CLEANUP_POLICY_DELETE));
@@ -363,7 +361,7 @@ public class TopicCreateInjectorTest {
 
     // Then:
     verify(topicClient).createTopic(
-        "expectedName",
+        "/sample-stream:expectedName",
         10,
         (short) 10,
         ImmutableMap.of(TopicConfig.CLEANUP_POLICY_CONFIG, TopicConfig.CLEANUP_POLICY_DELETE));
@@ -381,7 +379,7 @@ public class TopicCreateInjectorTest {
 
     // Then:
     verify(topicClient).createTopic(
-        "expectedName",
+        "/sample-stream:expectedName",
         10,
         (short) 10,
         ImmutableMap.of(TopicConfig.CLEANUP_POLICY_CONFIG, TopicConfig.CLEANUP_POLICY_COMPACT));
@@ -398,7 +396,7 @@ public class TopicCreateInjectorTest {
 
     // Then:
     verify(topicClient).createTopic(
-        "topic",
+        "/sample-stream:topic",
         10,
         (short) 10,
         ImmutableMap.of(TopicConfig.CLEANUP_POLICY_CONFIG, TopicConfig.CLEANUP_POLICY_COMPACT));
@@ -416,7 +414,7 @@ public class TopicCreateInjectorTest {
 
     // Then:
     verify(topicClient).createTopic(
-        "expectedName",
+        "/sample-stream:expectedName",
         10,
         (short) 10,
         ImmutableMap.of(TopicConfig.CLEANUP_POLICY_CONFIG,
@@ -435,7 +433,7 @@ public class TopicCreateInjectorTest {
 
     // Then:
     verify(topicClient).createTopic(
-        "expectedName",
+        "/sample-stream:expectedName",
         10,
         (short) 10,
         ImmutableMap.of(

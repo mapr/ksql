@@ -55,7 +55,9 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-//TODO KAFKA-446: Fix unit tests to support MapR environment. Some tests fail after upgrading jetty
+//upgrade to jetty 4.9.43 (4.9.35 changes) lead to problem with JAASLoginService.INSTANCE
+//please see https://github.com/eclipse/jetty.project/issues/5486
+//  https://github.com/apache/cxf/pull/735
 @Ignore
 @RunWith(CoreApiTestRunner.class)
 public class AuthTest extends ApiTest {

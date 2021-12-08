@@ -18,7 +18,7 @@ import org.junit.Test;
 /**
  * Functional test for the running of historic tests, i.e. TestCasePlan, by QTT.
  */
-//TODO KAFKA-446: Fix unit tests to support MapR environment
+//TEST_HARNESS::kafkaBootstrapServers is not supported (NPE will be thrown)
 @Ignore
 public class HistoricalTestingFunctionalTest {
 

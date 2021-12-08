@@ -30,7 +30,7 @@ import org.junit.rules.Timeout;
 import org.mockserver.integration.ClientAndProxy;
 import org.mockserver.socket.PortFactory;
 
-//TODO KAFKA-446: Fix unit tests to support MapR environment
+
 public class VersionCheckerIntegrationTest {
 
   private static int proxyPort;

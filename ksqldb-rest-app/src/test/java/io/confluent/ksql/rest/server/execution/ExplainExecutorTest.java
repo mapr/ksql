@@ -39,6 +39,7 @@ import io.confluent.ksql.serde.FormatFactory;
 import io.confluent.ksql.serde.FormatInfo;
 import io.confluent.ksql.serde.KeyFormat;
 import io.confluent.ksql.statement.ConfiguredStatement;
+import io.confluent.ksql.testutils.AvoidMaprFSAppDirCreation;
 import io.confluent.ksql.util.KsqlConstants;
 import io.confluent.ksql.util.KsqlConstants.KsqlQueryStatus;
 import io.confluent.ksql.util.KsqlException;
@@ -48,24 +49,23 @@ import java.util.Collections;
 import java.util.Optional;
 import org.apache.kafka.streams.KafkaStreams;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.core.classloader.annotations.MockPolicy;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(MockitoJUnitRunner.class)
-//TODO KAFKA-446: Fix unit tests to support MapR environment
-@Ignore
+@RunWith(PowerMockRunner.class)
+@MockPolicy(AvoidMaprFSAppDirCreation.class)
+@PowerMockIgnore({"javax.management.*", "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "org.w3c.*"})
 public class ExplainExecutorTest {
 
   private static final KsqlQueryStatus STATE = KsqlQueryStatus.RUNNING;
   private static final KsqlHostInfo LOCAL_HOST = new KsqlHostInfo("host", 8080);
   @Rule
   public final TemporaryEngine engine = new TemporaryEngine();
-  @Mock
-  private SessionProperties sessionProperties;
+  private SessionProperties sessionProperties = mock(SessionProperties.class);
 
   @Before
   public void setup() {

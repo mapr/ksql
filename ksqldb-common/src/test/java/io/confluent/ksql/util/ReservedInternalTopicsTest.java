@@ -29,7 +29,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 public class ReservedInternalTopicsTest {
-  private static final String KSQL_PROCESSING_LOG_TOPIC = "default_ksql_processing_log";
+  private static final String KSQL_PROCESSING_LOG_TOPIC = "/apps/ksql/default_/KSQL_PROCESSING_LOG:default_ksql_processing_log";
 
   private ReservedInternalTopics internalTopics;
   private KsqlConfig ksqlConfig;
@@ -64,7 +64,6 @@ public class ReservedInternalTopicsTest {
   }
 
   @Test
-  @Ignore // TODO KAFKA-446
   public void shouldReturnTrueOnAllReadOnlyTopics() {
     // Given
     final List<String> topicNames = ImmutableList.of(

@@ -126,7 +126,7 @@ public class FakeKafkaTopicClient implements KafkaTopicClient {
       final int numPartitions,
       final int replicationFactor,
       final Map<String, ?> configs) {
-    topicMap.put(topic, createFakeTopic(topic, numPartitions, replicationFactor, configs));
+    topicMap.put(getFullTopicName(topic), createFakeTopic(getFullTopicName(topic), numPartitions, replicationFactor, configs));
   }
 
   @Override
@@ -177,8 +177,8 @@ public class FakeKafkaTopicClient implements KafkaTopicClient {
     // not sure about this change
     return topicNames.stream()
         .filter(topicNames::contains)
-        .collect(
-            Collectors.toMap(n -> n, n -> topicMap.get(getFullTopicName(n)).getDescription()));  }
+        .collect(Collectors.toMap(Function.identity(), n -> this.describeTopic(getFullTopicName(n))));
+    }
 
   @Override
   public TopicDescription describeTopic(final String topicName) {

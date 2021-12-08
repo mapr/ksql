@@ -526,11 +526,10 @@ public class InsertValuesExecutorTest {
   }
 
   @Test
-  @Ignore //TODO KAFKA-446
   public void shouldThrowWhenInsertValuesOnProcessingLogTopic() {
     // Given
-    givenDataSourceWithSchema("default_ksql_processing_log", SCHEMA,
-        SerdeOption.none(), false);
+    String topicName = "/apps/ksql/default_/KSQL_PROCESSING_LOG:default_ksql_processing_log";
+    givenDataSourceWithSchema(topicName, SCHEMA, SerdeOption.none(), false);
 
     final ConfiguredStatement<InsertValues> statement = ConfiguredStatement.of(
         PreparedStatement.of(
@@ -555,7 +554,7 @@ public class InsertValuesExecutorTest {
 
     // Then:
     assertThat(e.getMessage(), containsString(
-        "Cannot insert values into read-only topic: default_ksql_processing_log"));
+        "Cannot insert values into read-only topic: " + topicName));
   }
 
   @Test

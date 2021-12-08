@@ -20,6 +20,7 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThrows;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.confluent.ksql.engine.KsqlEngine;
@@ -42,19 +43,21 @@ import io.confluent.ksql.serde.SerdeOption;
 import io.confluent.ksql.serde.ValueFormat;
 import io.confluent.ksql.services.KafkaTopicClient;
 import io.confluent.ksql.services.ServiceContext;
+import io.confluent.ksql.testutils.AvoidMaprFSAppDirCreation;
 import io.confluent.ksql.util.KsqlException;
 import java.util.Optional;
 import org.apache.kafka.clients.admin.TopicDescription;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.core.classloader.annotations.MockPolicy;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(MockitoJUnitRunner.class)
-@Ignore //TODO KAFKA-446
+@RunWith(PowerMockRunner.class)
+@MockPolicy(AvoidMaprFSAppDirCreation.class)
+@PowerMockIgnore("javax.management.*")
 public class SourceTopicsExtractorTest {
 
   private static final LogicalSchema SCHEMA = LogicalSchema.builder()
@@ -65,14 +68,10 @@ public class SourceTopicsExtractorTest {
   private static final String STREAM_TOPIC_1 = "s1";
   private static final String STREAM_TOPIC_2 = "s2";
 
-  @Mock
-  private ServiceContext serviceContext;
-  @Mock
-  private KafkaTopicClient kafkaTopicClient;
-  @Mock
-  private TopicDescription TOPIC_1;
-  @Mock
-  private TopicDescription TOPIC_2;
+  private ServiceContext serviceContext = mock(ServiceContext.class);
+  private KafkaTopicClient kafkaTopicClient = mock(KafkaTopicClient.class);
+  private TopicDescription TOPIC_1 = mock(TopicDescription.class);
+  private TopicDescription TOPIC_2 = mock(TopicDescription.class);
 
   private SourceTopicsExtractor extractor;
   private KsqlEngine ksqlEngine;

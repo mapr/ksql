@@ -58,6 +58,7 @@ public class UserGroupInformationMockPolicy implements PowerMockPolicy {
     Capture<String> remoteNameCapture = newCapture();
     expect(UserGroupInformation.createRemoteUser(capture(remoteNameCapture)))
         .andStubAnswer(() -> stubUser(remoteNameCapture.getValue(), null));
+    expect(UserGroupInformation.isSecurityEnabled()).andReturn(false);
   }
 
   private static UserGroupInformation stubUser(@Nonnull String name, UserGroupInformation realUser) throws IOException, InterruptedException {

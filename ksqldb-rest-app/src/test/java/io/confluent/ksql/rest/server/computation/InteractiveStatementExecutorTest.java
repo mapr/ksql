@@ -65,7 +65,7 @@ import io.confluent.ksql.services.FakeKafkaTopicClient;
 import io.confluent.ksql.services.ServiceContext;
 import io.confluent.ksql.services.TestServiceContext;
 import io.confluent.ksql.statement.ConfiguredStatement;
-import io.confluent.ksql.test.util.EmbeddedSingleNodeKafkaCluster;
+import io.confluent.ksql.testutils.AvoidMaprFSAppDirCreation;
 import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.ksql.util.KsqlStatementException;
 import io.confluent.ksql.util.Pair;
@@ -82,20 +82,20 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatcher;
 import org.mockito.InOrder;
-import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.core.classloader.annotations.MockPolicy;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(MockitoJUnitRunner.class)
-//TODO KAFKA-446: Fix unit tests to support MapR environment
-@Ignore
+@RunWith(PowerMockRunner.class)
+@MockPolicy(AvoidMaprFSAppDirCreation.class)
+@PowerMockIgnore("javax.management.*")
 public class InteractiveStatementExecutorTest {
   private static final String CREATE_STREAM_FOO_STATMENT = "CREATE STREAM foo ("
       + "biz bigint,"
@@ -111,33 +111,22 @@ public class InteractiveStatementExecutorTest {
   private ServiceContext serviceContext;
   private InteractiveStatementExecutor statementExecutorWithMocks;
 
-  @Mock
-  private StatementParser mockParser;
-  @Mock
-  private SpecificQueryIdGenerator mockQueryIdGenerator;
-  @Mock
-  private KsqlEngine mockEngine;
-  @Mock
-  private MetaStore mockMetaStore;
-  @Mock
-  private PersistentQueryMetadata mockQueryMetadata;
-  @Mock
-  private QueuedCommand queuedCommand;
-  @Mock
-  private KsqlPlan plan;
-  @Mock
-  private CommandStatusFuture status;
+  private StatementParser mockParser = mock(StatementParser.class);
+  private SpecificQueryIdGenerator mockQueryIdGenerator = mock(SpecificQueryIdGenerator.class);
+  private KsqlEngine mockEngine = mock(KsqlEngine.class);
+  private PersistentQueryMetadata mockQueryMetadata = mock(PersistentQueryMetadata.class);
+  private QueuedCommand queuedCommand = mock(QueuedCommand.class);
+  private KsqlPlan plan = mock(KsqlPlan.class);
+  private CommandStatusFuture status = mock(CommandStatusFuture.class);
 
   private Command plannedCommand;
 
   @Before
   public void setUp() {
-    ksqlConfig = KsqlConfigTestUtil.create(
-        CLUSTER,
-        ImmutableMap.of(StreamsConfig.APPLICATION_SERVER_CONFIG, "http://host:1234")
-    );
+    ksqlConfig = new KsqlConfig(ImmutableMap.of(StreamsConfig.APPLICATION_SERVER_CONFIG, "http://host:1234",
+                KsqlConfig.KSQL_DEFAULT_STREAM_CONFIG, "/sample-stream"));
 
-    final FakeKafkaTopicClient fakeKafkaTopicClient = new FakeKafkaTopicClient();
+    final FakeKafkaTopicClient fakeKafkaTopicClient = new FakeKafkaTopicClient(ksqlConfig);
     fakeKafkaTopicClient.createTopic("pageview_topic", 1, (short) 1, emptyMap());
     fakeKafkaTopicClient.createTopic("foo", 1, (short) 1, emptyMap());
     fakeKafkaTopicClient.createTopic("pageview_topic_json", 1, (short) 1, emptyMap());
@@ -183,12 +172,9 @@ public class InteractiveStatementExecutorTest {
     serviceContext.close();
   }
 
-  private static final EmbeddedSingleNodeKafkaCluster CLUSTER = EmbeddedSingleNodeKafkaCluster.build();
-
   @ClassRule
   public static final RuleChain CLUSTER_WITH_RETRY = RuleChain
-      .outerRule(Retry.of(3, ZooKeeperClientException.class, 3, TimeUnit.SECONDS))
-      .around(CLUSTER);
+      .outerRule(Retry.of(3, ZooKeeperClientException.class, 3, TimeUnit.SECONDS));
 
   @Test(expected = IllegalArgumentException.class)
   public void shouldThrowOnConfigureIfAppServerNotSet() {
@@ -476,8 +462,6 @@ public class InteractiveStatementExecutorTest {
   }
 
   @Test
-  //TODO KAFKA-446: Fix unit tests to support MapR environment
-  @Ignore
   public void shouldHandlePriorStatements() {
     // Given:
     final List<Pair<CommandId, Command>> priorCommands = TestUtils.getAllPriorCommandRecords();
@@ -544,8 +528,6 @@ public class InteractiveStatementExecutorTest {
   }
 
   @Test
-  //TODO KAFKA-446: Fix unit tests to support MapR environment
-  @Ignore
   public void shouldEnforceReferentialIntegrity() {
     createStreamsAndStartTwoPersistentQueries();
 

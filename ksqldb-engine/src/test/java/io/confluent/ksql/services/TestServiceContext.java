@@ -15,6 +15,7 @@
 
 package io.confluent.ksql.services;
 
+import com.google.common.collect.ImmutableMap;
 import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.ksql.util.FakeKafkaClientSupplier;
@@ -34,6 +35,13 @@ public final class TestServiceContext {
   public static ServiceContext create() {
     return create(
         new FakeKafkaTopicClient()
+    );
+  }
+
+
+  public static ServiceContext create(KsqlConfig ksqlConfig) {
+    return create(
+            new FakeKafkaTopicClient(ksqlConfig)
     );
   }
 
@@ -95,7 +103,7 @@ public final class TestServiceContext {
       final ConnectClient connectClient
   ) {
     final DefaultServiceContext serviceContext = new DefaultServiceContext(
-        null,
+        new KsqlConfig(ImmutableMap.of(KsqlConfig.KSQL_DEFAULT_STREAM_CONFIG, "/sample-stream")),
         kafkaClientSupplier,
         () -> adminClient,
         topicClient,

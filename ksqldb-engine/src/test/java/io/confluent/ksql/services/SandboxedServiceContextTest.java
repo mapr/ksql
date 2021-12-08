@@ -57,6 +57,7 @@ public final class SandboxedServiceContextTest {
           .ignore("getSchemaRegistryClient")
           .ignore("getSchemaRegistryClientFactory")
           .ignore("getConnectClient")
+          .ignore("getKsqlConfig")
           .ignore("close")
           .build();
     }
@@ -84,7 +85,6 @@ public final class SandboxedServiceContextTest {
       sandboxedServiceContext = SandboxedServiceContext.create(delegate);
     }
 
-    @Ignore //TODO KAFKA-446
     @Test(expected = UnsupportedOperationException.class)
     public void shouldThrowOnUnsupportedOperation() throws Throwable {
       testCase.invokeMethod(sandboxedServiceContext);

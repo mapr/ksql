@@ -42,7 +42,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
-//TODO KAFKA-446: Fix unit tests to support MapR environment
+//TEST_HARNESS::kafkaBootstrapServers is not supported (NPE will be thrown)
 @Ignore
 public class TestExecutorUtilTest {
 

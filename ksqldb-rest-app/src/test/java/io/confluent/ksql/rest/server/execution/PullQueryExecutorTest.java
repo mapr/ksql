@@ -31,11 +31,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.confluent.ksql.execution.streams.RoutingFilter.RoutingFilterFactory;
 import io.confluent.ksql.execution.streams.RoutingFilters;
-import io.confluent.ksql.parser.DefaultKsqlParser;
-import io.confluent.ksql.parser.KsqlParser.ParsedStatement;
 import io.confluent.ksql.parser.KsqlParser.PreparedStatement;
 import io.confluent.ksql.parser.tree.Query;
-import io.confluent.ksql.parser.tree.ResultMaterialization;
 import io.confluent.ksql.rest.SessionProperties;
 import io.confluent.ksql.rest.server.TemporaryEngine;
 import io.confluent.ksql.rest.server.resources.KsqlRestException;
@@ -43,23 +40,26 @@ import io.confluent.ksql.rest.server.validation.CustomValidators;
 import io.confluent.ksql.statement.ConfiguredStatement;
 import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.ksql.util.KsqlException;
-import java.util.List;
 import java.util.Optional;
 
-import org.junit.Ignore;
+import io.confluent.ksql.util.MaprFSUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(Enclosed.class)
-@Ignore //TODO KAFKA-446
 public class PullQueryExecutorTest {
   private static final RoutingFilterFactory ROUTING_FILTER_FACTORY =
       (routingOptions, hosts, active, applicationQueryId, storeName, partition) ->
           new RoutingFilters(ImmutableList.of());
 
+  @RunWith(PowerMockRunner.class)
+  @PrepareForTest(MaprFSUtils.class)
+  @PowerMockIgnore("javax.management.*")
   public static class Disabled {
     @Rule
     public final TemporaryEngine engine = new TemporaryEngine()
@@ -91,7 +91,9 @@ public class PullQueryExecutorTest {
     }
   }
 
-  @RunWith(MockitoJUnitRunner.class)
+  @RunWith(PowerMockRunner.class)
+  @PrepareForTest(MaprFSUtils.class)
+  @PowerMockIgnore("javax.management.*")
   public static class Enabled {
 
     @Rule
@@ -127,7 +129,9 @@ public class PullQueryExecutorTest {
     }
   }
 
-  @RunWith(MockitoJUnitRunner.class)
+  @RunWith(PowerMockRunner.class)
+  @PrepareForTest(MaprFSUtils.class)
+  @PowerMockIgnore("javax.management.*")
   public static class RateLimit {
 
     @Rule

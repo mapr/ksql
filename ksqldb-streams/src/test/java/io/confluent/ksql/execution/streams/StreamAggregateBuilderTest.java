@@ -490,8 +490,6 @@ public class StreamAggregateBuilderTest {
   }
 
   @Test
-  //TODO KAFKA-446: Fix unit tests to support MapR environment
-  @Ignore
   public void shouldBuildSessionWindowedAggregateCorrectly() {
     // Given:
     givenSessionWindowedAggregate();

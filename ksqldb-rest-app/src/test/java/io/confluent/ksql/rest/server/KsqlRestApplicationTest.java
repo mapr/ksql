@@ -57,7 +57,9 @@ import io.confluent.ksql.security.KsqlSecurityContext;
 import io.confluent.ksql.security.KsqlSecurityExtension;
 import io.confluent.ksql.services.KafkaTopicClient;
 import io.confluent.ksql.services.ServiceContext;
+import io.confluent.ksql.testutils.AvoidMaprFSAppDirCreation;
 import io.confluent.ksql.util.KsqlConfig;
+import io.confluent.ksql.util.MaprFSUtils;
 import io.confluent.ksql.version.metrics.VersionCheckerAgent;
 import io.vertx.core.Vertx;
 import java.util.Collections;
@@ -71,75 +73,53 @@ import org.apache.kafka.common.metrics.MetricsReporter;
 import org.apache.kafka.streams.StreamsConfig;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
-import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.api.easymock.PowerMock;
+import org.powermock.core.classloader.annotations.MockPolicy;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(MockitoJUnitRunner.class)
-@Ignore //TODO KAFKA-446
+@RunWith(PowerMockRunner.class)
+@MockPolicy(AvoidMaprFSAppDirCreation.class)
+@PowerMockIgnore({"javax.management.*", "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "org.w3c.*"})
 public class KsqlRestApplicationTest {
   private static final String LOG_STREAM_NAME = "log_stream";
   private static final String LOG_TOPIC_NAME = "log_topic";
   private static final String CMD_TOPIC_NAME = "command_topic";
   private static final String LIST_STREAMS_SQL = "list streams;";
 
-  @Mock
-  private ServiceContext serviceContext;
-  @Mock
-  private KsqlEngine ksqlEngine;
-  @Mock
-  private KsqlConfig ksqlConfig;
-  @Mock
-  private ProcessingLogConfig processingLogConfig;
-  @Mock
-  private CommandRunner commandRunner;
-  @Mock
-  private StatusResource statusResource;
-  @Mock
-  private StreamedQueryResource streamedQueryResource;
-  @Mock
-  private KsqlResource ksqlResource;
-  @Mock
-  private VersionCheckerAgent versionCheckerAgent;
-  @Mock
-  private CommandStore commandQueue;
-  @Mock
-  private KsqlSecurityExtension securityExtension;
-  @Mock
-  private ProcessingLogContext processingLogContext;
-  @Mock
-  private ServerState serverState;
-  @Mock
-  private KafkaTopicClient topicClient;
-  @Mock
-  private KsqlServerPrecondition precondition1;
-  @Mock
-  private KsqlServerPrecondition precondition2;
-  @Mock
-  private ParsedStatement parsedStatement;
-  @Mock
-  private PreparedStatement<?> preparedStatement;
-  @Mock
-  private Consumer<KsqlConfig> rocksDBConfigSetterHandler;
-  @Mock
-  private PullQueryExecutor pullQueryExecutor;
-  @Mock
-  private HeartbeatAgent heartbeatAgent;
-  @Mock
-  private LagReportingAgent lagReportingAgent;
-  @Mock
-  private EndpointResponse response;
+  private ServiceContext serviceContext = mock(ServiceContext.class);
+  private KsqlEngine ksqlEngine = mock(KsqlEngine.class);
+  private KsqlConfig ksqlConfig = mock(KsqlConfig.class);
+  private ProcessingLogConfig processingLogConfig = mock(ProcessingLogConfig.class);
+  private CommandRunner commandRunner = mock(CommandRunner.class);
+  private StatusResource statusResource = mock(StatusResource.class);
+  private StreamedQueryResource streamedQueryResource = mock(StreamedQueryResource.class);
+  private KsqlResource ksqlResource = mock(KsqlResource.class);
+  private VersionCheckerAgent versionCheckerAgent = mock(VersionCheckerAgent.class);
+  private CommandStore commandQueue = mock(CommandStore.class);
+  private KsqlSecurityExtension securityExtension = mock(KsqlSecurityExtension.class);
+  private ProcessingLogContext processingLogContext = mock(ProcessingLogContext.class);
+  private ServerState serverState = mock(ServerState.class);
+  private KafkaTopicClient topicClient = mock(KafkaTopicClient.class);
+  private KsqlServerPrecondition precondition1 = mock(KsqlServerPrecondition.class);
+  private KsqlServerPrecondition precondition2 = mock(KsqlServerPrecondition.class);
+  private ParsedStatement parsedStatement = mock(ParsedStatement.class);
+  private PreparedStatement<?> preparedStatement = mock(PreparedStatement.class);
+  @SuppressWarnings("unchecked")
+  private Consumer<KsqlConfig> rocksDBConfigSetterHandler = mock(Consumer.class);
+  private PullQueryExecutor pullQueryExecutor = mock(PullQueryExecutor.class);
+  private HeartbeatAgent heartbeatAgent = mock(HeartbeatAgent.class);
+  private LagReportingAgent lagReportingAgent = mock(LagReportingAgent.class);
+  private EndpointResponse response = mock(EndpointResponse.class);
 
-  @Mock
-  private SchemaRegistryClient schemaRegistryClient;
+  private SchemaRegistryClient schemaRegistryClient = mock(SchemaRegistryClient.class);
 
-  @Mock
-  private Vertx vertx;
+  private Vertx vertx = mock(Vertx.class);
 
   private String logCreateStatement;
   private KsqlRestApplication app;
@@ -152,6 +132,7 @@ public class KsqlRestApplicationTest {
   @SuppressWarnings("unchecked")
   @Before
   public void setUp() {
+    PowerMock.mockStatic(MaprFSUtils.class);
     when(processingLogConfig.getBoolean(ProcessingLogConfig.STREAM_AUTO_CREATE))
         .thenReturn(true);
     when(processingLogConfig.getString(ProcessingLogConfig.STREAM_NAME))

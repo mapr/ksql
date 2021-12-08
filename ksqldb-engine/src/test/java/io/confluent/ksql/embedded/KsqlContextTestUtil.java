@@ -33,6 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.kafka.clients.admin.Admin;
 import org.apache.kafka.streams.KafkaClientSupplier;
 import org.apache.kafka.streams.processor.internals.DefaultKafkaClientSupplier;
+import org.mockito.Mockito;
 
 public final class KsqlContextTestUtil {
 
@@ -48,8 +49,7 @@ public final class KsqlContextTestUtil {
   ) {
     final KafkaClientSupplier clientSupplier = new DefaultKafkaClientSupplier();
 
-    final Admin adminClient = clientSupplier
-        .getAdmin(ksqlConfig.getKsqlAdminClientConfigProps());
+    final Admin adminClient = Mockito.mock(Admin.class);
 
     final KafkaTopicClient kafkaTopicClient = new KafkaTopicClientImpl(() -> adminClient, ksqlConfig.getKsqlDefaultStream());
 

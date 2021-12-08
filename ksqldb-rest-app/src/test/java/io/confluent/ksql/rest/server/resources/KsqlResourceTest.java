@@ -138,6 +138,7 @@ import io.confluent.ksql.schema.ksql.types.SqlTypes;
 import io.confluent.ksql.schema.utils.FormatOptions;
 import io.confluent.ksql.security.KsqlAuthorizationValidator;
 import io.confluent.ksql.security.KsqlSecurityContext;
+import io.confluent.ksql.security.filter.UserGroupInformationMockPolicy;
 import io.confluent.ksql.serde.FormatFactory;
 import io.confluent.ksql.serde.FormatInfo;
 import io.confluent.ksql.serde.KeyFormat;
@@ -186,21 +187,18 @@ import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.powermock.core.classloader.annotations.MockPolicy;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 @SuppressWarnings({"unchecked", "SameParameterValue"})
 @RunWith(PowerMockRunner.class)
-@MockPolicy(AvoidMaprFSAppDirCreation.class)
-//TODO KAFKA-446: Fix unit tests to support MapR environment
-@Ignore
+@MockPolicy({AvoidMaprFSAppDirCreation.class, UserGroupInformationMockPolicy.class})
+@PowerMockIgnore({"javax.management.*", "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "org.w3c.*"})
 public class KsqlResourceTest {
 
   private static final long STATE_CLEANUP_DELAY_MS_DEFAULT = 10 * 60 * 1000L;
@@ -269,30 +267,19 @@ public class KsqlResourceTest {
   private FakeKafkaTopicClient kafkaTopicClient;
   private KsqlEngine realEngine;
   private KsqlEngine ksqlEngine;
-  @Mock
-  private SandboxEngine sandbox;
-  @Mock
-  private CommandStore commandStore;
-  @Mock
-  private ActivenessRegistrar activenessRegistrar;
-  @Mock
-  private Function<ServiceContext, Injector> schemaInjectorFactory;
-  @Mock
-  private Injector schemaInjector;
-  @Mock
-  private Injector sandboxSchemaInjector;
-  @Mock
-  private Function<KsqlExecutionContext, Injector> topicInjectorFactory;
-  @Mock
-  private Injector topicInjector;
-  @Mock
-  private Injector sandboxTopicInjector;
-  @Mock
-  private KsqlAuthorizationValidator authorizationValidator;
-  @Mock
-  private Producer<CommandId, Command> transactionalProducer;
-  @Mock
-  private Errors errorsHandler;
+
+  private SandboxEngine sandbox = mock(SandboxEngine.class);
+  private CommandStore commandStore = mock(CommandStore.class);
+  private ActivenessRegistrar activenessRegistrar = mock(ActivenessRegistrar.class);
+  private Function<ServiceContext, Injector> schemaInjectorFactory = mock(Function.class);
+  private Injector schemaInjector = mock(Injector.class);
+  private Injector sandboxSchemaInjector = mock(Injector.class);
+  private Function<KsqlExecutionContext, Injector> topicInjectorFactory = mock(Function.class);
+  private Injector topicInjector = mock(Injector.class);
+  private Injector sandboxTopicInjector = mock(Injector.class);
+  private KsqlAuthorizationValidator authorizationValidator = mock(KsqlAuthorizationValidator.class);
+  private Producer<CommandId, Command> transactionalProducer = mock(Producer.class);
+  private Errors errorsHandler = mock(Errors.class);
 
   private KsqlResource ksqlResource;
   private SchemaRegistryClient schemaRegistryClient;
@@ -315,12 +302,12 @@ public class KsqlResourceTest {
     final QueuedCommandStatus commandStatus2 = new QueuedCommandStatus(
         2, new CommandStatusFuture(new CommandId(STREAM, "something", EXECUTE)));
 
+    ksqlRestConfig = new KsqlRestConfig(getDefaultKsqlConfig());
+    ksqlConfig = new KsqlConfig(ksqlRestConfig.getKsqlConfigProperties());
     kafkaTopicClient = new FakeKafkaTopicClient(ksqlConfig);
     serviceContext = TestServiceContext.create(kafkaTopicClient);
     schemaRegistryClient = serviceContext.getSchemaRegistryClient();
     registerSchema(schemaRegistryClient);
-    ksqlRestConfig = new KsqlRestConfig(getDefaultKsqlConfig());
-    ksqlConfig = new KsqlConfig(ksqlRestConfig.getKsqlConfigProperties());
 
     metaStore = new MetaStoreImpl(new InternalFunctionRegistry());
 
@@ -491,11 +478,11 @@ public class KsqlResourceTest {
         SourceDescriptionFactory.create(
             ksqlEngine.getMetaStore().getSource(SourceName.of("TEST_STREAM")),
             true, Collections.emptyList(), Collections.emptyList(),
-            Optional.of(kafkaTopicClient.describeTopic("KAFKA_TOPIC_2"))),
+            Optional.of(kafkaTopicClient.describeTopic(ksqlConfig.getKsqlDefaultStream() + ":KAFKA_TOPIC_2"))),
         SourceDescriptionFactory.create(
             ksqlEngine.getMetaStore().getSource(SourceName.of("new_stream")),
             true, Collections.emptyList(), Collections.emptyList(),
-            Optional.of(kafkaTopicClient.describeTopic("new_topic"))))
+            Optional.of(kafkaTopicClient.describeTopic(ksqlConfig.getKsqlDefaultStream() + ":new_topic"))))
     );
   }
 
@@ -521,11 +508,11 @@ public class KsqlResourceTest {
         SourceDescriptionFactory.create(
             ksqlEngine.getMetaStore().getSource(SourceName.of("TEST_TABLE")),
             true, Collections.emptyList(), Collections.emptyList(),
-            Optional.of(kafkaTopicClient.describeTopic("KAFKA_TOPIC_1"))),
+            Optional.of(kafkaTopicClient.describeTopic(ksqlConfig.getKsqlDefaultStream() + ":KAFKA_TOPIC_1"))),
         SourceDescriptionFactory.create(
             ksqlEngine.getMetaStore().getSource(SourceName.of("new_table")),
             true, Collections.emptyList(), Collections.emptyList(),
-            Optional.of(kafkaTopicClient.describeTopic("new_topic"))))
+            Optional.of(kafkaTopicClient.describeTopic(ksqlConfig.getKsqlDefaultStream() + ":new_topic"))))
     );
   }
 
@@ -1785,7 +1772,8 @@ public class KsqlResourceTest {
         (CommandStatusEntity) ((KsqlEntityList) response.getEntity()).get(0);
     assertThat(commandStatusEntity.getCommandStatus().getStatus(),
         equalTo(CommandStatus.Status.QUEUED));
-    verify(transactionalProducer, times(1)).initTransactions();
+    //we don't support transactions
+//    verify(transactionalProducer, times(1)).initTransactions();
     verify(commandStore).enqueueCommand(
         any(),
         argThat(is(commandWithStatement(TerminateCluster.TERMINATE_CLUSTER_STATEMENT_TEXT))),
@@ -2209,9 +2197,10 @@ public class KsqlResourceTest {
   private void givenSource(
       final DataSourceType type,
       final String sourceName,
-      final String topicName,
+      String topicName,
       final LogicalSchema schema
   ) {
+    topicName = ksqlConfig.getKsqlDefaultStream() + ":" + topicName;
     final KsqlTopic ksqlTopic = new KsqlTopic(
         topicName,
         KeyFormat.nonWindowed(FormatInfo.of(FormatFactory.KAFKA.name())),
@@ -2251,6 +2240,7 @@ public class KsqlResourceTest {
     configMap.put("ksql.command.topic.suffix", "commands");
     configMap.put(KsqlRestConfig.LISTENERS_CONFIG, "http://localhost:8084");
     configMap.put(StreamsConfig.APPLICATION_SERVER_CONFIG, APPLICATION_SERVER);
+    configMap.put(KsqlConfig.KSQL_DEFAULT_STREAM_CONFIG, "/sample-stream");
 
     final Properties properties = new Properties();
     properties.putAll(configMap);

@@ -47,7 +47,7 @@ import org.junit.runners.Parameterized;
  * See `ksql-functional-tests/README.md` for more info.
  */
 @RunWith(Parameterized.class)
-//TODO KAFKA-446: Fix unit tests to support MapR environment
+//TEST_HARNESS::kafkaBootstrapServers is not supported (NPE will be thrown)
 @Ignore
 public class QueryTranslationTest {
 

@@ -34,7 +34,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-//TODO KAFKA-446: Fix unit tests to support MapR environment
+//TEST_HARNESS::kafkaBootstrapServers is not supported (NPE will be thrown)
 @Ignore
 public class KsqlTestingToolTest {
 

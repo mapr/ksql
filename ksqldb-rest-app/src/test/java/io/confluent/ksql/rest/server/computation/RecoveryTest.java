@@ -24,7 +24,6 @@ import static org.mockito.Mockito.mock;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import io.confluent.ksql.KsqlConfigTestUtil;
 import io.confluent.ksql.engine.KsqlEngine;
 import io.confluent.ksql.engine.KsqlEngineTestUtil;
 import io.confluent.ksql.execution.ddl.commands.KsqlTopic;
@@ -70,23 +69,21 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.streams.StreamsConfig;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.powermock.core.classloader.annotations.MockPolicy;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
 @MockPolicy(AvoidMaprFSAppDirCreation.class)
-//TODO KAFKA-446: Fix unit tests to support MapR environment
-@Ignore
+@PowerMockIgnore("javax.management.*")
 public class RecoveryTest {
 
   private final KsqlConfig ksqlConfig = new KsqlConfig(
@@ -94,7 +91,7 @@ public class RecoveryTest {
   );
 
   private final List<QueuedCommand> commands = new LinkedList<>();
-  private final FakeKafkaTopicClient topicClient = new FakeKafkaTopicClient();
+  private final FakeKafkaTopicClient topicClient = new FakeKafkaTopicClient(ksqlConfig);
   private final SpecificQueryIdGenerator queryIdGenerator = new SpecificQueryIdGenerator();
   private final ServiceContext serviceContext = TestServiceContext.create(topicClient);
 
@@ -568,7 +565,7 @@ public class RecoveryTest {
   @Test
   public void shouldRecoverCreates() {
     server1.submitCommands(
-        "CREATE STREAM A (COLUMN STRING) WITH (KAFKA_TOPIC='A', VALUE_FORMAT='JSON');",
+        "CREATE STREAM A (COLUMN STRING) WITH (KAFKA_TOPIC='/sample-stream:A', VALUE_FORMAT='JSON');",
         "CREATE STREAM B AS SELECT * FROM A;"
     );
     shouldRecover(commands);
@@ -577,7 +574,7 @@ public class RecoveryTest {
   @Test
   public void shouldRecoverRecreates() {
     server1.submitCommands(
-        "CREATE STREAM A (ROWKEY STRING KEY, C1 STRING, C2 INT) WITH (KAFKA_TOPIC='A', VALUE_FORMAT='JSON');",
+        "CREATE STREAM A (ROWKEY STRING KEY, C1 STRING, C2 INT) WITH (KAFKA_TOPIC='/sample-stream:A', VALUE_FORMAT='JSON');",
         "CREATE STREAM B AS SELECT ROWKEY, C1 FROM A;",
         "TERMINATE CsAs_b_0;",
         "DROP STREAM B;",
@@ -589,8 +586,8 @@ public class RecoveryTest {
   @Test
   public void shouldRecoverInsertIntos() {
     server1.submitCommands(
-        "CREATE STREAM A (COLUMN STRING) WITH (KAFKA_TOPIC='A', VALUE_FORMAT='JSON');",
-        "CREATE STREAM B (COLUMN STRING) WITH (KAFKA_TOPIC='B', VALUE_FORMAT='JSON', PARTITIONS=1);",
+        "CREATE STREAM A (COLUMN STRING) WITH (KAFKA_TOPIC='/sample-stream:A', VALUE_FORMAT='JSON');",
+        "CREATE STREAM B (COLUMN STRING) WITH (KAFKA_TOPIC='/sample-stream:B', VALUE_FORMAT='JSON', PARTITIONS=1);",
         "INSERT INTO B SELECT * FROM A;"
     );
     shouldRecover(commands);
@@ -599,8 +596,8 @@ public class RecoveryTest {
   @Test
   public void shouldRecoverInsertIntosRecreates() {
     server1.submitCommands(
-        "CREATE STREAM A (COLUMN STRING) WITH (KAFKA_TOPIC='A', VALUE_FORMAT='JSON');",
-        "CREATE STREAM B (COLUMN STRING) WITH (KAFKA_TOPIC='B', VALUE_FORMAT='JSON', PARTITIONS=1);",
+        "CREATE STREAM A (COLUMN STRING) WITH (KAFKA_TOPIC='/sample-stream:A', VALUE_FORMAT='JSON');",
+        "CREATE STREAM B (COLUMN STRING) WITH (KAFKA_TOPIC='/sample-stream:B', VALUE_FORMAT='JSON', PARTITIONS=1);",
         "INSERT INTO B SELECT * FROM A;",
         "TERMINATE InsertQuery_0;",
         "INSERT INTO B SELECT * FROM A;"
@@ -611,7 +608,7 @@ public class RecoveryTest {
   @Test
   public void shouldRecoverTerminates() {
     server1.submitCommands(
-        "CREATE STREAM A (COLUMN STRING) WITH (KAFKA_TOPIC='A', VALUE_FORMAT='JSON');",
+        "CREATE STREAM A (COLUMN STRING) WITH (KAFKA_TOPIC='/sample-stream:A', VALUE_FORMAT='JSON');",
         "CREATE STREAM B AS SELECT * FROM A;",
         "INSERT INTO B SELECT * FROM A;",
         "TERMINATE CSAS_B_0;",
@@ -623,7 +620,7 @@ public class RecoveryTest {
   @Test
   public void shouldRecoverDrop() {
     server1.submitCommands(
-        "CREATE STREAM A (COLUMN STRING) WITH (KAFKA_TOPIC='A', VALUE_FORMAT='JSON');",
+        "CREATE STREAM A (COLUMN STRING) WITH (KAFKA_TOPIC='/sample-stream:A', VALUE_FORMAT='JSON');",
         "CREATE STREAM B AS SELECT * FROM A;",
         "TERMINATE CSAS_B_0;",
         "DROP STREAM B;"
@@ -634,7 +631,7 @@ public class RecoveryTest {
   @Test
   public void shouldRecoverWithDuplicateTerminateAndDrop() {
     server1.submitCommands(
-        "CREATE STREAM A (COLUMN STRING) WITH (KAFKA_TOPIC='A', VALUE_FORMAT='JSON');",
+        "CREATE STREAM A (COLUMN STRING) WITH (KAFKA_TOPIC='/sample-stream:A', VALUE_FORMAT='JSON');",
         "CREATE STREAM B AS SELECT * FROM A;",
         "TERMINATE CSAS_B_0;"
     );
@@ -654,7 +651,7 @@ public class RecoveryTest {
   public void shouldNotDeleteTopicsOnRecovery() {
     topicClient.preconditionTopicExists("B");
     server1.submitCommands(
-        "CREATE STREAM A (COLUMN STRING) WITH (KAFKA_TOPIC='A', VALUE_FORMAT='JSON');",
+        "CREATE STREAM A (COLUMN STRING) WITH (KAFKA_TOPIC='/sample-stream:A', VALUE_FORMAT='JSON');",
         "CREATE STREAM B AS SELECT * FROM A;",
         "TERMINATE CSAS_B_0;",
         "DROP STREAM B DELETE TOPIC;"

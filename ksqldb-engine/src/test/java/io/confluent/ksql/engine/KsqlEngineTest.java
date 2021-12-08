@@ -37,13 +37,14 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
+import com.google.common.collect.ImmutableMap;
 import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
-import io.confluent.ksql.KsqlConfigTestUtil;
 import io.confluent.ksql.KsqlExecutionContext;
 import io.confluent.ksql.KsqlExecutionContext.ExecuteResult;
 import io.confluent.ksql.function.InternalFunctionRegistry;
@@ -58,10 +59,12 @@ import io.confluent.ksql.parser.tree.CreateTable;
 import io.confluent.ksql.parser.tree.DropTable;
 import io.confluent.ksql.query.QueryId;
 import io.confluent.ksql.schema.ksql.SystemColumns;
+import io.confluent.ksql.security.filter.UserGroupInformationMockPolicy;
 import io.confluent.ksql.services.FakeKafkaTopicClient;
 import io.confluent.ksql.services.ServiceContext;
 import io.confluent.ksql.services.TestServiceContext;
 import io.confluent.ksql.statement.ConfiguredStatement;
+import io.confluent.ksql.testutils.AvoidMaprFSAppDirCreation;
 import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.ksql.util.KsqlConstants;
 import io.confluent.ksql.util.KsqlException;
@@ -80,35 +83,37 @@ import java.util.stream.Collectors;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Type;
 import org.apache.avro.SchemaBuilder;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.utils.Utils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.core.classloader.annotations.MockPolicy;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.modules.junit4.PowerMockRunner;
+
 
 @SuppressWarnings({"OptionalGetWithoutIsPresent", "SameParameterValue"})
-@RunWith(MockitoJUnitRunner.class)
-//TODO KAFKA-446: Fix unit tests to support MapR environment
-@Ignore
+@RunWith(PowerMockRunner.class)
+@MockPolicy({AvoidMaprFSAppDirCreation.class, UserGroupInformationMockPolicy.class})
+@PowerMockIgnore({"javax.management.*", "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "org.w3c.*"})
+
 public class KsqlEngineTest {
 
-  private static final KsqlConfig KSQL_CONFIG = KsqlConfigTestUtil.create("what-eva");
+  private static final KsqlConfig KSQL_CONFIG = new KsqlConfig(ImmutableMap.of(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "what-eva",
+    KsqlConfig.KSQL_DEFAULT_STREAM_CONFIG, "/sample-stream"));
 
   private MutableMetaStore metaStore;
-  @Spy
-  private final SchemaRegistryClient schemaRegistryClient = new MockSchemaRegistryClient();
+  private final SchemaRegistryClient schemaRegistryClient = spy(MockSchemaRegistryClient.class);
   private final Supplier<SchemaRegistryClient> schemaRegistryClientFactory =
       () -> schemaRegistryClient;
 
   private KsqlEngine ksqlEngine;
   private ServiceContext serviceContext;
   private ServiceContext sandboxServiceContext;
-  @Spy
-  private final FakeKafkaTopicClient topicClient = new FakeKafkaTopicClient();
+  private final FakeKafkaTopicClient topicClient = spy(new FakeKafkaTopicClient(KSQL_CONFIG));
   private KsqlExecutionContext sandbox;
 
   @Before

@@ -40,6 +40,7 @@ import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.ksql.util.KsqlConstants;
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -65,7 +66,6 @@ import org.apache.kafka.connect.data.Struct;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matcher;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -516,8 +516,6 @@ public class KsqlAvroSerializerTest {
   }
 
   @Test
-  //TODO KAFKA-446: Fix unit tests to support MapR environment
-  @Ignore
   public void shouldSerializeArrayOfStruct() {
     // Given:
     givenSerializerForSchema(SchemaBuilder
@@ -531,7 +529,7 @@ public class KsqlAvroSerializerTest {
     final byte[] bytes = serializer.serialize(SOME_TOPIC, value);
 
     // Then:
-    assertThat(deserialize(bytes), is(ImmutableList.of(avroOrder)));
+    assertThat(deserialize(bytes), is(Arrays.asList(avroOrder)));
   }
 
   @Test

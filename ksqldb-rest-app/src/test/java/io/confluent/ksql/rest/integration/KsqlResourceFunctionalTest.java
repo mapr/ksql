@@ -60,7 +60,7 @@ import org.junit.rules.RuleChain;
 
 @SuppressWarnings("unchecked")
 @Category({IntegrationTest.class})
-//TODO KAFKA-446: Fix unit tests to support MapR environment
+//TEST_HARNESS::kafkaBootstrapServers is not supported (NPE will be thrown)
 @Ignore
 public class KsqlResourceFunctionalTest {
 

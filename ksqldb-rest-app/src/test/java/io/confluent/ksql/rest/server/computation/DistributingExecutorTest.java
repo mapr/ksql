@@ -228,7 +228,6 @@ public class DistributingExecutorTest {
   }
 
   @Test
-  @Ignore // no transactions support TODO KAFKA-446
   public void shouldThrowExceptionOnFailureToEnqueue() {
     // Given:
     final KsqlException cause = new KsqlException("fail");
@@ -245,7 +244,8 @@ public class DistributingExecutorTest {
     assertThat(e.getMessage(), containsString(
         "Could not write the statement 'statement' into the command topic."));
     assertThat(e.getCause(), (is(cause)));
-    verify(transactionalProducer, times(1)).abortTransaction();
+    //we don't support transactions
+//    verify(transactionalProducer, times(1)).abortTransaction();
   }
 
   @Test
@@ -359,7 +359,6 @@ public class DistributingExecutorTest {
   }
 
   @Test
-  @Ignore // no transactions support TODO KAFKA-446
   public void shouldThrowExceptionWhenInsertIntoProcessingLogTopic() {
     // Given
     final PreparedStatement<Statement> preparedStatement =
@@ -368,8 +367,7 @@ public class DistributingExecutorTest {
         ConfiguredStatement.of(preparedStatement, ImmutableMap.of(), KSQL_CONFIG);
     final DataSource dataSource = mock(DataSource.class);
     doReturn(dataSource).when(metaStore).getSource(SourceName.of("s1"));
-    when(dataSource.getKafkaTopicName()).thenReturn("default_ksql_processing_log");
-
+    when(dataSource.getKafkaTopicName()).thenReturn("/apps/ksql/default_/KSQL_PROCESSING_LOG:default_ksql_processing_log");
     // When:
     final Exception e = assertThrows(
         KsqlException.class,
@@ -379,6 +377,6 @@ public class DistributingExecutorTest {
     // Then:
     assertThat(e.getMessage(), containsString(
         "Cannot insert into read-only topic: "
-            + "default_ksql_processing_log"));
+            + "/apps/ksql/default_/KSQL_PROCESSING_LOG:default_ksql_processing_log"));
   }
 }

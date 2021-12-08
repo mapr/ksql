@@ -55,7 +55,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import io.confluent.ksql.util.MaprFSUtils;
 import org.junit.rules.ExternalResource;
+import org.powermock.api.easymock.PowerMock;
 
 public class TemporaryEngine extends ExternalResource {
 
@@ -78,10 +81,12 @@ public class TemporaryEngine extends ExternalResource {
 
   @Override
   protected void before() {
+    PowerMock.mockStaticPartial(MaprFSUtils.class,
+            "createAppDirAndInternalStreamsIfNotExist");
     final InternalFunctionRegistry functionRegistry = new InternalFunctionRegistry();
     metaStore = new MetaStoreImpl(functionRegistry);
 
-    serviceContext = TestServiceContext.create();
+    serviceContext = TestServiceContext.create(new KsqlConfig(ImmutableMap.of(KsqlConfig.KSQL_DEFAULT_STREAM_CONFIG, "/sample-stream")));
     engine = (KsqlEngineTestUtil.createKsqlEngine(getServiceContext(), metaStore));
 
     ksqlConfig = KsqlConfigTestUtil.create(

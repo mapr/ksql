@@ -37,16 +37,20 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+
+import io.confluent.ksql.util.MaprFSUtils;
 import org.apache.commons.collections4.map.HashedMap;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(MockitoJUnitRunner.class)
-@Ignore //TODO KAFKA-446
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(MaprFSUtils.class)
+@PowerMockIgnore("javax.management.*")
 public class PropertyOverriderTest {
 
   @Rule

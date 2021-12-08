@@ -57,8 +57,10 @@ import io.confluent.ksql.services.KafkaTopicClient;
 import io.confluent.ksql.services.ServiceContext;
 import io.confluent.ksql.services.TestServiceContext;
 import io.confluent.ksql.statement.ConfiguredStatement;
+import io.confluent.ksql.testutils.AvoidMaprFSAppDirCreation;
 import io.confluent.ksql.util.KsqlConstants;
 import io.confluent.ksql.util.KsqlStatementException;
+import io.confluent.ksql.util.MaprFSUtils;
 import io.confluent.ksql.util.PersistentQueryMetadata;
 import java.util.Arrays;
 import java.util.Collections;
@@ -67,25 +69,25 @@ import java.util.stream.Collectors;
 import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.common.Node;
 import org.apache.kafka.common.TopicPartitionInfo;
-import org.apache.kafka.streams.KafkaStreams;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.core.classloader.annotations.MockPolicy;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(MockitoJUnitRunner.class)
-//TODO KAFKA-446: Fix unit tests to support MapR environment
-@Ignore
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(MaprFSUtils.class)
+@MockPolicy(AvoidMaprFSAppDirCreation.class)
+@PowerMockIgnore({"javax.management.*", "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "org.w3c.*"})
 public class ListSourceExecutorTest {
 
   @Rule
   public final TemporaryEngine engine = new TemporaryEngine();
 
-  @Mock
-  private TopicDescription topicWith1PartitionAndRfOf1;
+  private TopicDescription topicWith1PartitionAndRfOf1 = mock(TopicDescription.class);
 
   @Before
   public void setUp() {
@@ -98,9 +100,9 @@ public class ListSourceExecutorTest {
   @Test
   public void shouldShowStreams() {
     // Given:
-    final KsqlStream<?> stream1 = engine.givenSource(DataSourceType.KSTREAM, "stream1");
-    final KsqlStream<?> stream2 = engine.givenSource(DataSourceType.KSTREAM, "stream2");
-    engine.givenSource(DataSourceType.KTABLE, "table");
+    final KsqlStream<?> stream1 = engine.givenSource(DataSourceType.KSTREAM, "/sample-stream:stream1");
+    final KsqlStream<?> stream2 = engine.givenSource(DataSourceType.KSTREAM, "/sample-stream:stream2");
+    engine.givenSource(DataSourceType.KTABLE, "/sample-stream:table");
 
     // When:
     final StreamsList descriptionList = (StreamsList)
@@ -129,9 +131,9 @@ public class ListSourceExecutorTest {
   @Test
   public void shouldShowStreamsExtended() {
     // Given:
-    final KsqlStream<?> stream1 = engine.givenSource(DataSourceType.KSTREAM, "stream1");
-    final KsqlStream<?> stream2 = engine.givenSource(DataSourceType.KSTREAM, "stream2");
-    engine.givenSource(DataSourceType.KTABLE, "table");
+    final KsqlStream<?> stream1 = engine.givenSource(DataSourceType.KSTREAM, "/sample-stream:stream1");
+    final KsqlStream<?> stream2 = engine.givenSource(DataSourceType.KSTREAM, "/sample-stream:stream2");
+    engine.givenSource(DataSourceType.KTABLE, "/sample-stream:table");
 
     // When:
     final SourceDescriptionList descriptionList = (SourceDescriptionList)
@@ -162,9 +164,9 @@ public class ListSourceExecutorTest {
   @Test
   public void shouldShowTables() {
     // Given:
-    final KsqlTable<?> table1 = engine.givenSource(DataSourceType.KTABLE, "table1");
-    final KsqlTable<?> table2 = engine.givenSource(DataSourceType.KTABLE, "table2");
-    engine.givenSource(DataSourceType.KSTREAM, "stream");
+    final KsqlTable<?> table1 = engine.givenSource(DataSourceType.KTABLE, "/sample-stream:table1");
+    final KsqlTable<?> table2 = engine.givenSource(DataSourceType.KTABLE, "/sample-stream:table2");
+    engine.givenSource(DataSourceType.KSTREAM, "/sample-stream:stream");
 
     // When:
     final TablesList descriptionList = (TablesList)
@@ -195,9 +197,9 @@ public class ListSourceExecutorTest {
   @Test
   public void shouldShowTablesExtended() {
     // Given:
-    final KsqlTable<?> table1 = engine.givenSource(DataSourceType.KTABLE, "table1");
-    final KsqlTable<?> table2 = engine.givenSource(DataSourceType.KTABLE, "table2");
-    engine.givenSource(DataSourceType.KSTREAM, "stream");
+    final KsqlTable<?> table1 = engine.givenSource(DataSourceType.KTABLE, "/sample-stream:table1");
+    final KsqlTable<?> table2 = engine.givenSource(DataSourceType.KTABLE, "/sample-stream:table2");
+    engine.givenSource(DataSourceType.KSTREAM, "/sample-stream:stream");
 
     // When:
     final SourceDescriptionList descriptionList = (SourceDescriptionList)
@@ -294,7 +296,7 @@ public class ListSourceExecutorTest {
   @Test
   public void shouldNotCallTopicClientForExtendedDescription() {
     // Given:
-    engine.givenSource(DataSourceType.KSTREAM, "stream1");
+    engine.givenSource(DataSourceType.KSTREAM, "/sample-stream:stream1");
     final KafkaTopicClient spyTopicClient = spy(engine.getServiceContext().getTopicClient());
     final ServiceContext serviceContext = TestServiceContext.create(
         engine.getServiceContext().getKafkaClientSupplier(),
@@ -355,10 +357,10 @@ public class ListSourceExecutorTest {
   @Test
   public void shouldAddWarningsOnClientExceptionForStreamListing() {
     // Given:
-    final KsqlStream<?> stream1 = engine.givenSource(DataSourceType.KSTREAM, "stream1");
-    final KsqlStream<?> stream2 = engine.givenSource(DataSourceType.KSTREAM, "stream2");
+    final KsqlStream<?> stream1 = engine.givenSource(DataSourceType.KSTREAM, "/sample-stream:stream1");
+    final KsqlStream<?> stream2 = engine.givenSource(DataSourceType.KSTREAM, "/sample-stream:stream2");
     final ServiceContext serviceContext = engine.getServiceContext();
-    serviceContext.getTopicClient().deleteTopics(ImmutableList.of("stream1", "stream2"));
+    serviceContext.getTopicClient().deleteTopics(ImmutableList.of("/sample-stream:stream1", "/sample-stream:stream2"));
 
     // When:
     final KsqlEntity entity = CustomExecutors.LIST_STREAMS.execute(
@@ -375,10 +377,10 @@ public class ListSourceExecutorTest {
   @Test
   public void shouldAddWarningsOnClientExceptionForTopicListing() {
     // Given:
-    final KsqlTable<?> table1 = engine.givenSource(DataSourceType.KTABLE, "table1");
-    final KsqlTable<?> table2 = engine.givenSource(DataSourceType.KTABLE, "table2");
+    final KsqlTable<?> table1 = engine.givenSource(DataSourceType.KTABLE, "/sample-stream:table1");
+    final KsqlTable<?> table2 = engine.givenSource(DataSourceType.KTABLE, "/sample-stream:table2");
     final ServiceContext serviceContext = engine.getServiceContext();
-    serviceContext.getTopicClient().deleteTopics(ImmutableList.of("table1", "table2"));
+    serviceContext.getTopicClient().deleteTopics(ImmutableList.of("/sample-stream:table1", "/sample-stream:table2"));
 
     // When:
     final KsqlEntity entity = CustomExecutors.LIST_TABLES.execute(

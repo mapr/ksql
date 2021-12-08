@@ -51,6 +51,7 @@ import io.confluent.ksql.services.SimpleKsqlClient;
 import io.confluent.ksql.statement.ConfiguredStatement;
 import io.confluent.ksql.util.KsqlConstants;
 import io.confluent.ksql.util.KsqlConstants.KsqlQueryStatus;
+import io.confluent.ksql.util.MaprFSUtils;
 import io.confluent.ksql.util.PersistentQueryMetadata;
 import io.confluent.ksql.util.QueryMetadata;
 import io.confluent.ksql.util.TransientQueryMetadata;
@@ -65,15 +66,16 @@ import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.state.HostInfo;
 import org.apache.kafka.streams.state.StreamsMetadata;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(MockitoJUnitRunner.class)
-@Ignore //TODO KAFKA-446
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(MaprFSUtils.class)
+@PowerMockIgnore("javax.management.*")
 public class ListQueriesExecutorTest {
 
   private static final HostInfo REMOTE_HOST = new HostInfo("otherhost", 1234);
@@ -91,20 +93,14 @@ public class ListQueriesExecutorTest {
   
   @Rule public final TemporaryEngine engine = new TemporaryEngine();
 
-  @Mock
-  private SessionProperties sessionProperties;
-  @Mock
-  private RestResponse<KsqlEntityList> response;
-  @Mock
-  private ServiceContext serviceContext;
-  @Mock
-  private SimpleKsqlClient ksqlClient;
-  @Mock
-  private KsqlEntityList ksqlEntityList;
-  @Mock
-  private Queries remoteQueries;
-  @Mock
-  private QueryDescriptionList remoteQueryDescriptionList;
+  private SessionProperties sessionProperties = mock(SessionProperties.class);
+  @SuppressWarnings("unchecked")
+  private RestResponse<KsqlEntityList> response =  mock(RestResponse.class);
+  private ServiceContext serviceContext = mock(ServiceContext.class);
+  private SimpleKsqlClient ksqlClient = mock(SimpleKsqlClient.class);
+  private KsqlEntityList ksqlEntityList = mock(KsqlEntityList.class);
+  private Queries remoteQueries = mock(Queries.class);
+  private QueryDescriptionList remoteQueryDescriptionList = mock(QueryDescriptionList.class);
   
   private QueryStatusCount queryStatusCount;
 

@@ -71,7 +71,7 @@ import org.junit.experimental.categories.Category;
 import org.junit.rules.RuleChain;
 
 @Category({IntegrationTest.class})
-//TODO KAFKA-446: Fix unit tests to support MapR environment
+//TEST_HARNESS::kafkaBootstrapServers is not supported (NPE will be thrown)
 @Ignore
 public class ApiIntegrationTest {
 
