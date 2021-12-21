@@ -95,7 +95,7 @@
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-core</artifactId>
-            <version>${vertx.version}</version>
+            <version>3.9.4.0-eep-SNAPSHOT</version>
         </dependency>
 
         <dependency>

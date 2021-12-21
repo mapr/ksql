@@ -83,6 +83,14 @@ public interface ClientOptions {
   ClientOptions setTrustStorePassword(String trustStorePassword);
 
   /**
+   * Sets the key store type.
+   *
+   * @param keyStoreType key store type
+   * @return a reference to this
+   */
+  ClientOptions setKeyType(String keyStoreType);
+
+  /**
    * Sets the key store path.
    *
    * @param keyStorePath key store path
@@ -173,6 +181,13 @@ public interface ClientOptions {
    * @return trust store password
    */
   String getTrustStorePassword();
+
+  /**
+   * Returns the key store type.
+   *
+   * @return key store type
+   */
+  String getKeyType();
 
   /**
    * Returns the key store path.

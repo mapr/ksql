@@ -21,6 +21,7 @@ import io.confluent.ksql.rest.client.KsqlClient;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.net.JksOptions;
+import io.vertx.core.net.KeyStoreOptions;
 import io.vertx.core.net.SocketAddress;
 import java.util.Map;
 import java.util.Optional;
@@ -56,17 +57,30 @@ public final class InternalKsqlClientFactory {
       httpClientOptions.setVerifyHost(false);
       httpClientOptions.setSsl(true);
       final String trustStoreLocation = clientProps.get(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG);
+      final String trustStoreType = clientProps.get(SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG);
       if (trustStoreLocation != null) {
         final String suppliedTruststorePassword = clientProps
             .get(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG);
-        httpClientOptions.setTrustStoreOptions(new JksOptions().setPath(trustStoreLocation)
-            .setPassword(suppliedTruststorePassword == null ? "" : suppliedTruststorePassword));
+        if ("BCFKS".equals(trustStoreType)) {
+          httpClientOptions.setTrustOptions(new KeyStoreOptions().setType("BCFKS")
+              .setPath(trustStoreLocation)
+              .setPassword(suppliedTruststorePassword == null ? "" : suppliedTruststorePassword));
+        } else {
+          httpClientOptions.setTrustStoreOptions(new JksOptions().setPath(trustStoreLocation)
+              .setPassword(suppliedTruststorePassword == null ? "" : suppliedTruststorePassword));
+        }
         final String keyStoreLocation = clientProps.get(SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG);
         if (keyStoreLocation != null) {
           final String suppliedKeyStorePassord = clientProps
               .get(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG);
-          httpClientOptions.setKeyStoreOptions(new JksOptions().setPath(keyStoreLocation)
-              .setPassword(suppliedTruststorePassword == null ? "" : suppliedKeyStorePassord));
+          if ("BCFKS".equals(trustStoreType)) {
+            httpClientOptions.setKeyCertOptions(new KeyStoreOptions().setType("BCFKS")
+                .setPath(keyStoreLocation)
+                .setPassword(suppliedKeyStorePassord == null ? "" : suppliedKeyStorePassord));
+          } else {
+            httpClientOptions.setKeyStoreOptions(new JksOptions().setPath(keyStoreLocation)
+                .setPassword(suppliedKeyStorePassord == null ? "" : suppliedKeyStorePassord));
+          }
         }
       }
       return httpClientOptions;

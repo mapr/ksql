@@ -28,6 +28,7 @@ public class ClientOptionsImpl implements ClientOptions {
   private boolean useBasicAuth = false;
   private String trustStorePath;
   private String trustStorePassword;
+  private String keyStoreType;
   private String keyStorePath;
   private String keyStorePassword;
   private String basicAuthUsername;
@@ -48,7 +49,7 @@ public class ClientOptionsImpl implements ClientOptions {
       final boolean useTls, final boolean verifyHost, final boolean useAlpn,
       final boolean useBasicAuth,
       final String trustStorePath, final String trustStorePassword,
-      final String keyStorePath, final String keyStorePassword,
+      final String keyStoreType, final String keyStorePath, final String keyStorePassword,
       final String basicAuthUsername, final String basicAuthPassword,
       final int executeQueryMaxResultRows) {
     this.host = Objects.requireNonNull(host);
@@ -59,6 +60,7 @@ public class ClientOptionsImpl implements ClientOptions {
     this.useBasicAuth = useBasicAuth;
     this.trustStorePath = trustStorePath;
     this.trustStorePassword = trustStorePassword;
+    this.keyStoreType = keyStoreType;
     this.keyStorePath = keyStorePath;
     this.keyStorePassword = keyStorePassword;
     this.basicAuthUsername = basicAuthUsername;
@@ -105,6 +107,12 @@ public class ClientOptionsImpl implements ClientOptions {
   @Override
   public ClientOptions setTrustStorePassword(final String trustStorePassword) {
     this.trustStorePassword = trustStorePassword;
+    return this;
+  }
+
+  @Override
+  public ClientOptions setKeyType(final String keyStoreType) {
+    this.keyStoreType = keyStoreType;
     return this;
   }
 
@@ -175,6 +183,11 @@ public class ClientOptionsImpl implements ClientOptions {
   }
 
   @Override
+  public String getKeyType() {
+    return keyStoreType == null ? "" : keyStoreType;
+  }
+
+  @Override
   public String getKeyStore() {
     return keyStorePath == null ? "" : keyStorePath;
   }
@@ -205,7 +218,7 @@ public class ClientOptionsImpl implements ClientOptions {
         host, port,
         useTls, verifyHost, useAlpn,
         useBasicAuth,
-        trustStorePath, trustStorePassword,
+        trustStorePath, trustStorePassword, keyStoreType,
         keyStorePath, keyStorePassword,
         basicAuthUsername, basicAuthPassword,
         executeQueryMaxResultRows);
