@@ -33,6 +33,7 @@ import io.vertx.core.http.HttpConnection;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.impl.ConcurrentHashSet;
 import io.vertx.core.net.JksOptions;
+import io.vertx.core.net.KeyStoreOptions;
 import io.vertx.core.net.PfxOptions;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -275,6 +276,7 @@ public class Server {
     }
   }
 
+  // CHECKSTYLE_RULES.OFF: CyclomaticComplexity
   private static HttpServerOptions createHttpServerOptions(final KsqlRestConfig ksqlRestConfig,
       final String host, final int port, final boolean tls) {
 
@@ -303,6 +305,10 @@ public class Server {
         } else if (keyStoreType.equals(KsqlRestConfig.SSL_STORE_TYPE_PKCS12)) {
           options.setPfxKeyCertOptions(
               new PfxOptions().setPath(keyStorePath).setPassword(keyStorePassword.value()));
+        } else if (keyStoreType.equals(KsqlRestConfig.SSL_STORE_TYPE_BCFKS)) {
+          options.setKeyCertOptions(
+              new KeyStoreOptions().setPath(keyStorePath).setPassword(keyStorePassword.value())
+                      .setType(keyStoreType));
         }
       }
 
@@ -319,6 +325,10 @@ public class Server {
         } else if (trustStoreType.equals(KsqlRestConfig.SSL_STORE_TYPE_PKCS12)) {
           options.setPfxTrustOptions(
               new PfxOptions().setPath(trustStorePath).setPassword(trustStorePassword.value()));
+        } else if (trustStoreType.equals(KsqlRestConfig.SSL_STORE_TYPE_BCFKS)) {
+          options.setTrustOptions(
+              new KeyStoreOptions().setPath(keyStorePath).setPassword(keyStorePassword.value())
+                      .setType(trustStoreType));
         }
       }
 

@@ -36,6 +36,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.JksOptions;
+import io.vertx.core.net.KeyStoreOptions;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.core.parsetools.RecordParser;
 import java.nio.charset.Charset;
@@ -257,19 +258,38 @@ public class ClientImpl implements Client {
         .setVerifyHost(clientOptions.isVerifyHost())
         .setDefaultHost(clientOptions.getHost())
         .setDefaultPort(clientOptions.getPort());
-    if (clientOptions.isUseTls() && !clientOptions.getTrustStore().isEmpty()) {
-      options = options.setTrustStoreOptions(
-          new JksOptions()
-              .setPath(clientOptions.getTrustStore())
-              .setPassword(clientOptions.getTrustStorePassword())
-      );
-    }
-    if (!clientOptions.getKeyStore().isEmpty()) {
-      options = options.setKeyStoreOptions(
-          new JksOptions()
-              .setPath(clientOptions.getKeyStore())
-              .setPassword(clientOptions.getKeyStorePassword())
-      );
+    if ("BCFKS".equals(clientOptions.getKeyType())) {
+      if (clientOptions.isUseTls() && !clientOptions.getTrustStore().isEmpty()) {
+        options = options.setTrustOptions(
+            new KeyStoreOptions()
+                .setType("BCFKS")
+                .setPath(clientOptions.getTrustStore())
+                .setPassword(clientOptions.getTrustStorePassword())
+        );
+      }
+      if (!clientOptions.getKeyStore().isEmpty()) {
+        options = options.setKeyCertOptions(
+            new KeyStoreOptions()
+                .setType("BCFKS")
+                .setPath(clientOptions.getKeyStore())
+                .setPassword(clientOptions.getKeyStorePassword())
+        );
+      }
+    } else {
+      if (clientOptions.isUseTls() && !clientOptions.getTrustStore().isEmpty()) {
+        options = options.setTrustStoreOptions(
+            new JksOptions()
+                .setPath(clientOptions.getTrustStore())
+                .setPassword(clientOptions.getTrustStorePassword())
+        );
+      }
+      if (!clientOptions.getKeyStore().isEmpty()) {
+        options = options.setKeyStoreOptions(
+            new JksOptions()
+                .setPath(clientOptions.getKeyStore())
+                .setPassword(clientOptions.getKeyStorePassword())
+        );
+      }
     }
     return vertx.createHttpClient(options);
   }
