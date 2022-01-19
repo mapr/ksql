@@ -766,7 +766,7 @@ JSON_ARRAY_LENGTH(json_string) -> Integer
 ```
 
 Given a string, parses it as a JSON value and returns the length of the top-level array. Returns
-`NULL` if the string can't be interpreted as a JSON array, i.e., it is `NULL` or the JSON value is
+`NULL` if the string can't be interpreted as a JSON array, for example, when the string is `NULL` or the JSON value is
 not an array.
 
 Examples:
