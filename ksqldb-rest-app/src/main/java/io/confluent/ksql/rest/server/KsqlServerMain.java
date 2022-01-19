@@ -16,6 +16,7 @@
 package io.confluent.ksql.rest.server;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.mapr.web.security.WebSecurityManager;
 import io.confluent.ksql.properties.PropertiesUtil;
 import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.ksql.util.KsqlServerException;
@@ -23,6 +24,7 @@ import io.confluent.rest.RestConfig;
 import io.confluent.rest.impersonation.ImpersonationUtils;
 import java.io.File;
 import java.io.IOException;
+import java.security.Security;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -30,10 +32,14 @@ import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import org.apache.kafka.streams.StreamsConfig;
+import org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider;
+import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+// CHECKSTYLE_RULES.OFF: ClassDataAbstractionCoupling
 public class KsqlServerMain {
+  // CHECKSTYLE_RULES.ON: ClassDataAbstractionCoupling
 
   private static final Logger log = LoggerFactory.getLogger(KsqlServerMain.class);
 
@@ -124,6 +130,11 @@ public class KsqlServerMain {
             ? properties.get(RestConfig.IMPERSONATION)
             : String.valueOf(false));
     ImpersonationUtils.initialize(new RestConfig(RestConfig.baseConfigDef(), impersonationProps));
+
+    if ("BCFKS".equalsIgnoreCase(WebSecurityManager.getSslConfig().getServerKeystoreType())) {
+      Security.addProvider(new BouncyCastleFipsProvider());
+      Security.addProvider(new BouncyCastleJsseProvider());
+    }
 
     final Executable restApp = KsqlRestApplication
         .buildApplication(restConfig);
