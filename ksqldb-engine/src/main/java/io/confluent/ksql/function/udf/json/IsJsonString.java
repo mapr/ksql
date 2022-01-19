@@ -15,10 +15,8 @@
 
 package io.confluent.ksql.function.udf.json;
 
-import com.fasterxml.jackson.core.JacksonException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectReader;
 import io.confluent.ksql.function.FunctionCategory;
+import io.confluent.ksql.function.KsqlFunctionException;
 import io.confluent.ksql.function.udf.Udf;
 import io.confluent.ksql.function.udf.UdfDescription;
 import io.confluent.ksql.function.udf.UdfParameter;
@@ -31,7 +29,6 @@ import io.confluent.ksql.util.KsqlConstants;
         + " otherwise.",
     author = KsqlConstants.CONFLUENT_AUTHOR)
 public class IsJsonString {
-  private static final ObjectReader OBJECT_READER = UdfJsonMapper.INSTANCE.get().reader();
 
   @Udf
   public Boolean check(@UdfParameter(description = "The input JSON string") final String input) {
@@ -40,9 +37,8 @@ public class IsJsonString {
     }
 
     try {
-      final JsonNode node = OBJECT_READER.readTree(input);
-      return !node.isMissingNode();
-    } catch (final JacksonException e) {
+      return !UdfJsonMapper.parseJson(input).isMissingNode();
+    } catch (KsqlFunctionException e) {
       return false;
     }
   }
