@@ -19,17 +19,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import io.confluent.ksql.function.KsqlFunctionException;
-import org.junit.Before;
 import org.junit.Test;
 
 public class JsonArrayLengthTest {
 
-  private JsonArrayLength udf;
-
-  @Before
-  public void setUp() {
-    udf = new JsonArrayLength();
-  }
+  private static final JsonArrayLength udf = new JsonArrayLength();
 
   @Test
   public void shouldReturnFlatArrayLength() {
