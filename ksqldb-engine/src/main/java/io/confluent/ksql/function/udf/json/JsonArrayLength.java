@@ -30,7 +30,8 @@ import io.confluent.ksql.util.KsqlConstants;
     category = FunctionCategory.JSON,
     description = "Given a string, parses it as a JSON value and returns the length of the "
         + "top-level array. Returns NULL if the string can't be interpreted as a JSON array, "
-        + "i.e., it is NULL or it does not contain valid JSON, or the JSON value is not an array.",
+        + "for example, when the string `NULL` or the JSON value is not an array. This function"
+        + "throws `Invalid JSON format` if the string can't be interpreted as a JSON value.",
     author = KsqlConstants.CONFLUENT_AUTHOR
 )
 public class JsonArrayLength {
