@@ -44,6 +44,8 @@ public class Options {
   private static final String OUTPUT_FORMAT_OPTION_NAME = "--output";
   private static final String AUTH_METHOD_SHORT_OPTION = "-a";
   private static final String AUTH_METHOD_OPTION_NAME = "--auth";
+  private static final String CLUSTER_NAME_OPTION_NAME = "--cluster";
+  private static final String CLUSTER_NAME_SHORT_NAME = "-cn";
   private static final String SSL_TRUSTSTORE_SHORT_OPTION_NAME = "-t";
   private static final String SSL_TRUSTSTORE_OPTION_NAME = "--truststore";
   private static final String SSL_TRUSTSTORE_PASSWORD_SHORT_OPTION_NAME = "-tp";
@@ -82,6 +84,18 @@ public class Options {
               + " flag",
       hidden = true)
   private String authMethod;
+
+  @Option(
+          name = {CLUSTER_NAME_OPTION_NAME, CLUSTER_NAME_SHORT_NAME},
+          description =
+                  "If your KSQL server is configured for authentication via MAPRSASL,"
+                          + " then provide cluster name of which cluster to read mapr ticket."
+                          + " The cluster name must be specified separately with the "
+                          + CLUSTER_NAME_OPTION_NAME
+                          + "/"
+                          + CLUSTER_NAME_SHORT_NAME
+                          + " flag")
+  private String clusterName;
 
   @Option(
       name = {SSL_TRUSTSTORE_OPTION_NAME, SSL_TRUSTSTORE_SHORT_OPTION_NAME},
@@ -189,6 +203,10 @@ public class Options {
 
   public Optional<String> getAuthMethod() {
     return Optional.ofNullable(authMethod);
+  }
+
+  public String getClusterName() {
+    return this.clusterName;
   }
 
   public Optional<String> getSslTruststore() {

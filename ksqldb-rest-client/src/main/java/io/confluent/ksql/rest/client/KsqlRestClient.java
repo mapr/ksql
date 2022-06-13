@@ -56,6 +56,7 @@ public final class KsqlRestClient implements Closeable {
 
   private Optional<String> authMethod = Optional.empty();
   private String authHeader;
+  private String clusterName;
 
   private List<URI> serverAddresses;
 
@@ -70,7 +71,8 @@ public final class KsqlRestClient implements Closeable {
       final Map<String, ?> localProps,
       final Map<String, String> clientProps,
       final Optional<BasicCredentials> creds,
-      final Optional<String> authMethod
+      final Optional<String> authMethod,
+      final String clusterName
   ) {
     return create(
         serverAddress,
@@ -78,6 +80,7 @@ public final class KsqlRestClient implements Closeable {
         clientProps,
         creds,
         authMethod,
+        clusterName,
         (cprops, credz, lprops) -> new KsqlClient(cprops, credz, lprops,
             new HttpClientOptions())
     );
@@ -90,11 +93,12 @@ public final class KsqlRestClient implements Closeable {
       final Map<String, String> clientProps,
       final Optional<BasicCredentials> creds,
       final Optional<String> authMethod,
+      final String clusterName,
       final KsqlClientSupplier clientSupplier
   ) {
     final LocalProperties localProperties = new LocalProperties(localProps);
     final KsqlClient client = clientSupplier.get(clientProps, creds, localProperties);
-    return new KsqlRestClient(client, serverAddress, localProperties, authMethod);
+    return new KsqlRestClient(client, serverAddress, localProperties, authMethod, clusterName);
   }
 
   @FunctionalInterface
@@ -110,10 +114,12 @@ public final class KsqlRestClient implements Closeable {
       final KsqlClient client,
       final String serverAddress,
       final LocalProperties localProps,
-      final Optional<String> authMethod) {
+      final Optional<String> authMethod,
+      final String clusterName) {
     this.client = requireNonNull(client, "client");
     this.serverAddresses = parseServerAddresses(serverAddress);
     this.localProperties = requireNonNull(localProps, "localProps");
+    this.clusterName = clusterName;
     if (authMethod.isPresent()) {
       this.authMethod = authMethod;
       setupAuthenticationCredentials(false);
@@ -130,7 +136,7 @@ public final class KsqlRestClient implements Closeable {
           Objects.requireNonNull(credentials.right));
     }
     if (authMethod.get().equalsIgnoreCase("maprsasl")) {
-      final String readChallangeString = AuthenticationUtils.readChallengeString();
+      final String readChallangeString = AuthenticationUtils.readChallengeString(this.clusterName);
       this.setMapRSaslAuthHeader(readChallangeString);
     }
   }

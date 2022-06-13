@@ -161,7 +161,8 @@ public class SslFunctionalTest {
         emptyMap(),
         clientProps,
         Optional.empty(),
-        Optional.empty()
+        Optional.empty(),
+            null
     )) {
       final RestResponse<?> response = restClient.makeKsqlRequest("show topics;");
       if (response.isSuccessful()) {
