@@ -94,7 +94,8 @@ public class RestTestExecutor implements Closeable {
         ImmutableMap.of(),
         ImmutableMap.of(),
         Optional.empty(),
-        Optional.empty()
+        Optional.empty(),
+            null
     );
     this.kafkaCluster = requireNonNull(kafkaCluster, "kafkaCluster");
     this.serviceContext = requireNonNull(serviceContext, "serviceContext");

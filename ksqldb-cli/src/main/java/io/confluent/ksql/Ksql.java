@@ -16,6 +16,7 @@
 package io.confluent.ksql;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.mapr.baseutils.cldbutils.CLDBRpcCommonUtils;
 import com.mapr.web.security.SslConfig;
 import com.mapr.web.security.WebSecurityManager;
 import io.confluent.ksql.cli.Cli;
@@ -81,6 +82,10 @@ public final class Ksql {
       options.setAuthMethod("maprsasl");
     }
 
+    if (options.getClusterName() != null) {
+      CLDBRpcCommonUtils.getInstance().setCurrentClusterName(options.getClusterName());
+    }
+
     try {
       new Ksql(options, System.getProperties(), KsqlRestClient::create, Cli::build).run();
     } catch (final Exception e) {
@@ -118,10 +123,11 @@ public final class Ksql {
     final Map<String, String> clientProps = PropertiesUtil.applyOverrides(configProps, systemProps);
     final String server = options.getServer();
     final Optional<String> authMethod = options.getAuthMethod();
+    final String clusterName = options.getClusterName();
     final Optional<BasicCredentials> creds = Optional.empty();
 
     return clientBuilder.build(server, localProps,
-        updateClientSslWithDefaultsIfNeeded(clientProps),creds, authMethod);
+        updateClientSslWithDefaultsIfNeeded(clientProps),creds, authMethod, clusterName);
   }
 
   private Map<String, String> updateClientSslWithDefaultsIfNeeded(final Map<String, String> props) {
@@ -168,7 +174,8 @@ public final class Ksql {
         Map<String, ?> localProperties,
         Map<String, String> clientProps,
         Optional<BasicCredentials> creds,
-        Optional<String> challengeString);
+        Optional<String> challengeString,
+        String clusterName);
   }
 
   interface CliBuilder {

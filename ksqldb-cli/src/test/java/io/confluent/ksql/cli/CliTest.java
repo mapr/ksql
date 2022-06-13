@@ -182,7 +182,8 @@ public class CliTest {
         ImmutableMap.of(),
         ImmutableMap.of(),
         Optional.empty(),
-        Optional.empty()
+        Optional.empty(),
+            null
     );
 
     TEST_HARNESS.getKafkaCluster().createTopics(

@@ -44,8 +44,8 @@ public final class AuthenticationUtils {
     return new Pair<>(username, password);
   }
 
-  public static String readChallengeString() {
-    final ClientSecurity cs = new ClientSecurity();
+  public static String readChallengeString(final String clusterName) {
+    final ClientSecurity cs = new ClientSecurity(clusterName);
     try {
       return cs.generateChallenge();
     } catch (MapRClientSecurityException e) {
