@@ -33,7 +33,7 @@ import java.util.stream.IntStream;
 
 import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.ksql.util.MaprFSUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.admin.CreateTopicsOptions;
 import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.common.Node;

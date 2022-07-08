@@ -29,7 +29,7 @@
     <artifactId>ksqldb-parent</artifactId>
     <packaging>pom</packaging>
     <name>ksqldb-parent</name>
-    <version>6.0.0.0-eep-820-SNAPSHOT</version>
+    <version>6.0.0.0-eep-900-SNAPSHOT</version>
     <licenses>
         <license>
             <name>Confluent Community License</name>
@@ -137,11 +137,11 @@
         <scala.version>2.13.2</scala.version>
         <jackson.version>2.11.1</jackson.version>
         <jackson.asl.version>1.9.13-atlassian-5</jackson.asl.version>
-        <kafka.version>2.6.1.0-eep-820-SNAPSHOT</kafka.version>
-        <schema.registry.version>6.0.0.0-eep-820-SNAPSHOT</schema.registry.version>
-        <mapr.security.version>6.2.0.0-mapr-SNAPSHOT</mapr.security.version>
-        <hadoop.version>2.7.6.300-eep-820-SNAPSHOT</hadoop.version>
-        <eventstreams.version>0.1.0-SNAPSHOT</eventstreams.version>
+        <kafka.version>2.6.1.300-eep-900-SNAPSHOT</kafka.version>
+        <schema.registry.version>6.0.0.0-eep-900-SNAPSHOT</schema.registry.version>
+        <mapr.security.version>7.1.0.0-mapr-SNAPSHOT</mapr.security.version>
+        <hadoop.version>3.3.3.0-eep-900-SNAPSHOT</hadoop.version>
+        <eventstreams.version>0.2.0-eep-900-SNAPSHOT</eventstreams.version>
         <version.3digit>6.0.0</version.3digit>
         <powermock.version>2.0.2</powermock.version>
         <junit.integration.categories>
