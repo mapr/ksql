@@ -5,6 +5,9 @@
 
 base_dir=$( cd -P "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )
 
+# This will set MAPR_HOME, etc.
+source `which mapr-config.sh` # Both "mapr" and "mapr-config.sh" are symlinked in "/usr/bin"
+
 # calling env var and its overridden file
 env=${MAPR_HOME:-/opt/mapr}/conf/env.sh
 [ -f $env ] && . $env
@@ -304,6 +307,10 @@ KSQL_CLASSPATH=$KSQL_CLASSPATH:/opt/mapr/kafka/kafka-$KAFKA_VERSION/libs/*
 # To enable PAM:
 JAVA_LIB_PATH="-Djava.library.path=${BASEMAPR:-/opt/mapr}/lib/"
 KSQL_CLASSPATH=$KSQL_CLASSPATH:${BASEMAPR:-/opt/mapr}/lib/JPam-1.1.jar
+
+# Add logger jars
+KSQL_CLASSPATH=$KSQL_CLASSPATH:$(get_log4j12_jars) # function in mapr-config.sh
+KSQL_CLASSPATH=$KSQL_CLASSPATH:$(get_mapr_app_jars) # function in mapr-config.sh
 
 
 if [ -f ${JMX_JAR} ]; then
