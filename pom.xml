@@ -141,7 +141,7 @@
         <kafka.version>2.6.1.300-eep-900-SNAPSHOT</kafka.version>
         <schema.registry.version>6.0.0.0-eep-900-SNAPSHOT</schema.registry.version>
         <mapr.security.version>7.1.0.0-mapr-SNAPSHOT</mapr.security.version>
-        <hadoop.version>3.3.3.0-eep-900-SNAPSHOT</hadoop.version>
+        <hadoop.version>3.3.4.0-eep-900-SNAPSHOT</hadoop.version>
         <eventstreams.version>0.2.0-eep-900-SNAPSHOT</eventstreams.version>
         <version.3digit>6.0.0</version.3digit>
         <powermock.version>2.0.2</powermock.version>
