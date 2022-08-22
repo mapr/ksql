@@ -140,6 +140,7 @@
         <jackson.asl.version>1.9.13-atlassian-5</jackson.asl.version>
         <kafka.version>2.6.1.300-eep-900-SNAPSHOT</kafka.version>
         <schema.registry.version>6.0.0.0-eep-900-SNAPSHOT</schema.registry.version>
+        <restutils.version>6.0.0.0-eep-900-SNAPSHOT</restutils.version>
         <mapr.security.version>7.1.0.0-mapr-SNAPSHOT</mapr.security.version>
         <hadoop.version>3.3.4.0-eep-900-SNAPSHOT</hadoop.version>
         <eventstreams.version>0.2.0-eep-900-SNAPSHOT</eventstreams.version>
@@ -314,6 +315,12 @@
                 <groupId>org.apache.kafka</groupId>
                 <artifactId>kafka-log4j-appender</artifactId>
                 <version>${kafka.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.confluent</groupId>
+                <artifactId>rest-utils</artifactId>
+                <version>${restutils.version}</version>
             </dependency>
 
             <dependency>

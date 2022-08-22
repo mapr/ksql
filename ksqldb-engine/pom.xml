@@ -206,6 +206,11 @@
 
         <dependency>
             <groupId>io.confluent</groupId>
+            <artifactId>rest-utils</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.confluent</groupId>
             <artifactId>kafka-connect-avro-converter</artifactId>
         </dependency>
 
