@@ -99,7 +99,7 @@
     <properties>
         <apache.directory.server.version>2.0.0-M22</apache.directory.server.version>
         <apache.directory.api.version>1.0.0-M33</apache.directory.api.version>
-        <apache.httpcomponents.version>4.5.9</apache.httpcomponents.version>
+        <apache.httpcomponents.version>4.5.13</apache.httpcomponents.version>
         <confluent.maven.repo>https://packages.confluent.io/maven/</confluent.maven.repo>
         <exec-maven-plugin.version>1.2.1</exec-maven-plugin.version>
         <podam.version>6.0.2.RELEASE</podam.version>
@@ -133,15 +133,17 @@
         <skip.docker.test>true</skip.docker.test>
         <compile.warnings-flag>-Werror</compile.warnings-flag>
         <!-- Only used to provide login module implementation for tests -->
-        <jetty.version>9.4.43.v20210629</jetty.version>
+        <jetty.version>9.4.48.v20220622</jetty.version>
         <git-commit-id-plugin.version>2.2.6</git-commit-id-plugin.version>
         <scala.version>2.13.2</scala.version>
-        <jackson.version>2.11.1</jackson.version>
-        <jackson.asl.version>1.9.13-atlassian-5</jackson.asl.version>
+        <jackson.version>2.13.3</jackson.version>
+        <jackson.asl.version>1.9.14-atlassian-6</jackson.asl.version>
         <kafka.version>2.6.1.300-eep-900-SNAPSHOT</kafka.version>
         <schema.registry.version>6.0.0.0-eep-900-SNAPSHOT</schema.registry.version>
         <restutils.version>6.0.0.0-eep-900-SNAPSHOT</restutils.version>
         <mapr.security.version>7.1.0.0-mapr-SNAPSHOT</mapr.security.version>
+        <netty.version>4.1.79.Final</netty.version>
+        <junit.version>4.13.2</junit.version>
         <hadoop.version>3.3.4.0-eep-900-SNAPSHOT</hadoop.version>
         <eventstreams.version>0.2.0-eep-900-SNAPSHOT</eventstreams.version>
         <version.3digit>6.0.0</version.3digit>
@@ -504,6 +506,12 @@
             </dependency>
 
             <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-annotations</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>com.fasterxml.jackson.datatype</groupId>
                 <artifactId>jackson-datatype-guava</artifactId>
                 <version>${jackson.version}</version>
@@ -667,12 +675,6 @@
         </dependency>
 
         <dependency>
-            <groupId>io.confluent</groupId>
-            <artifactId>rest-utils</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka_${kafka.scala.version}</artifactId>
             <version>${kafka.version}</version>
@@ -712,19 +714,31 @@
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-handler</artifactId>
-            <version>4.1.69.Final</version>
+            <version>${netty.version}</version>
         </dependency>
 
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-common</artifactId>
-            <version>4.1.69.Final</version>
+            <version>${netty.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-codec-http</artifactId>
+            <version>${netty.version}</version>
         </dependency>
 
         <dependency>
             <groupId>commons-beanutils</groupId>
             <artifactId>commons-beanutils</artifactId>
             <version>1.9.4</version>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.15</version>
         </dependency>
     </dependencies>
 
