@@ -29,7 +29,7 @@
     <artifactId>ksqldb-parent</artifactId>
     <packaging>pom</packaging>
     <name>ksqldb-parent</name>
-    <version>6.0.0.0-eep-900-SNAPSHOT</version>
+    <version>6.0.0.200-eep-900</version>
     <licenses>
         <license>
             <name>Confluent Community License</name>
@@ -138,14 +138,14 @@
         <scala.version>2.13.2</scala.version>
         <jackson.version>2.13.3</jackson.version>
         <jackson.asl.version>1.9.14-atlassian-6</jackson.asl.version>
-        <kafka.version>2.6.1.300-eep-900-SNAPSHOT</kafka.version>
-        <schema.registry.version>6.0.0.0-eep-900-SNAPSHOT</schema.registry.version>
-        <restutils.version>6.0.0.0-eep-900-SNAPSHOT</restutils.version>
-        <mapr.security.version>7.1.0.0-mapr-SNAPSHOT</mapr.security.version>
+        <kafka.version>2.6.1.300-eep-900</kafka.version>
+        <schema.registry.version>6.0.0.200-eep-900</schema.registry.version>
+        <restutils.version>6.0.0.200-eep-900</restutils.version>
+        <mapr.security.version>7.1.0.0-mapr</mapr.security.version>
         <netty.version>4.1.79.Final</netty.version>
         <junit.version>4.13.2</junit.version>
-        <hadoop.version>3.3.4.0-eep-900-SNAPSHOT</hadoop.version>
-        <eventstreams.version>0.2.0-eep-900-SNAPSHOT</eventstreams.version>
+        <hadoop.version>3.3.4.0-eep-900</hadoop.version>
+        <eventstreams.version>0.2.0.0-eep-900</eventstreams.version>
         <version.3digit>6.0.0</version.3digit>
         <powermock.version>2.0.2</powermock.version>
         <junit.integration.categories>
@@ -707,7 +707,7 @@
         <dependency>
             <groupId>org.apache.zookeeper</groupId>
             <artifactId>zookeeper</artifactId>
-            <version>3.5.6.0-mapr-SNAPSHOT</version>
+            <version>3.5.6.0-mapr-2210</version>
             <scope>provided</scope>
         </dependency>
 
