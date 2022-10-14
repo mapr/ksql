@@ -110,6 +110,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.codehaus.jettison</groupId>
+            <artifactId>jettison</artifactId>
+            <version>${jettison.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.mapr.security</groupId>
             <artifactId>mapr-security-web</artifactId>
             <version>${mapr.security.version}</version>

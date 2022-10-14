@@ -134,6 +134,7 @@
         <compile.warnings-flag>-Werror</compile.warnings-flag>
         <!-- Only used to provide login module implementation for tests -->
         <jetty.version>9.4.48.v20220622</jetty.version>
+        <jettison.version>1.5.1</jettison.version>
         <git-commit-id-plugin.version>2.2.6</git-commit-id-plugin.version>
         <scala.version>2.13.2</scala.version>
         <jackson.version>2.13.3</jackson.version>
