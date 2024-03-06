@@ -169,7 +169,7 @@ may help to diagnose the issue.
 
 ### Verify that the ksqlDB CLI is using the correct port
 
-By default, the server listens on port `8088`. See
+By default, the server listens on port `8084`. See
 [Starting the ksqlDB CLI](operate-and-deploy/installation/installing.md#start-the-ksqldb-cli)
 for more information.
 
@@ -180,13 +180,13 @@ has the host address and port configured correctly. Search for the
 `listeners` setting in the file and verify it is set correctly.
 
 ```
-listeners=http://0.0.0.0:8088
+listeners=http://0.0.0.0:8084
 ```
 
 Or if you're running over IPv6:
 
 ```
-listeners=http://[::]:8088
+listeners=http://[::]:8084
 ```
 
 For more information, see
@@ -197,20 +197,20 @@ For more information, see
 There may be another process running on the port that the ksqlDB Server
 listens on. Use the following command to get the Process ID (PID) for
 the process running on the port assigned to the ksqlDB Server. The command
-below checks the default `8088` port.
+below checks the default `8084` port.
 
 ```bash
-netstat -anv | egrep -w .*8088.*LISTEN
+netstat -anv | egrep -w .*8084.*LISTEN
 ```
 
 Example output:
 
 ```
-tcp4  0 0  *.8088       *.*    LISTEN      131072 131072    46314      0
+tcp4  0 0  *.8084       *.*    LISTEN      131072 131072    46314      0
 ```
 
 In this example, `46314` is the PID of the process that is listening on
-port `8088`. Run the following command to get information about process
+port `8084`. Run the following command to get information about process
 `46314`.
 
 ```bash
@@ -278,7 +278,7 @@ subject name for the topic. For example:
 ```bash
 # Original topic name = pageviews
 # Replicated topic name = pageviews.replica
-curl -X POST -H "Content-Type: application/vnd.schemaregistry.v1+json" --data "{\"schema\": $(curl -s http://localhost:8081/subjects/pageviews-value/versions/latest | jq '.schema')}" http://localhost:8081/subjects/pageviews.replica-value/versions
+curl -X POST -H "Content-Type: application/vnd.schemaregistry.v1+json" --data "{\"schema\": $(curl -s http://localhost:8087/subjects/pageviews-value/versions/latest | jq '.schema')}" http://localhost:8087/subjects/pageviews.replica-value/versions
 ```
 
 Snappy encoded messages don't decompress

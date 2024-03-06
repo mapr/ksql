@@ -74,11 +74,11 @@ server or ksqlDB CLI image. Mount the root directory of your migrations project
 into the container for use by the `ksql-migrations` tool. For example, the 
 following command creates a new migrations project in the local 
 `./my/migrations/dir` directory to connect to a ksqlDB server listening at 
-`http://localhost:8088` (which is accessed from within the Docker container 
-at `http://host.docker.internal:8088`):
+`http://localhost:8084` (which is accessed from within the Docker container 
+at `http://host.docker.internal:8084`):
 
 ```bash
-docker run -v $PWD/my/migrations/dir:/share/ksql-migrations confluentinc/ksqldb-server:{{ site.ksqldbversion }} ksql-migrations new-project /share/ksql-migrations http://host.docker.internal:8088
+docker run -v $PWD/my/migrations/dir:/share/ksql-migrations confluentinc/ksqldb-server:{{ site.ksqldbversion }} ksql-migrations new-project /share/ksql-migrations http://host.docker.internal:8084
 ```
 
 Similarly, the following command initializes migrations metadata on the ksqlDB server 
@@ -107,7 +107,7 @@ The two required arguments are the path that will be used as the root directory
 for your new migrations project, and your ksqlDB server URL. 
 
 ```
-$ ksql-migrations new-project /my/migrations/project/path http://localhost:8088
+$ ksql-migrations new-project /my/migrations/project/path http://localhost:8084
 ```
 
 Your output should resemble:
@@ -117,7 +117,7 @@ Creating new migrations project at /my/migrations/project/path
 Creating directory: /my/migrations/project/path
 Creating directory: /my/migrations/project/path/migrations
 Creating file: /my/migrations/project/path/ksql-migrations.properties
-Writing to config file: ksql.server.url=http://localhost:8088
+Writing to config file: ksql.server.url=http://localhost:8084
 ...
 Migrations project directory created successfully
 Execution time: 0.0080 seconds

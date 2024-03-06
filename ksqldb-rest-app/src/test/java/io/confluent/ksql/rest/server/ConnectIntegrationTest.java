@@ -81,6 +81,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Category({IntegrationTest.class})
+//TEST_HARNESS::kafkaBootstrapServers is not supported (NPE will be thrown)
+@Ignore
 public class ConnectIntegrationTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(ConnectIntegrationTest.class);

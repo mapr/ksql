@@ -124,7 +124,9 @@ package io.confluent.ksql.rest.integration;
   import org.slf4j.Logger;
   import org.slf4j.LoggerFactory;
 
-@Category({IntegrationTest.class})
+import io.confluent.ksql.test.categories.UnsupportedTest;
+
+@Category({IntegrationTest.class, UnsupportedTest.class})
 public class RestApiTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(RestApiTest.class);

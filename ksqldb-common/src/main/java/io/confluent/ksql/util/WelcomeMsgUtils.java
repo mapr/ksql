@@ -57,7 +57,7 @@ public final class WelcomeMsgUtils {
 
     // Don't want to display the logo if it'll just end up getting wrapped and looking hideous
     if (consoleWidth < logoWidth) {
-      writer.println("ksqlDB, " + copyrightMsg);
+      writer.println("ksqlDB:");
     } else {
       final int paddingChars = (consoleWidth - logoWidth) / 2;
       final String leftPadding = IntStream.range(0, paddingChars)
@@ -68,7 +68,6 @@ public final class WelcomeMsgUtils {
           .forEach(line -> writer.println(leftPadding + line));
 
       writer.println();
-      writer.println(copyrightMsg);
     }
 
     writer.println();

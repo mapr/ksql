@@ -721,7 +721,7 @@ public class KsqlParserTest {
     // Then:
     Assert.assertTrue(statement instanceof ListTopics);
     final ListTopics listTopics = (ListTopics) statement;
-    assertThat(listTopics.toString(), is("ListTopics{showAll=false, showExtended=false}"));
+    assertThat(listTopics.toString(), is("ListTopics{showAll=false, showExtended=false, stream=Optional.empty}"));
     assertThat(listTopics.getShowExtended(), is(false));
   }
 

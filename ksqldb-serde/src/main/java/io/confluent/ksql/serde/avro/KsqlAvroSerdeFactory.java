@@ -167,7 +167,7 @@ class KsqlAvroSerdeFactory implements SerdeFactory {
         .originalsWithPrefix(KsqlConfig.KSQL_SCHEMA_REGISTRY_PREFIX);
 
     avroConfig.put(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG,
-        ksqlConfig.getString(KsqlConfig.SCHEMA_REGISTRY_URL_PROPERTY));
+        ksqlConfig.getSchemaRegistryUrl());
 
     /*  CONNECT_META_DATA_CONFIG is set to true in order to be consistent with the code used to
         register schema in CREATE TABLE/STREAM.

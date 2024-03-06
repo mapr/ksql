@@ -174,7 +174,7 @@ class KsqlJsonSerdeFactory implements SerdeFactory {
 
     config.put(
         JsonSchemaConverterConfig.SCHEMA_REGISTRY_URL_CONFIG,
-        ksqlConfig.getString(KsqlConfig.SCHEMA_REGISTRY_URL_PROPERTY)
+        ksqlConfig.getSchemaRegistryUrl()
     );
     if (schemaId.isPresent()) {
       // Disable auto registering schema if schema id is used

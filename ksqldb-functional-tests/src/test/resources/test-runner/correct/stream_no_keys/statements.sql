@@ -1,2 +1,2 @@
-CREATE STREAM INPUT (NAME STRING) WITH (kafka_topic='test_topic', value_format='JSON');
+CREATE STREAM INPUT (NAME STRING) WITH (kafka_topic='/s:test_topic', value_format='JSON');
 CREATE STREAM OUTPUT AS SELECT * FROM INPUT;

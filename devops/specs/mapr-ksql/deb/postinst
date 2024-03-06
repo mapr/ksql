@@ -1,0 +1,23 @@
+#!/bin/sh
+set -e
+
+case "$1" in
+    configure)
+        # Install config alternatives
+
+        mkdir -p "__INSTALL_3DIGIT__"/etc/ksql/
+        if [ -z "$2" ]; then
+            touch "__INSTALL_3DIGIT__/etc/ksql/.not_configured_yet"
+        fi 
+    
+    ;;
+
+    abort-upgrade|abort-remove|abort-deconfigure)
+    ;;
+
+    *)
+        echo "postinst called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+esac
+

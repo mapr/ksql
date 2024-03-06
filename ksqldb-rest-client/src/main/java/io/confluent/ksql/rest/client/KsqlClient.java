@@ -23,8 +23,11 @@ import io.confluent.ksql.properties.LocalProperties;
 import io.confluent.ksql.rest.ApiJsonMapper;
 import io.confluent.ksql.rest.client.exception.KsqlRestClientException;
 import io.confluent.ksql.util.VertxSslOptionsFactory;
+import io.confluent.rest.RestConfig;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxException;
+import io.vertx.core.VertxOptions;
+import io.vertx.core.file.FileSystemOptions;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpVersion;
@@ -46,6 +49,10 @@ import org.apache.kafka.common.config.SslConfigs;
 public final class KsqlClient implements AutoCloseable {
   public static final String SSL_KEYSTORE_ALIAS_CONFIG = "ssl.keystore.alias";
 
+  // append current username to vertx cache dir to avoid permissions conflicts
+  public static final String VERTX_CACHE_DIR =
+          FileSystemOptions.DEFAULT_FILE_CACHING_DIR + "-" + System.getProperty("user.name");
+
   static {
     initialize();
   }
@@ -56,7 +63,7 @@ public final class KsqlClient implements AutoCloseable {
   private final Optional<HttpClient> httpNonTlsClientHttp2;
   private final Optional<HttpClient> httpTlsClientHttp2;
   private final LocalProperties localProperties;
-  private final Optional<String> basicAuthHeader;
+  private Optional<String> basicAuthHeader;
   private final BiFunction<Integer, String, SocketAddress> socketAddressFactory;
   private final boolean ownedVertx;
 
@@ -75,7 +82,9 @@ public final class KsqlClient implements AutoCloseable {
       final HttpClientOptions httpClientOptions,
       final Optional<HttpClientOptions> httpClientOptionsHttp2
   ) {
-    this.vertx = Vertx.vertx();
+    final VertxOptions vertxOptions = new VertxOptions();
+    vertxOptions.getFileSystemOptions().setFileCacheDir(VERTX_CACHE_DIR);
+    this.vertx = Vertx.vertx(vertxOptions);
     this.basicAuthHeader = createBasicAuthHeader(
         Objects.requireNonNull(credentials, "credentials"));
     this.localProperties = Objects.requireNonNull(localProperties, "localProperties");
@@ -124,6 +133,13 @@ public final class KsqlClient implements AutoCloseable {
     this.ownedVertx = false;
   }
 
+  public void setBasicAuthHeader(final String user, final String password) {
+    final byte[] userPass;
+    userPass = String.format("%s:%s",user, password).getBytes(StandardCharsets.UTF_8);
+    final String encoding = Base64.getEncoder().encodeToString(userPass);
+    basicAuthHeader = Optional.of(String.format("Basic %s", encoding));
+  }
+  
   public KsqlTarget target(final URI server) {
     return target(server, Collections.emptyMap());
   }
@@ -174,6 +190,7 @@ public final class KsqlClient implements AutoCloseable {
     );
   }
 
+  // CHECKSTYLE_RULES.OFF: CyclomaticComplexity
   private static HttpClient createHttpClient(final Vertx vertx,
       final Map<String, String> clientProps,
       final HttpClientOptions httpClientOptions,
@@ -183,17 +200,33 @@ public final class KsqlClient implements AutoCloseable {
 
       configureHostVerification(clientProps, httpClientOptions);
 
-      final Optional<JksOptions> trustStoreOptions =
-          VertxSslOptionsFactory.getJksTrustStoreOptions(clientProps);
+      if (clientProps.containsKey(RestConfig.SSL_TRUSTALLCERTS_CONFIG)) {
+        final boolean trustAll =
+                Boolean.valueOf(clientProps.get(RestConfig.SSL_TRUSTALLCERTS_CONFIG));
+        httpClientOptions.setTrustAll(trustAll);
+        httpClientOptions.setVerifyHost(!trustAll);
+      }
 
-      if (trustStoreOptions.isPresent()) {
-        httpClientOptions.setTrustStoreOptions(trustStoreOptions.get());
 
-        final String alias = clientProps.get(SSL_KEYSTORE_ALIAS_CONFIG);
-        final Optional<JksOptions> keyStoreOptions =
-            VertxSslOptionsFactory.buildJksKeyStoreOptions(clientProps, Optional.ofNullable(alias));
+      if ("BCFKS".equalsIgnoreCase(clientProps.get(SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG))) {
+        VertxSslOptionsFactory.getBcfksTrustStoreOptions(clientProps)
+                .ifPresent(httpClientOptions::setTrustOptions);
+        VertxSslOptionsFactory.getBcfksKeyStoreOptions(clientProps)
+                .ifPresent(httpClientOptions::setKeyCertOptions);
+      } else {
+        final Optional<JksOptions> trustStoreOptions =
+                VertxSslOptionsFactory.getJksTrustStoreOptions(clientProps);
 
-        keyStoreOptions.ifPresent(options -> httpClientOptions.setKeyStoreOptions(options));
+        if (trustStoreOptions.isPresent()) {
+          httpClientOptions.setTrustStoreOptions(trustStoreOptions.get());
+
+          final String alias = clientProps.get(SSL_KEYSTORE_ALIAS_CONFIG);
+          final Optional<JksOptions> keyStoreOptions =
+                  VertxSslOptionsFactory.buildJksKeyStoreOptions(
+                          clientProps, Optional.ofNullable(alias));
+
+          keyStoreOptions.ifPresent(options -> httpClientOptions.setKeyStoreOptions(options));
+        }
       }
     }
     try {

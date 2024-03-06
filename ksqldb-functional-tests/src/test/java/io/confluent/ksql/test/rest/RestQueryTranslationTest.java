@@ -27,6 +27,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.confluent.ksql.integration.IntegrationTestHarness;
 import io.confluent.ksql.integration.Retry;
 import io.confluent.ksql.rest.server.TestKsqlRestApp;
+import io.confluent.ksql.test.categories.UnsupportedTest;
 import io.confluent.ksql.test.loader.JsonTestLoader;
 import io.confluent.ksql.test.loader.TestFile;
 import io.confluent.ksql.test.model.TestFileContext;
@@ -49,6 +50,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.streams.StreamsConfig;
 import org.junit.After;
 import org.junit.Rule;
+import org.junit.experimental.categories.Category;
 import org.junit.rules.RuleChain;
 import org.junit.rules.Timeout;
 
@@ -70,6 +72,7 @@ import org.junit.rules.Timeout;
  * Note that this test is not directly executable anymore, but has been broken up into batches
  * under the batches package.
  */
+@Category(UnsupportedTest.class)
 public class RestQueryTranslationTest {
 
   private static final Path TEST_DIR = Paths.get("rest-query-validation-tests");

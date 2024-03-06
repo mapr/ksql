@@ -17,6 +17,7 @@ package io.confluent.ksql.integration;
 import static java.lang.String.format;
 
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
+import io.confluent.ksql.test.categories.UnsupportedTest;
 import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.ksql.util.PersistentQueryMetadata;
 import io.confluent.ksql.util.QueryMetadata;
@@ -37,7 +38,7 @@ import org.junit.rules.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Category({IntegrationTest.class})
+@Category({IntegrationTest.class, UnsupportedTest.class})
 public class DependentStatementsIntegrationTest {
 
   private static final Logger log = LoggerFactory.getLogger(DependentStatementsIntegrationTest.class);

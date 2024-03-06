@@ -15,22 +15,16 @@
 
 package io.confluent.ksql.services;
 
-import com.google.common.collect.Iterables;
 import io.confluent.ksql.links.DocumentationLinks;
-import io.confluent.ksql.util.ExecutorUtil;
 import io.confluent.ksql.util.KsqlServerException;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.kafka.clients.admin.Admin;
 import org.apache.kafka.clients.admin.Config;
 import org.apache.kafka.clients.admin.DescribeClusterOptions;
 import org.apache.kafka.clients.admin.DescribeClusterResult;
-import org.apache.kafka.common.Node;
 import org.apache.kafka.common.acl.AclOperation;
-import org.apache.kafka.common.config.ConfigResource;
 import org.apache.kafka.common.errors.ClusterAuthorizationException;
 import org.apache.kafka.common.errors.UnsupportedVersionException;
 import org.slf4j.Logger;
@@ -63,25 +57,7 @@ public final class KafkaClusterUtil {
 
   public static Config getConfig(final Admin adminClient) {
     try {
-      final Collection<Node> brokers = adminClient.describeCluster().nodes().get();
-      final Node broker = Iterables.getFirst(brokers, null);
-      if (broker == null) {
-        LOG.warn("No available broker found to fetch config info.");
-        throw new KsqlServerException(
-            "AdminClient discovered an empty Kafka Cluster. "
-                + "Check that Kafka is deployed and KSQL is properly configured.");
-      }
-
-      final ConfigResource configResource = new ConfigResource(
-          ConfigResource.Type.BROKER,
-          broker.idString()
-      );
-
-      final Map<ConfigResource, Config> brokerConfig = ExecutorUtil.executeWithRetries(
-          () -> adminClient.describeConfigs(Collections.singleton(configResource)).all().get(),
-          ExecutorUtil.RetryBehaviour.ON_RETRYABLE);
-
-      return brokerConfig.get(configResource);
+      return new Config(Collections.emptySet());
     } catch (final KsqlServerException e) {
       throw e;
     } catch (final ClusterAuthorizationException e) {

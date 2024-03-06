@@ -6,7 +6,7 @@
 ----------------------------------------------------------------------------------------------------
 SET 'ksql.create.or.replace.enabled' = 'true';
 
-CREATE STREAM a (id INT KEY, col1 INT) WITH (kafka_topic='a', value_format='JSON');
+CREATE STREAM a (id INT KEY, col1 INT) WITH (kafka_topic='/s:a', value_format='JSON');
 ALTER STREAM a ADD COLUMN col2 INT;
 
 CREATE STREAM b AS SELECT * FROM a;
@@ -22,7 +22,7 @@ ASSERT VALUES b (id, col1, col2) VALUES (1, 1, 1);
 ----------------------------------------------------------------------------------------------------
 SET 'ksql.create.or.replace.enabled' = 'true';
 
-CREATE TABLE a (id INT PRIMARY KEY, col1 INT) WITH (kafka_topic='a', value_format='JSON');
+CREATE TABLE a (id INT PRIMARY KEY, col1 INT) WITH (kafka_topic='/s:a', value_format='JSON');
 ALTER TABLE a ADD COLUMN col2 INT;
 
 CREATE TABLE b AS SELECT * FROM a;
@@ -38,7 +38,7 @@ ASSERT VALUES b (id, col1, col2) VALUES (1, 1, 1);
 ----------------------------------------------------------------------------------------------------
 SET 'ksql.create.or.replace.enabled' = 'true';
 
-CREATE STREAM a (id INT KEY, col1 INT, col2 INT) WITH (kafka_topic='a', value_format='JSON');
+CREATE STREAM a (id INT KEY, col1 INT, col2 INT) WITH (kafka_topic='/s:a', value_format='JSON');
 CREATE STREAM b AS SELECT id, col1 FROM a;
 ALTER STREAM b ADD COLUMN col2 INT;
 
@@ -49,7 +49,7 @@ ALTER STREAM b ADD COLUMN col2 INT;
 ----------------------------------------------------------------------------------------------------
 SET 'ksql.create.or.replace.enabled' = 'true';
 
-CREATE TABLE a (id INT PRIMARY KEY, col1 INT, col2 INT) WITH (kafka_topic='a', value_format='JSON');
+CREATE TABLE a (id INT PRIMARY KEY, col1 INT, col2 INT) WITH (kafka_topic='/s:a', value_format='JSON');
 CREATE TABLE b AS SELECT id, col1 FROM a;
 ALTER TABLE b ADD COLUMN col2 INT;
 
@@ -60,7 +60,7 @@ ALTER TABLE b ADD COLUMN col2 INT;
 ----------------------------------------------------------------------------------------------------
 SET 'ksql.create.or.replace.enabled' = 'true';
 
-CREATE STREAM a (id INT KEY, col1 INT, col2 INT) WITH (kafka_topic='a', value_format='JSON');
+CREATE STREAM a (id INT KEY, col1 INT, col2 INT) WITH (kafka_topic='/s:a', value_format='JSON');
 ALTER STREAM a ADD COLUMN col1 INT;
 
 ----------------------------------------------------------------------------------------------------

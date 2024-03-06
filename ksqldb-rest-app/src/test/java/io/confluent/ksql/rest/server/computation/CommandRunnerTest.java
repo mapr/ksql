@@ -76,6 +76,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 
 @RunWith(MockitoJUnitRunner.class)
+//@Ignore //fix this
 public class CommandRunnerTest {
   private static final long COMMAND_RUNNER_HEALTH_TIMEOUT = 1000;
   private static final String CORRUPTED_ERROR_MESSAGE = "corrupted";

@@ -22,14 +22,23 @@ import com.google.common.collect.ImmutableList;
 import io.confluent.ksql.benchmark.SerdeBenchmark.SerdeState;
 import java.util.List;
 import java.util.Objects;
+
+import io.confluent.ksql.test.util.UserGroupInformationMockPolicy;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.openjdk.jmh.annotations.Param;
 
+import org.powermock.core.classloader.annotations.MockPolicy;
+import org.powermock.modules.junit4.rule.PowerMockRule;
+
 @RunWith(Parameterized.class)
+@MockPolicy(UserGroupInformationMockPolicy.class)
 public class SerdeBenchmarkTest {
+  @Rule
+  public PowerMockRule rule = new PowerMockRule();
 
   private static final List<String> SCHEMAS = ImmutableList.of("impressions", "metrics");
   private static final List<String> FORMATS = ImmutableList.of("JSON", "Avro");

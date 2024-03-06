@@ -16,6 +16,7 @@
 package io.confluent.ksql.services;
 
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
+import io.confluent.ksql.util.KsqlConfig;
 import java.util.function.Supplier;
 import org.apache.kafka.clients.admin.Admin;
 import org.apache.kafka.streams.KafkaClientSupplier;
@@ -103,6 +104,15 @@ public interface ServiceContext extends AutoCloseable {
   SimpleKsqlClient getKsqlClient();
 
   KafkaConsumerGroupClient getConsumerGroupClient();
+
+  /**
+   * Get a shared {@link KsqlConfig} instance.
+   *
+   * <p>The returned instance is thread-safe.
+   *
+   * @return a shared {@link KsqlConfig}.
+   */
+  KsqlConfig getKsqlConfig();
 
   @Override
   void close();

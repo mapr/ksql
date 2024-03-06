@@ -66,6 +66,7 @@ import io.confluent.ksql.util.KsqlConfigurable;
 import io.confluent.ksql.util.KsqlException;
 import io.confluent.ksql.util.KsqlServerException;
 import io.confluent.ksql.util.KsqlStatementException;
+import io.confluent.ksql.util.MaprFSUtils;
 import io.confluent.ksql.util.PersistentQueryMetadata;
 import io.confluent.ksql.util.QueryMetadata;
 import io.confluent.ksql.util.ScalablePushQueryMetadata;
@@ -156,6 +157,7 @@ public class KsqlEngine implements KsqlExecutionContext, Closeable, KsqlConfigur
       final List<QueryEventListener> queryEventListeners,
       final MetricCollectors metricCollectors
   ) {
+    MaprFSUtils.createAppDirAndInternalStreamsIfNotExist(serviceContext.getKsqlConfig());
     this.cleanupService = new QueryCleanupService();
 
     this.orphanedTransientQueryCleaner =

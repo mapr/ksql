@@ -60,7 +60,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class HealthCheckAgentTest {
 
-  private static final String SERVER_ADDRESS = "http://serverhost:8088";
+  private static final String SERVER_ADDRESS = "http://serverhost:8084";
   private static final Map<String, Object> REQUEST_PROPERTIES =
       ImmutableMap.of(KsqlRequestConfig.KSQL_REQUEST_INTERNAL_REQUEST, true);
   private static URI SERVER_URI;

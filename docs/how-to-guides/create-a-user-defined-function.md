@@ -451,9 +451,9 @@ services:
     hostname: zookeeper
     container_name: zookeeper
     ports:
-      - "2181:2181"
+      - "500181:5181"
     environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_CLIENT_PORT: 5181
       ZOOKEEPER_TICK_TIME: 2000
 
   broker:
@@ -466,7 +466,7 @@ services:
       - "29092:29092"
     environment:
       KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:5181'
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:9092,PLAINTEXT_HOST://localhost:29092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
@@ -482,10 +482,10 @@ services:
       - zookeeper
       - broker
     ports:
-      - "8081:8081"
+      - "8087:8087"
     environment:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
-      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: 'zookeeper:2181'
+      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: 'zookeeper:5181'
 
   ksqldb-server:
     image: confluentinc/ksqldb-server:{{ site.ksqldbversion }}
@@ -495,13 +495,13 @@ services:
       - broker
       - schema-registry
     ports:
-      - "8088:8088"
+      - "8084localhost:8084"
     volumes:
       - "./extensions/:/opt/ksqldb-udfs"
     environment:
-      KSQL_LISTENERS: "http://0.0.0.0:8088"
+      KSQL_LISTENERS: "http://0.0.0.0localhost:8084"
       KSQL_BOOTSTRAP_SERVERS: "broker:9092"
-      KSQL_KSQL_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
+      KSQL_KSQL_SCHEMA_REGISTRY_URL: "http://schema-registry:8087"
       KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE: "true"
       KSQL_KSQL_LOGGING_PROCESSING_TOPIC_AUTO_CREATE: "true"
       # Configuration for UDFs
@@ -552,7 +552,7 @@ docker-compose up
 And connect to ksqlDB's server by using its interactive CLI:
 
 ```bash
-docker exec -it ksqldb-cli ksql http://ksqldb-server:8088
+docker exec -it ksqldb-cli ksql http://ksqldb-serverlocalhost:8084
 ```
 
 Verify that your functions have been loaded by running the following

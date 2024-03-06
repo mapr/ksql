@@ -55,7 +55,7 @@ import org.slf4j.LoggerFactory;
  */
 // CHECKSTYLE_RULES.OFF: ClassDataAbstractionCoupling
 public class ServerVerticle extends AbstractVerticle {
-
+  // implement impersonation
   // CHECKSTYLE_RULES.ON: ClassDataAbstractionCoupling
   private static final Logger log = LoggerFactory.getLogger(ServerVerticle.class);
 
@@ -137,7 +137,7 @@ public class ServerVerticle extends AbstractVerticle {
 
     // The new query and insert streaming API
     // --------------------------------------
-
+    // check if new queries should be impersonated as well
     router.route(HttpMethod.POST, "/query-stream")
         .produces(DELIMITED_CONTENT_TYPE)
         .produces(JSON_CONTENT_TYPE)
@@ -159,7 +159,7 @@ public class ServerVerticle extends AbstractVerticle {
 
     // The old API which we continue to support as-is
     // ----------------------------------------------
-
+    //
     router.route(HttpMethod.GET, "/")
         .handler(ServerVerticle::handleInfoRedirect);
     router.route(HttpMethod.POST, "/ksql")
@@ -167,6 +167,7 @@ public class ServerVerticle extends AbstractVerticle {
         .produces(KsqlMediaType.KSQL_V1_JSON.mediaType())
         .produces(JSON_CONTENT_TYPE)
         .handler(this::handleKsqlRequest);
+    // check if terminate was previously handled as well ?
     router.route(HttpMethod.POST, "/ksql/terminate")
         .handler(BodyHandler.create(false))
         .produces(KsqlMediaType.KSQL_V1_JSON.mediaType())
@@ -243,6 +244,7 @@ public class ServerVerticle extends AbstractVerticle {
 
 
   private void handleKsqlRequest(final RoutingContext routingContext) {
+    //ksql
     handleOldApiRequest(server, routingContext, KsqlRequest.class, Optional.empty(),
         (ksqlRequest, apiSecurityContext) ->
             endpoints
@@ -307,6 +309,7 @@ public class ServerVerticle extends AbstractVerticle {
     final String type = request.getParam("type");
     final String entity = request.getParam("entity");
     final String action = request.getParam("action");
+    //status/entities
     handleOldApiRequest(server, routingContext, null, Optional.empty(),
         (r, apiSecurityContext) ->
             endpoints.executeStatus(type, entity, action,
@@ -326,6 +329,7 @@ public class ServerVerticle extends AbstractVerticle {
   }
 
   private void handleAllStatusesRequest(final RoutingContext routingContext) {
+    //status
     handleOldApiRequest(server, routingContext, null, Optional.empty(),
         (r, apiSecurityContext) ->
             endpoints.executeAllStatuses(DefaultApiSecurityContext.create(routingContext, server))

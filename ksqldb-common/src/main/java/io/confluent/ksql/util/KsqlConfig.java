@@ -18,9 +18,12 @@ package io.confluent.ksql.util;
 import static io.confluent.ksql.configdef.ConfigValidators.zeroOrPositive;
 
 import com.google.common.base.Splitter;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import io.confluent.kafka.schemaregistry.client.rest.utils.SchemaRegistryDiscoveryClient;
+import io.confluent.kafka.schemaregistry.client.rest.utils.SchemaRegistryDiscoveryConfig;
 import io.confluent.ksql.config.ConfigItem;
 import io.confluent.ksql.config.KsqlConfigResolver;
 import io.confluent.ksql.configdef.ConfigValidators;
@@ -41,6 +44,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.admin.AdminClientConfig;
@@ -55,13 +59,13 @@ import org.apache.kafka.common.config.ConfigDef.Validator;
 import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.common.config.SslConfigs;
 import org.apache.kafka.common.config.TopicConfig;
-import org.apache.kafka.common.config.internals.ConfluentConfigs;
 import org.apache.kafka.common.utils.AppInfoParser;
 import org.apache.kafka.streams.StreamsConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @EffectivelyImmutable
+@SuppressWarnings("checkstyle:ClassDataAbstractionCoupling")
 public class KsqlConfig extends AbstractConfig {
   private static final Logger LOG = LoggerFactory.getLogger(KsqlConfig.class);
 
@@ -242,7 +246,7 @@ public class KsqlConfig extends AbstractConfig {
       "Extension for supplying custom metrics to be emitted along with "
       + "the engine's default JMX metrics";
 
-  public static final String DEFAULT_SCHEMA_REGISTRY_URL = "http://localhost:8081";
+  public static final String DEFAULT_SCHEMA_REGISTRY_URL = "http://localhost:8087";
   public static final String DEFAULT_CONNECT_URL = "http://localhost:8083";
 
   public static final String KSQL_STREAMS_PREFIX = "ksql.streams.";
@@ -727,6 +731,52 @@ public class KsqlConfig extends AbstractConfig {
   public static final String KSQL_FETCH_REMOTE_HOSTS_TIMEOUT_SECONDS_DOC
       = "Configure how long the remote host executor will wait for in seconds "
       + "when fetching all remote hosts.";
+  /**
+   * MapR specific constants.
+   */
+  public static final String KSQL_SERVICES_COMMON_FOLDER = "/apps/ksql/";
+
+  private final String commandsStreamFolder;
+  private final String commandsStream;
+
+  private final Supplier<String> schemaRegistryUrl = Suppliers.memoize(this::initSchemaRegistryUrl);
+
+  public static final String SCHEMA_REGISTRY_ENABLE_PROPERTY = "ksql.schema.registry.enable";
+  private static final String SCHEMA_REGISTRY_ENABLE_DOC =
+          "Flag for enabling Avro format support with Schema Registry.";
+  private static final String SCHEMA_REGISTRY_ENABLE_DEFAULT = "false";
+
+  public static final String SCHEMA_REGISTRY_SERVICE_ID_CONFIG
+          = KSQL_CONFIG_PROPERTY_PREFIX + SchemaRegistryDiscoveryConfig.SERVICE_ID_CONFIG;
+
+  public static final String SCHEMA_REGISTRY_DISCOVERY_TIMEOUT_CONFIG
+          = KSQL_CONFIG_PROPERTY_PREFIX + SchemaRegistryDiscoveryConfig.DISCOVERY_TIMEOUT_CONFIG;
+
+  public static final String SCHEMA_REGISTRY_DISCOVERY_RETRIES_CONFIG
+          = KSQL_CONFIG_PROPERTY_PREFIX + SchemaRegistryDiscoveryConfig.DISCOVERY_RETRIES_CONFIG;
+
+  public static final String SCHEMA_REGISTRY_DISCOVERY_INTERVAL_CONFIG
+          = KSQL_CONFIG_PROPERTY_PREFIX + SchemaRegistryDiscoveryConfig.DISCOVERY_INTERVAL_CONFIG;
+
+  public static final String KAFKASTORE_INIT_TIMEOUT_CONFIG =
+          "ksql.schema.registry.zookeeper.init.timeout.ms";
+
+  public static final String ZOOKEEPER_SET_ACL_CONFIG = "ksql.schema.registry.zookeeper.set.acl";
+
+  private static final boolean ZOOKEEPER_SET_ACL_DEFAULT = false;
+
+  public static final String STREAM_INTERNAL_CHANGELOG_TOPIC_SUFFIX = "-changelog";
+
+  public static final String STREAM_INTERNAL_REPARTITION_TOPIC_SUFFIX = "-repartition";
+
+  /********************************* MAPR Streams specific *****************************/
+  /** <code>ksql.default.stream</code> **/
+  public static final String KSQL_DEFAULT_STREAM_CONFIG = "ksql.default.stream";
+  private static final String KSQL_DEFAULT_STREAM_DOC = "The stream that is "
+          + "used in case if topic "
+          + "is used without stream name.";
+
+  /*************************************************************************************/
 
   private enum ConfigGeneration {
     LEGACY,
@@ -933,6 +983,56 @@ public class KsqlConfig extends AbstractConfig {
             + "is a streams config value which will be added to a windows maintainMs to ensure "
             + "data is not deleted from the log prematurely. Allows for clock drift. "
             + "Default is 1 day"
+        ).define(
+            SCHEMA_REGISTRY_ENABLE_PROPERTY,
+            ConfigDef.Type.BOOLEAN,
+            SCHEMA_REGISTRY_ENABLE_DEFAULT,
+            ConfigDef.Importance.MEDIUM,
+            SCHEMA_REGISTRY_ENABLE_DOC
+        ).define(
+            SCHEMA_REGISTRY_SERVICE_ID_CONFIG,
+            ConfigDef.Type.STRING,
+            SchemaRegistryDiscoveryConfig.SERVICE_ID_DEFAULT,
+            ConfigDef.Importance.MEDIUM,
+            SchemaRegistryDiscoveryConfig.SERVICE_ID_DOC
+        ).define(
+            SCHEMA_REGISTRY_DISCOVERY_TIMEOUT_CONFIG,
+            ConfigDef.Type.INT,
+            SchemaRegistryDiscoveryConfig.DISCOVERY_TIMEOUT_DEFAULT,
+            ConfigDef.Importance.MEDIUM,
+            SchemaRegistryDiscoveryConfig.DISCOVERY_TIMEOUT_DOC
+        ).define(
+            SCHEMA_REGISTRY_DISCOVERY_RETRIES_CONFIG,
+            ConfigDef.Type.INT,
+            SchemaRegistryDiscoveryConfig.DISCOVERY_RETRIES_DEFAULT,
+            ConfigDef.Importance.MEDIUM,
+            SchemaRegistryDiscoveryConfig.DISCOVERY_RETRIES_DOC
+        ).define(
+            SCHEMA_REGISTRY_DISCOVERY_INTERVAL_CONFIG,
+            ConfigDef.Type.INT,
+            SchemaRegistryDiscoveryConfig.DISCOVERY_INTERVAL_DEFAULT,
+            ConfigDef.Importance.MEDIUM,
+            SchemaRegistryDiscoveryConfig.DISCOVERY_INTERVAL_DOC
+        ).define(
+            KAFKASTORE_INIT_TIMEOUT_CONFIG,
+            ConfigDef.Type.INT,
+            60000,
+            ConfigDef.Importance.MEDIUM,
+            "The timeout for initialization of the Kafka store, including creation of "
+                    + "the Kafka topic that stores schema data."
+        ).define(
+            ZOOKEEPER_SET_ACL_CONFIG,
+            ConfigDef.Type.BOOLEAN,
+            ZOOKEEPER_SET_ACL_DEFAULT,
+            ConfigDef.Importance.MEDIUM,
+            "If ACL to be set for znodes. "
+                    + "I `true`, the SASL principal must be the same as the Kafka brokers."
+        ).define(
+            KSQL_DEFAULT_STREAM_CONFIG,
+            ConfigDef.Type.STRING,
+            "",
+            ConfigDef.Importance.MEDIUM,
+            KSQL_DEFAULT_STREAM_DOC
         ).define(
             SCHEMA_REGISTRY_URL_PROPERTY,
             ConfigDef.Type.STRING,
@@ -1559,11 +1659,15 @@ public class KsqlConfig extends AbstractConfig {
         )
         .withClientSslSupport()
         .define(
-            ConfluentConfigs.ENABLE_FIPS_CONFIG,
+            // Hardcoded copy from org.apache.kafka.common.config.internals.ConfluentConfigs
+            // from org.apache.kafka:kafka-clients:7.6.0-ce
+            "enable.fips",
             Type.BOOLEAN,
-            ConfluentConfigs.ENABLE_FIPS_DEFAULT,
+            "false",
             Importance.LOW,
-            ConfluentConfigs.ENABLE_FIPS_DOC
+          "Enable FIPS mode on the server. If FIPS mode is enabled, broker listener "
+                  + "security protocols, TLS versions and cipher suites will be validated based on"
+                  + " FIPS compliance requirement."
         );
 
     for (final CompatibilityBreakingConfigDef compatibilityBreakingConfigDef
@@ -1678,6 +1782,9 @@ public class KsqlConfig extends AbstractConfig {
             .defaultCacheMaxBytesBufferingConfig);
     streamsConfigDefaults.put(StreamsConfig.NUM_STREAM_THREADS_CONFIG, KsqlConstants
         .defaultNumberOfStreamsThreads);
+    streamsConfigDefaults.put(StreamsConfig.STREAMS_DEFAULT_STREAM_CONFIG,
+            getString(KSQL_DEFAULT_STREAM_CONFIG));
+
     if (!getBooleanConfig(FAIL_ON_DESERIALIZATION_ERROR_CONFIG, false)) {
       streamsConfigDefaults.put(
           StreamsConfig.DEFAULT_DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG,
@@ -1696,6 +1803,9 @@ public class KsqlConfig extends AbstractConfig {
                 ? config.defaultValueCurrent : config.defaultValueLegacy));
     this.ksqlStreamConfigProps = buildStreamingConfig(streamsConfigDefaults,
             originalsWithPrefixOverride(KSQL_STREAMS_PREFIX));
+
+    commandsStreamFolder = KSQL_SERVICES_COMMON_FOLDER + getString(KSQL_SERVICE_ID_CONFIG) + "/";
+    commandsStream = commandsStreamFolder + "ksql-commands";
   }
 
   private static Set<String> streamTopicConfigNames() {
@@ -1730,6 +1840,9 @@ public class KsqlConfig extends AbstractConfig {
                      final Map<String, ConfigValue> ksqlStreamConfigProps) {
     super(configDef(generation), values);
     this.ksqlStreamConfigProps = ksqlStreamConfigProps;
+
+    commandsStreamFolder = KSQL_SERVICES_COMMON_FOLDER + getString(KSQL_SERVICE_ID_CONFIG) + "/";
+    commandsStream = commandsStreamFolder + "ksql-commands";
   }
 
   private void possiblyConfigureConfluentTelemetry(final Map<String, Object> map) {
@@ -1833,6 +1946,18 @@ public class KsqlConfig extends AbstractConfig {
     udfProps.putAll(globals);
 
     return udfProps;
+  }
+
+  public String getKsqlDefaultStream() {
+    return getString(KSQL_DEFAULT_STREAM_CONFIG);
+  }
+
+  public String getCommandsStreamFolder() {
+    return commandsStreamFolder;
+  }
+
+  public String getCommandsStream() {
+    return commandsStream;
   }
 
   private Map<String, String> getKsqlConfigPropsWithSecretsObfuscated() {
@@ -1958,4 +2083,26 @@ public class KsqlConfig extends AbstractConfig {
     SslConfigs.addClientSslSupport(sslConfig);
     return sslConfig.names();
   }
+
+  public String getSchemaRegistryUrl() {
+    return schemaRegistryUrl.get();
+  }
+
+  private String initSchemaRegistryUrl() {
+    final String srUrl = getString(SCHEMA_REGISTRY_URL_PROPERTY);
+    if (srUrl != null) {
+      return srUrl;
+    } else if (getBoolean(SCHEMA_REGISTRY_ENABLE_PROPERTY)) {
+      final List<String> urls = new SchemaRegistryDiscoveryClient()
+              .serviceId(getString(SCHEMA_REGISTRY_SERVICE_ID_CONFIG))
+              .timeout(getInt(SCHEMA_REGISTRY_DISCOVERY_TIMEOUT_CONFIG))
+              .retries(getInt(SCHEMA_REGISTRY_DISCOVERY_RETRIES_CONFIG))
+              .retryInterval(getInt(SCHEMA_REGISTRY_DISCOVERY_INTERVAL_CONFIG))
+              .discoverUrls();
+      return String.join(",", urls);
+    } else {
+      return DEFAULT_SCHEMA_REGISTRY_URL;
+    }
+  }
+
 }

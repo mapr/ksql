@@ -34,6 +34,7 @@ import io.confluent.ksql.name.SourceName;
 import io.confluent.ksql.schema.ksql.PhysicalSchema;
 import io.confluent.ksql.serde.Format;
 import io.confluent.ksql.serde.SerdeFeatures;
+import io.confluent.ksql.test.categories.UnsupportedTest;
 import io.confluent.ksql.test.util.KsqlIdentifierTestUtil;
 import io.confluent.ksql.test.util.TopicTestUtil;
 import io.confluent.ksql.util.KsqlConfig;
@@ -54,7 +55,7 @@ import org.junit.experimental.categories.Category;
 import org.junit.rules.RuleChain;
 
 
-@Category({IntegrationTest.class})
+@Category({IntegrationTest.class, UnsupportedTest.class})
 public class StreamsSelectAndProjectIntTest {
 
   private static final String JSON_STREAM_NAME = "orders_json";

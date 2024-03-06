@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import org.apache.kafka.clients.mapr.util.MaprKafkaUtils;
 import org.apache.kafka.common.config.TopicConfig;
 
 /**
@@ -67,19 +68,23 @@ public class TopicCreateInjector implements InjectorWithSideEffects {
 
   private final KafkaTopicClient topicClient;
   private final MetaStore metaStore;
+  private final KsqlConfig ksqlConfig;
 
   public TopicCreateInjector(
       final KsqlExecutionContext executionContext,
       final ServiceContext serviceContext
   ) {
-    this(serviceContext.getTopicClient(), executionContext.getMetaStore());
+    this(serviceContext.getKsqlConfig(), serviceContext.getTopicClient(),
+        executionContext.getMetaStore());
   }
 
   TopicCreateInjector(
+      final KsqlConfig ksqlConfig,
       final KafkaTopicClient topicClient,
       final MetaStore metaStore) {
     this.topicClient = Objects.requireNonNull(topicClient, "topicClient");
     this.metaStore = Objects.requireNonNull(metaStore, "metaStore");
+    this.ksqlConfig = Objects.requireNonNull(ksqlConfig, "ksqlConfig");
   }
 
   @Override
@@ -312,8 +317,13 @@ public class TopicCreateInjector implements InjectorWithSideEffects {
       config.remove(TopicConfig.RETENTION_MS_CONFIG);
     }
 
+    final String defaultStream = ksqlConfig.getKsqlDefaultStream();
+    final List<String> topicList = new ArrayList<String>();
+    topicList.add(info.getTopicName());
+    final String decoratedKafkaTopicName =
+            MaprKafkaUtils.maybeWrapDefaultStream(defaultStream, topicList).get(0);
     final boolean created = topicClient.createTopic(
-            info.getTopicName(),
+            decoratedKafkaTopicName,
             info.getPartitions(),
             info.getReplicas(),
             config

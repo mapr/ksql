@@ -90,6 +90,8 @@ public interface ConnectClient {
    */
   ConnectResponse<Map<String, Map<String, List<String>>>> topics(String connector);
 
+  void close();
+
   /**
    * An optionally successful response. Either contains a value of type {@code <T>} or an error,
    * which is the string representation of the response entity.

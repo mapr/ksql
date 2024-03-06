@@ -17,6 +17,7 @@ package io.confluent.ksql.services;
 
 import static io.confluent.ksql.util.KsqlConfig.CONNECT_REQUEST_TIMEOUT_DEFAULT;
 
+import com.google.common.collect.ImmutableMap;
 import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.ksql.util.FakeKafkaClientSupplier;
@@ -36,7 +37,7 @@ public final class TestServiceContext {
 
   public static ServiceContext create() {
     return create(
-        new FakeKafkaTopicClient(),
+        new FakeKafkaTopicClient(new KsqlConfig(ImmutableMap.of(KsqlConfig.KSQL_DEFAULT_STREAM_CONFIG, "/default-stream"))),
         new FakeKafkaConsumerGroupClient()
     );
   }
@@ -49,6 +50,13 @@ public final class TestServiceContext {
         topicClient,
         srClientFactory,
         new FakeKafkaConsumerGroupClient()
+    );
+  }
+
+
+  public static ServiceContext create(KsqlConfig ksqlConfig) {
+    return create(
+            new FakeKafkaTopicClient(ksqlConfig)
     );
   }
 
@@ -115,7 +123,7 @@ public final class TestServiceContext {
     return create(
         kafkaClientSupplier,
         adminClient,
-        new KafkaTopicClientImpl(() -> adminClient),
+        new KafkaTopicClientImpl(() -> adminClient, ksqlConfig.getKsqlDefaultStream()),
         srClientFactory,
         new DefaultConnectClientFactory(ksqlConfig)
             .get(Optional.empty(), Collections.emptyList(), Optional.empty()),
@@ -147,6 +155,7 @@ public final class TestServiceContext {
       final KafkaConsumerGroupClient consumerGroupClient
   ) {
     final DefaultServiceContext serviceContext = new DefaultServiceContext(
+        new KsqlConfig(ImmutableMap.of(KsqlConfig.KSQL_DEFAULT_STREAM_CONFIG, "/sample-stream")),
         kafkaClientSupplier,
         () -> adminClient,
         () -> adminClient,

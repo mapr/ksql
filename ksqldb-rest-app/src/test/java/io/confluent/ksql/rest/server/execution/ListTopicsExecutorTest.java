@@ -30,26 +30,38 @@ import io.confluent.ksql.rest.server.TemporaryEngine;
 import io.confluent.ksql.services.ServiceContext;
 import io.confluent.ksql.services.TestServiceContext;
 import java.util.Collection;
+
+import io.confluent.ksql.testutils.AvoidMaprFSAppDirCreation;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.ConsumerGroupListing;
 import org.apache.kafka.clients.admin.ListConsumerGroupsResult;
 import org.apache.kafka.common.internals.KafkaFutureImpl;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.core.classloader.annotations.MockPolicy;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(PowerMockRunner.class)
+@MockPolicy(AvoidMaprFSAppDirCreation.class)
+@PowerMockIgnore({"javax.management.*", "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "org.w3c.*", "javax.net.ssl.*"})
+
 public class ListTopicsExecutorTest {
 
-  @Rule public final TemporaryEngine engine = new TemporaryEngine();
-  @Mock
-  private AdminClient adminClient;
+  @Rule
+  public TemporaryEngine engine = new TemporaryEngine();
+  private AdminClient adminClient = mock(AdminClient.class);
+
+  private static final String DEFAULT_STREAM_PREFIX = "/sample-stream:";
+  private static final String TOPIC1 = DEFAULT_STREAM_PREFIX + "topic1";
+  private static final String TOPIC2 = DEFAULT_STREAM_PREFIX + "topic2";
+  private static final String TOPIC2_UPPER = DEFAULT_STREAM_PREFIX + "toPIc2";
+  private static final String INTERNAL_TOPIC = DEFAULT_STREAM_PREFIX + "_confluent_any_topic";
 
   private ServiceContext serviceContext;
-
   @Before
   public void setUp() {
      serviceContext = TestServiceContext.create(
@@ -62,11 +74,12 @@ public class ListTopicsExecutorTest {
   }
 
   @Test
+  @Ignore //internal topics are stored in special stream which is not default stream
   public void shouldListKafkaTopicsWithoutInternalTopics() {
     // Given:
-    engine.givenKafkaTopic("topic1");
-    engine.givenKafkaTopic("topic2");
-    engine.givenKafkaTopic("_confluent_any_topic");
+    engine.givenKafkaTopic(TOPIC1);
+    engine.givenKafkaTopic(TOPIC2);
+    engine.givenKafkaTopic(INTERNAL_TOPIC);
 
     // When:
     final KafkaTopicsList topicsList =
@@ -79,17 +92,17 @@ public class ListTopicsExecutorTest {
 
     // Then:
     assertThat(topicsList.getTopics(), containsInAnyOrder(
-        new KafkaTopicInfo("topic1", ImmutableList.of(1)),
-        new KafkaTopicInfo("topic2", ImmutableList.of(1))
+        new KafkaTopicInfo(TOPIC1, ImmutableList.of(1)),
+        new KafkaTopicInfo(TOPIC2, ImmutableList.of(1))
     ));
   }
 
   @Test
   public void shouldListKafkaTopicsIncludingInternalTopics() {
     // Given:
-    engine.givenKafkaTopic("topic1");
-    engine.givenKafkaTopic("topic2");
-    engine.givenKafkaTopic("_confluent_any_topic");
+    engine.givenKafkaTopic(TOPIC1);
+    engine.givenKafkaTopic(TOPIC2);
+    engine.givenKafkaTopic(INTERNAL_TOPIC);
 
     // When:
     final KafkaTopicsList topicsList =
@@ -102,17 +115,17 @@ public class ListTopicsExecutorTest {
 
     // Then:
     assertThat(topicsList.getTopics(), containsInAnyOrder(
-        new KafkaTopicInfo("topic1", ImmutableList.of(1)),
-        new KafkaTopicInfo("topic2", ImmutableList.of(1)),
-        new KafkaTopicInfo("_confluent_any_topic", ImmutableList.of(1))
+            new KafkaTopicInfo(TOPIC1, ImmutableList.of(1)),
+            new KafkaTopicInfo(TOPIC2, ImmutableList.of(1)),
+            new KafkaTopicInfo(INTERNAL_TOPIC, ImmutableList.of(1))
     ));
   }
 
   @Test
   public void shouldListKafkaTopicsThatDifferByCase() {
     // Given:
-    engine.givenKafkaTopic("topic1");
-    engine.givenKafkaTopic("toPIc1");
+    engine.givenKafkaTopic(TOPIC1);
+    engine.givenKafkaTopic(TOPIC2_UPPER);
 
     // When:
     final KafkaTopicsList topicsList =
@@ -125,16 +138,16 @@ public class ListTopicsExecutorTest {
 
     // Then:
     assertThat(topicsList.getTopics(), containsInAnyOrder(
-        new KafkaTopicInfo("topic1", ImmutableList.of(1)),
-        new KafkaTopicInfo("toPIc1", ImmutableList.of(1))
+        new KafkaTopicInfo(TOPIC1, ImmutableList.of(1)),
+        new KafkaTopicInfo(TOPIC2_UPPER, ImmutableList.of(1))
     ));
   }
 
   @Test
   public void shouldListKafkaTopicsExtended() {
     // Given:
-    engine.givenKafkaTopic("topic1");
-    engine.givenKafkaTopic("topic2");
+    engine.givenKafkaTopic(TOPIC1);
+    engine.givenKafkaTopic(TOPIC2);
 
     final ListConsumerGroupsResult result = mock(ListConsumerGroupsResult.class);
     final KafkaFutureImpl<Collection<ConsumerGroupListing>> groups = new KafkaFutureImpl<>();
@@ -154,8 +167,8 @@ public class ListTopicsExecutorTest {
 
     // Then:
     assertThat(topicsList.getTopics(), containsInAnyOrder(
-        new KafkaTopicInfoExtended("topic1", ImmutableList.of(1), 0, 0),
-        new KafkaTopicInfoExtended("topic2", ImmutableList.of(1), 0, 0)
+        new KafkaTopicInfoExtended(TOPIC1, ImmutableList.of(1), 0, 0),
+        new KafkaTopicInfoExtended(TOPIC2, ImmutableList.of(1), 0, 0)
     ));
   }
 }

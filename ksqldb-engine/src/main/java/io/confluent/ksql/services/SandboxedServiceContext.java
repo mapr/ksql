@@ -17,6 +17,7 @@ package io.confluent.ksql.services;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
+import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.ksql.util.Sandbox;
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -36,6 +37,7 @@ public final class SandboxedServiceContext implements ServiceContext {
   private final KafkaClientSupplier kafkaClientSupplier;
   private final Supplier<ConnectClient> connectClientSupplier;
   private final KafkaConsumerGroupClient consumerGroupClient;
+  private final KsqlConfig ksqlConfig;
 
   public static SandboxedServiceContext create(final ServiceContext serviceContext) {
     if (serviceContext instanceof SandboxedServiceContext) {
@@ -53,6 +55,7 @@ public final class SandboxedServiceContext implements ServiceContext {
         .createProxy(serviceContext.getConsumerGroupClient());
 
     return new SandboxedServiceContext(
+        serviceContext.getKsqlConfig(),
         kafkaClientSupplier,
         kafkaTopicClient,
         schemaRegistryClient,
@@ -61,6 +64,7 @@ public final class SandboxedServiceContext implements ServiceContext {
   }
 
   private SandboxedServiceContext(
+      final KsqlConfig ksqlConfig,
       final KafkaClientSupplier kafkaClientSupplier,
       final KafkaTopicClient topicClient,
       final SchemaRegistryClient srClient,
@@ -73,6 +77,7 @@ public final class SandboxedServiceContext implements ServiceContext {
     this.connectClientSupplier =
         Objects.requireNonNull(connectClientSupplier, "connectClientSupplier");
     this.consumerGroupClient = Objects.requireNonNull(consumerGroupClient, "consumerGroupClient");
+    this.ksqlConfig = ksqlConfig;
   }
 
   @Override
@@ -116,6 +121,11 @@ public final class SandboxedServiceContext implements ServiceContext {
   @SuppressFBWarnings(value = "EI_EXPOSE_REP")
   public KafkaConsumerGroupClient getConsumerGroupClient() {
     return consumerGroupClient;
+  }
+
+  @Override
+  public KsqlConfig getKsqlConfig() {
+    return new KsqlConfig(ksqlConfig.originals());
   }
 
   @Override

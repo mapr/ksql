@@ -35,6 +35,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -46,6 +48,8 @@ import org.junit.runners.Parameterized;
  * See `ksql-functional-tests/README.md` for more info.
  */
 @RunWith(Parameterized.class)
+//TEST_HARNESS::kafkaBootstrapServers is not supported (NPE will be thrown)
+@Ignore
 public class QueryTranslationTest {
 
   // Define this in the JVM to only test against the latest version, i.e. no historical plans

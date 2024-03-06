@@ -44,7 +44,7 @@ services:
     hostname: zookeeper
     container_name: zookeeper
     ports:
-      - "2181:2181"
+      - "2181:5181"
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
@@ -59,7 +59,7 @@ services:
       - "29092:29092"
     environment:
       KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:5181'
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:9092,PLAINTEXT_HOST://localhost:29092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
@@ -75,7 +75,7 @@ services:
       - zookeeper
       - broker
     ports:
-      - "8081:8081"
+      - "8081:8087"
     environment:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
       SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "PLAINTEXT://broker:9092"
@@ -88,11 +88,11 @@ services:
       - broker
       - schema-registry
     ports:
-      - "8088:8088"
+      - "8088:8084"
     environment:
-      KSQL_LISTENERS: "http://0.0.0.0:8088"
+      KSQL_LISTENERS: "http://0.0.0.0:8084"
       KSQL_BOOTSTRAP_SERVERS: "broker:9092"
-      KSQL_KSQL_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
+      KSQL_KSQL_SCHEMA_REGISTRY_URL: "http://schema-registry:8087"
       KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE: "true"
       KSQL_KSQL_LOGGING_PROCESSING_TOPIC_AUTO_CREATE: "true"
       # Configuration to embed Kafka Connect support.
@@ -100,7 +100,7 @@ services:
       KSQL_CONNECT_BOOTSTRAP_SERVERS: "broker:9092"
       KSQL_CONNECT_KEY_CONVERTER: "org.apache.kafka.connect.storage.StringConverter"
       KSQL_CONNECT_VALUE_CONVERTER: "io.confluent.connect.avro.AvroConverter"
-      KSQL_CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
+      KSQL_CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: "http://schema-registry:8087"
       KSQL_CONNECT_CONFIG_STORAGE_TOPIC: "_ksql-connect-configs"
       KSQL_CONNECT_OFFSET_STORAGE_TOPIC: "_ksql-connect-offsets"
       KSQL_CONNECT_STATUS_STORAGE_TOPIC: "_ksql-connect-statuses"
@@ -130,7 +130,7 @@ docker-compose up
 Connect to ksqlDB's server by using its interactive CLI. Run the following command from your host:
 
 ```
-docker exec -it ksqldb-cli ksql http://ksqldb-server:8088
+docker exec -it ksqldb-cli ksql http://ksqldb-server:8084
 ```
 
 Before you issue more commands, tell ksqlDB to start all queries from earliest point in each topic:
@@ -427,7 +427,7 @@ Start by creating a `pom.xml` file for your microservice. This simple microservi
         <version>${confluent.version}</version>
         <configuration>
           <schemaRegistryUrls>
-            <param>http://localhost:8081</param>
+            <param>http://localhost:8087</param>
           </schemaRegistryUrls>
           <outputDirectory>src/main/avro</outputDirectory>
           <subjectPatterns>
@@ -518,7 +518,7 @@ public class EmailSender {
     // Matches the broker port specified in the Docker Compose file.
     private final static String BOOTSTRAP_SERVERS = "localhost:29092";
     // Matches the Schema Registry port specified in the Docker Compose file.
-    private final static String SCHEMA_REGISTRY_URL = "http://localhost:8081";
+    private final static String SCHEMA_REGISTRY_URL = "http://localhost:8087";
     // Matches the topic name specified in the ksqlDB CREATE TABLE statement.
     private final static String TOPIC = "possible_anomalies";
     // For you to fill in: which address SendGrid should send from.

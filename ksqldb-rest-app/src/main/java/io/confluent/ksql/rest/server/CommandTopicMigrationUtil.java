@@ -72,6 +72,7 @@ public final class CommandTopicMigrationUtil {
             Collections.emptyMap(),
             Collections.emptyMap(),
             Optional.empty(),
+            Optional.empty(),
             Optional.of(Integer.MAX_VALUE - 1),
             Integer.MAX_VALUE
         )

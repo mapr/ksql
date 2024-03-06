@@ -42,8 +42,8 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class LagReportingAgentTest {
   private static long TIME_NOW_MS = 100;
-  private static final String LOCALHOST_URL = "http://localhost:8088";
-  private static KsqlHostInfoEntity LOCALHOST_INFO = new KsqlHostInfoEntity("localhost", 8088);
+  private static final String LOCALHOST_URL = "http://localhost:8084";
+  private static KsqlHostInfoEntity LOCALHOST_INFO = new KsqlHostInfoEntity("localhost", 8084);
   private static KsqlHostInfo HOST1 = new KsqlHostInfo("host1", 1234);
   private static KsqlHostInfo HOST2 = new KsqlHostInfo("host2", 1234);
   private static KsqlHostInfoEntity HOST_ENTITY1 = new KsqlHostInfoEntity("host1", 1234);

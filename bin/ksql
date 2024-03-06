@@ -15,8 +15,8 @@ if [ -z "$KSQL_LOG4J_OPTS" ]; then
   # installed
   if [ -e "$base_dir/config/log4j.properties" ]; then # Dev environment
     KSQL_CONFIG_DIR="$base_dir/config"
-  elif [ -e "$base_dir/etc/ksqldb/log4j.properties" ]; then # Simple zip file layout
-    KSQL_CONFIG_DIR="$base_dir/etc/ksqldb"
+  elif [ -e "$base_dir/etc/ksql/log4j.properties" ]; then # Simple zip file layout
+    KSQL_CONFIG_DIR="$base_dir/etc/ksql"
   elif [ -e "/etc/ksqldb/log4j.properties" ]; then # Normal install layout
     KSQL_CONFIG_DIR="/etc/ksqldb"
   fi
@@ -31,4 +31,25 @@ if [ -z "$KSQL_LOG4J_OPTS" ]; then
   export KSQL_LOG4J_OPTS="-Dlog4j.configuration=file:$KSQL_CONFIG_DIR/log4j-file.properties"
 fi
 
-exec "$base_dir"/bin/ksql-run-class io.confluent.ksql.Ksql "$@"
+args=( "$@" )
+
+#Need to specify hadoop.login 'simple' param for basic auth. If no, user without ticket could not connect with PAM.
+while [ ${#} -gt 0 ] ; do
+  case "$1" in
+    --auth|-a)
+      shopt -s nocasematch;
+      case $2 in
+        basic)
+          export KSQL_OPTS="$KSQL_OPTS -Dhadoop.login=simple"
+        ;;
+        *) : ;;
+      esac
+      shopt -u nocasematch
+      break
+      ;;
+    *)
+      shift 1;;
+  esac
+done
+
+exec "$base_dir"/bin/ksql-run-class io.confluent.ksql.Ksql "${args[@]}"

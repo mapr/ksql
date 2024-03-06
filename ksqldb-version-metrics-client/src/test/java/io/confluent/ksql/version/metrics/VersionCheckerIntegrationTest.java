@@ -25,9 +25,13 @@ import io.confluent.ksql.version.metrics.collector.KsqlModuleType;
 import io.confluent.support.metrics.BaseSupportConfig;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+import org.apache.kafka.test.TestUtils;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Timeout;
+
 
 public class VersionCheckerIntegrationTest {
 
@@ -43,7 +47,9 @@ public class VersionCheckerIntegrationTest {
           .dynamicPort()
   );
 
+  //Ignoring. Metrics are not supported
   @Test
+  @Ignore
   public void testMetricsAgent() throws InterruptedException {
     WireMock.stubFor(WireMock.post("/ksql/anon").willReturn(WireMock.ok()));
 
@@ -51,6 +57,8 @@ public class VersionCheckerIntegrationTest {
         () -> false
     );
     final Properties versionCheckProps = new Properties();
+    versionCheckProps.setProperty(BaseSupportConfig
+        .CONFLUENT_SUPPORT_METRICS_ENABLE_CONFIG, "true");
     versionCheckProps.setProperty(BaseSupportConfig
         .CONFLUENT_SUPPORT_METRICS_ENDPOINT_SECURE_ENABLE_CONFIG, "false");
     versionCheckProps.setProperty(

@@ -15,7 +15,7 @@ You can connect the ksqlDB CLI to one ksqlDB server per cluster.
     the ksqlDB cluster.
 
 To connect the ksqlDB CLI to a cluster, run the following command with your
-ksqlDB server URL specified (default is `http://localhost:8088`):
+ksqlDB server URL specified (default is `http://localhost:8084`):
 
 ```bash
 <path-to-confluent>/bin/ksql <ksql-server-URL>
@@ -74,7 +74,7 @@ part of the command itself:
 For example:
 
 ```bash
-/bin/ksql --execute "SHOW STREAMS;" -- http://localhost:8088
+/bin/ksql --execute "SHOW STREAMS;" -- http://localhost:8084
 ```
 
 Define Variables for Substitution in Commands
@@ -92,7 +92,7 @@ string of the form `name=value` and may be passed any number of times.
 For example, the following command
 
 ```bash
-/bin/ksql --define stream_name=my_stream --define topic=my_topic -- http://localhost:8088
+/bin/ksql --define stream_name=my_stream --define topic=my_topic -- http://localhost:8084
 ```
 
 is equivalent to starting an interactive ksqlDB CLI session and then issuing
@@ -114,5 +114,5 @@ CREATE STREAM my_stream with (kafka_topic='${topic}', value_format='AVRO');
 Then the following command will create a stream backed by a topic with name `my_topic`:
 
 ```bash
-/bin/ksql --define topic=my_topic --file /path/to/statements.sql -- http://localhost:8088
+/bin/ksql --define topic=my_topic --file /path/to/statements.sql -- http://localhost:8084
 ```

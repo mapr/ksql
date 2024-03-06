@@ -249,7 +249,7 @@ public class PreconditionChecker implements Executable {
         serviceContext,
         vertx,
         admin,
-        new KafkaTopicClientImpl(() -> admin)
+        new KafkaTopicClientImpl(() -> admin, ksqlConfig.getKsqlDefaultStream())
     );
   }
 

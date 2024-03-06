@@ -140,7 +140,7 @@ import io.confluent.ksql.api.client.ClientOptions;
 public class ExampleApp {
 
   public static String KSQLDB_SERVER_HOST = "localhost";
-  public static int KSQLDB_SERVER_HOST_PORT = 8088;
+  public static int KSQLDB_SERVER_HOST_PORT = 8084;
   
   public static void main(String[] args) {
     ClientOptions options = ClientOptions.create()

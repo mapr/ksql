@@ -23,7 +23,7 @@ You can use the `curl` command to query the `/clusterStatus` endpoint
 for a particular server:
 
 ```bash
-curl -sX GET "http://localhost:8088/clusterStatus" | jq '.'
+curl -sX GET "http://localhost:8084/clusterStatus" | jq '.'
 ```
 
 The response object contains a `clusterStatus` field with the following
@@ -48,7 +48,7 @@ with lag reporting enabled, your output should resemble:
 ```json
 {
   "clusterStatus": {
-    "localhost:8088": {
+    "localhost:8084": {
       "hostAlive": true,
       "lastStatusUpdateMs": 1617609098808,
       "activeStandbyPerQuery": {
@@ -99,7 +99,7 @@ with lag reporting enabled, your output should resemble:
         "updateTimeMs": 1617609168917
       }
     },
-    "other.ksqldb.host:8088": {
+    "other.ksqldb.host:8084": {
       "hostAlive": true,
       "lastStatusUpdateMs": 1617609172614,
       "activeStandbyPerQuery": {

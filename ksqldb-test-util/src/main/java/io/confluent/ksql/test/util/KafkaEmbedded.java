@@ -63,7 +63,7 @@ import scala.collection.Iterator;
  * default.
  *
  * <p>Requires a running ZooKeeper instance to connect to.  By default, it expects a ZooKeeper
- * instance running at `127.0.0.1:2181`.  You can specify a different ZooKeeper instance by setting
+ * instance running at `127.0.0.1:5181`.  You can specify a different ZooKeeper instance by setting
  * the `zookeeper.connect` parameter in the broker's configuration.
  */
 // CHECKSTYLE_RULES.OFF: ClassDataAbstractionCoupling

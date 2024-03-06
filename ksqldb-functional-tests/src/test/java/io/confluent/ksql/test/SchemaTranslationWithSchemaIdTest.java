@@ -13,6 +13,7 @@ import com.google.common.collect.ImmutableList;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.confluent.avro.random.generator.Generator;
 import io.confluent.kafka.schemaregistry.avro.AvroSchema;
+import io.confluent.ksql.test.util.UserGroupInformationMockPolicy;
 import io.confluent.ksql.serde.avro.AvroFormat;
 import io.confluent.ksql.test.loader.JsonTestLoader;
 import io.confluent.ksql.test.loader.TestFile;
@@ -24,6 +25,7 @@ import io.confluent.ksql.test.tools.conditions.PostConditions;
 import io.confluent.ksql.test.tools.exceptions.InvalidFieldException;
 import io.confluent.ksql.test.tools.exceptions.MissingFieldException;
 import io.confluent.ksql.test.utils.SerdeUtil;
+import io.confluent.ksql.testutils.AvoidMaprFSAppDirCreation;
 import io.confluent.ksql.tools.test.model.TestLocation;
 import io.confluent.ksql.tools.test.model.Topic;
 import java.nio.file.Path;
@@ -37,18 +39,28 @@ import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.avro.Schema;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.powermock.core.classloader.annotations.MockPolicy;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.modules.junit4.rule.PowerMockRule;
 
 
 @RunWith(Parameterized.class)
+@MockPolicy({AvoidMaprFSAppDirCreation.class, UserGroupInformationMockPolicy.class})
+@PowerMockIgnore("javax.management.*")
 public class SchemaTranslationWithSchemaIdTest {
 
+  @Rule
+  public PowerMockRule rule = new PowerMockRule();
+
   private static final Path SCHEMA_VALIDATION_TEST_DIR = Paths.get("schema-validation-tests");
-  private static final String TOPIC_NAME = "TEST_INPUT";
+  private static final String TOPIC_NAME = "/S:TEST_INPUT";
+  private static final String STREAM_NAME = "TEST_INPUT";
   private static final String OUTPUT_TOPIC_NAME = "TEST_OUTPUT";
-  private static final String DDL_STATEMENT = "CREATE STREAM " + TOPIC_NAME
+  private static final String DDL_STATEMENT = "CREATE STREAM " + STREAM_NAME
       + " (ROWKEY STRING KEY) WITH (KAFKA_TOPIC='" + TOPIC_NAME + "', VALUE_FORMAT='AVRO', VALUE_SCHEMA_ID=1);";
 
   private static final Topic OUTPUT_TOPIC = new Topic(OUTPUT_TOPIC_NAME, Optional.empty(), Optional.empty());
@@ -187,7 +199,7 @@ public class SchemaTranslationWithSchemaIdTest {
                 Collectors.joining(
                     ", ",
                     "CREATE STREAM " + OUTPUT_TOPIC_NAME + " AS SELECT ROWKEY, ",
-                    " FROM " + TOPIC_NAME + ";")
+                    " FROM " + STREAM_NAME + ";")
             );
 
         return new TestCase(

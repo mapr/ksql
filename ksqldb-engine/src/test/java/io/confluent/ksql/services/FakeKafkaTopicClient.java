@@ -32,6 +32,10 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import io.confluent.ksql.util.KsqlConfig;
+import io.confluent.ksql.util.MaprFSUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.admin.CreateTopicsOptions;
 import org.apache.kafka.clients.admin.OffsetSpec;
 import org.apache.kafka.clients.admin.TopicDescription;
@@ -46,6 +50,14 @@ import org.apache.kafka.common.errors.UnknownTopicOrPartitionException;
  * Fake Kafka Client is for test only, none of its methods should be called.
  */
 public class FakeKafkaTopicClient implements KafkaTopicClient {
+  private String defaultStream = "";
+
+  public FakeKafkaTopicClient() {
+  }
+
+  public FakeKafkaTopicClient(KsqlConfig config) {
+    this.defaultStream = config.getKsqlDefaultStream();
+  }
 
   public static class FakeTopic {
 
@@ -122,19 +134,20 @@ public class FakeKafkaTopicClient implements KafkaTopicClient {
       final int numPartitions,
       final int replicationFactor,
       final Map<String, ?> configs) {
-    final FakeTopic info = createFakeTopic(topic, numPartitions, replicationFactor, configs);
-    topicMap.put(topic, info);
-    topicMapConfig.put(topic, configs);
+    final FakeTopic info = createFakeTopic(getFullTopicName(topic), numPartitions, replicationFactor, configs);
+    topicMap.put(getFullTopicName(topic), info);
+    topicMapConfig.put(getFullTopicName(topic), configs);
   }
 
   @Override
   public boolean createTopic(
-      final String topic,
+      String topic,
       final int numPartitions,
       final short replicationFactor,
       final Map<String, ?> configs,
       final CreateTopicsOptions createOptions
   ) {
+    topic = getFullTopicName(topic);
     final short replicas = replicationFactor == TopicProperties.DEFAULT_REPLICAS
         ? 1
         : replicationFactor;
@@ -158,23 +171,30 @@ public class FakeKafkaTopicClient implements KafkaTopicClient {
 
   @Override
   public boolean isTopicExists(final String topic) {
-    return topicMap.containsKey(topic);
+    return topicMap.containsKey(getFullTopicName(topic));
   }
 
   @Override
   public Set<String> listTopicNames() {
-    return topicMap.keySet();
+    return listTopicNames(defaultStream);
   }
+
+  public Set<String> listTopicNames(String stream) {
+    return topicMap.keySet().stream()
+        .map(topic -> getShortTopicName(stream, topic))
+        .collect(Collectors.toSet());  }
 
   @Override
   public Map<String, TopicDescription> describeTopics(final Collection<String> topicNames) {
+    // not sure about this change
     return topicNames.stream()
-        .collect(Collectors.toMap(Function.identity(), this::describeTopic));
-  }
+        .filter(topicNames::contains)
+        .collect(Collectors.toMap(Function.identity(), n -> this.describeTopic(getFullTopicName(n))));
+    }
 
   @Override
   public TopicDescription describeTopic(final String topicName) {
-    final FakeTopic fakeTopic = topicMap.get(topicName);
+    final FakeTopic fakeTopic = topicMap.get(getFullTopicName(topicName));
     if (fakeTopic == null) {
       throw new UnknownTopicOrPartitionException("unknown topic: " + topicName);
     }
@@ -184,7 +204,7 @@ public class FakeKafkaTopicClient implements KafkaTopicClient {
 
   @Override
   public Map<String, String> getTopicConfig(final String topicName) {
-    return (Map<String, String>) createdTopicsConfig.getOrDefault(topicName, topicMapConfig.get(topicName));
+    return (Map<String, String>) createdTopicsConfig.getOrDefault(topicName, topicMapConfig.getOrDefault(topicName, Collections.emptyMap()));
   }
 
   @Override
@@ -200,7 +220,7 @@ public class FakeKafkaTopicClient implements KafkaTopicClient {
   @Override
   public void deleteTopics(final Collection<String> topicsToDelete) {
     for (final String topicName : topicsToDelete) {
-      topicMap.remove(topicName);
+      topicMap.remove(getFullTopicName(topicName));
     }
   }
 
@@ -245,6 +265,14 @@ public class FakeKafkaTopicClient implements KafkaTopicClient {
         existing.numPartitions,
         existing.replicationFactor,
         actualRetentionMs);
+  }
+
+  private String getShortTopicName(String stream, String topic) {
+    return StringUtils.removeStart(topic, stream + ":");
+  }
+
+  private String getFullTopicName(String topicName) {
+    return MaprFSUtils.decorateTopicWithDefaultStreamIfNeeded(topicName, defaultStream);
   }
 
 }

@@ -52,7 +52,7 @@ class ZooKeeperEmbedded {
 
   /**
    * The ZooKeeper connection string aka `zookeeper.connect` in `hostnameOrIp:port` format.
-   * Example: `127.0.0.1:2181`.
+   * Example: `127.0.0.1:5181`.
    *
    * <p>You can use this to e.g. tell Kafka brokers how to connect to this instance.
    */

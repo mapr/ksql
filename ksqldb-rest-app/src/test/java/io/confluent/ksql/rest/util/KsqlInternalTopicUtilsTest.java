@@ -30,6 +30,7 @@ import com.google.common.collect.ImmutableMap;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.confluent.ksql.exception.KafkaTopicExistsException;
 import io.confluent.ksql.services.KafkaTopicClient;
+import io.confluent.ksql.testutils.AvoidMaprFSAppDirCreation;
 import io.confluent.ksql.util.KsqlConfig;
 import java.util.LinkedList;
 import java.util.List;
@@ -41,12 +42,14 @@ import org.apache.kafka.common.Node;
 import org.apache.kafka.common.TopicPartitionInfo;
 import org.apache.kafka.common.config.TopicConfig;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.core.classloader.annotations.MockPolicy;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(PowerMockRunner.class)
+@MockPolicy(AvoidMaprFSAppDirCreation.class)
 public class KsqlInternalTopicUtilsTest {
   private static final String TOPIC_NAME = "topic";
   private static final short NREPLICAS = 2;
@@ -59,10 +62,9 @@ public class KsqlInternalTopicUtilsTest {
       TopicConfig.MIN_IN_SYNC_REPLICAS_CONFIG, INSYNC_REPLICAS,
       TopicConfig.UNCLEAN_LEADER_ELECTION_ENABLE_CONFIG, ENABLE_UNCLEAN_ELECTION);
 
-  @Mock
-  private KafkaTopicClient topicClient;
-  @Mock
-  private KsqlConfig ksqlConfig;
+  private KafkaTopicClient topicClient = mock(KafkaTopicClient.class);
+
+  private KsqlConfig ksqlConfig = mock(KsqlConfig.class);
 
   @Before
   public void setUp() {
@@ -108,6 +110,7 @@ public class KsqlInternalTopicUtilsTest {
     verify(topicClient, never()).createTopic(any(), anyInt(), anyShort(), anyMap());
   }
 
+  @Ignore // it's KAFKA-274, addTopicConfig is never called due to workaround in KsqlInternalTopicUtils
   @Test
   @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
   public void shouldEnsureInternalTopicHasInfiniteRetentionAndDeleteCleanUpPolicy() {

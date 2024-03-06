@@ -20,12 +20,14 @@ import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertThrows;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.ksql.serde.connect.KsqlConnectDeserializer;
 import io.confluent.ksql.serde.connect.KsqlConnectSerializer;
+import io.confluent.ksql.test.util.UserGroupInformationMockPolicy;
 import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.ksql.util.KsqlException;
 import java.util.function.Supplier;
@@ -39,16 +41,16 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.core.classloader.annotations.MockPolicy;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(PowerMockRunner.class)
+@MockPolicy(UserGroupInformationMockPolicy.class)
 public class KsqlJsonSerdeFactoryTest {
 
-  @Mock
-  private KsqlConfig config;
-  @Mock
-  private KsqlJsonSerdeFactory jsonFactory;
-  @Mock
-  private SchemaRegistryClient schemaRegistryClient;
+  private KsqlConfig config = mock(KsqlConfig.class);
+  private KsqlJsonSerdeFactory jsonFactory = mock(KsqlJsonSerdeFactory.class);
+  private SchemaRegistryClient schemaRegistryClient = mock(SchemaRegistryClient.class);
 
   private Supplier<SchemaRegistryClient> srFactory;
 
@@ -62,6 +64,7 @@ public class KsqlJsonSerdeFactoryTest {
   public void shouldUseNewJsonSchemaDeserializerOnJsonSrWhenJsonSchemaConverterIsEnabled() {
     // Given
     final ConnectSchema connectSchema = (ConnectSchema) SchemaBuilder.string().build();
+    when(config.getSchemaRegistryUrl()).thenReturn("fake:8087");
     when(config.getBoolean(KsqlConfig.KSQL_JSON_SR_CONVERTER_DESERIALIZER_ENABLED))
         .thenReturn(true);
 
@@ -77,6 +80,7 @@ public class KsqlJsonSerdeFactoryTest {
   public void shouldUseOldJsonDeserializerOnJsonSrWhenJsonSchemaConverterIsDisabled() {
     // Given
     final ConnectSchema connectSchema = (ConnectSchema) SchemaBuilder.string().build();
+    when(config.getSchemaRegistryUrl()).thenReturn("fake:8087");
     when(config.getBoolean(KsqlConfig.KSQL_JSON_SR_CONVERTER_DESERIALIZER_ENABLED))
         .thenReturn(false);
 

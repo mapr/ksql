@@ -31,6 +31,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.checkerframework.checker.units.qual.K;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -83,7 +85,8 @@ public class TransientQueryCleanupServiceTest {
         when(q4.getQueryId()).thenReturn(new QueryId(APP_ID_4));
         when(q5.getQueryId()).thenReturn(new QueryId(APP_ID_5));
 
-        FakeKafkaTopicClient client = new FakeKafkaTopicClient();
+        FakeKafkaTopicClient client = new FakeKafkaTopicClient(new KsqlConfig(KSQL_CONFIG.originals(
+                Collections.singletonMap(KsqlConfig.KSQL_DEFAULT_STREAM_CONFIG, "/default-stream"))));
         ALL_APP_IDS.forEach(id -> {
             client.createTopic(id + "-KafkaTopic_Right-Reduce-changelog", 1, (short) 1);
             client.createTopic(id + "-Join-repartition", 1, (short) 1);

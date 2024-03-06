@@ -1,0 +1,19 @@
+#!/bin/sh
+set -e
+
+if [ \( "$1" = "purge" \) ]; then
+    echo POSTRM
+fi
+
+#
+# Regardless of whether this is a "remove" or "purge",
+# if the warden.ksql.conf and ksql tmp exists , then remove
+# them.
+#
+if [ -f __PREFIX__/conf/conf.d/warden.ksql.conf ]; then
+    rm -Rf __PREFIX__/conf/conf.d/warden.ksql.conf
+fi
+
+if [ -h __PREFIX__/pid/ksql.pid ]; then
+    rm -f __PREFIX__/pid/ksql.pid
+fi

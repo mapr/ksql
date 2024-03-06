@@ -196,7 +196,8 @@ public class TestKsqlRestApp extends ExternalResource {
         ImmutableMap.of(),
         ImmutableMap.of(),
         credentials,
-        Optional.empty()
+        Optional.empty(),
+            null
     );
   }
 
@@ -206,7 +207,8 @@ public class TestKsqlRestApp extends ExternalResource {
         ImmutableMap.of(),
         ImmutableMap.of(),
         credentials,
-        Optional.empty()
+        Optional.empty(),
+            null
     );
   }
 
@@ -216,7 +218,8 @@ public class TestKsqlRestApp extends ExternalResource {
         ImmutableMap.of(),
         ImmutableMap.of(),
         credentials,
-        Optional.empty()
+        Optional.empty(),
+            null
     );
   }
 
@@ -226,7 +229,8 @@ public class TestKsqlRestApp extends ExternalResource {
         ImmutableMap.of(),
         ImmutableMap.of(),
         credentials,
-        Optional.empty()
+        Optional.empty(),
+            null
     );
   }
 

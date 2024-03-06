@@ -56,8 +56,8 @@ public class KsqlRestConfig extends AbstractConfig {
   public static final String LISTENERS_CONFIG = "listeners";
   protected static final String LISTENERS_DOC =
       "List of listeners. http and https are supported. Each listener must include the protocol, "
-          + "hostname, and port. For example: http://myhost:8080, https://0.0.0.0:8081";
-  protected static final String LISTENERS_DEFAULT = "http://0.0.0.0:8088";
+          + "hostname, and port. For example: http://myhost:8080, https://0.0.0.0:8087";
+  protected static final String LISTENERS_DEFAULT = "http://0.0.0.0:8084";
 
   public static final String PROXY_PROTOCOL_LISTENERS_CONFIG = "listeners.proxy.protocol";
   protected static final String PROXY_PROTOCOL_LISTENERS_DOC =
@@ -127,7 +127,6 @@ public class KsqlRestConfig extends AbstractConfig {
   public static final String SSL_STORE_TYPE_JKS = "JKS";
   public static final String SSL_STORE_TYPE_PKCS12 = "PKCS12";
   public static final String SSL_STORE_TYPE_BCFKS = "BCFKS";
-
   public static final ConfigDef.ValidString SSL_STORE_TYPE_VALIDATOR =
       ConfigDef.ValidString.in(
           SSL_STORE_TYPE_JKS,
@@ -227,6 +226,19 @@ public class KsqlRestConfig extends AbstractConfig {
 
   public static final String KSQL_SERVER_PRECONDITIONS =
       KSQL_CONFIG_PREFIX + "server.preconditions";
+  static final String ENABLE_AUTHENTICATION_CONFIG = "authentication.enable";
+  private static final String ENABLE_AUTHENTICATION_DOC =
+      "Set to true if you want authentication for streams to be enabled.";
+
+  static final String ENABLE_AUTHORIZATION_CONFIG =
+      "authorization.enable";
+  private static final String ENABLE_AUTHORIZATION_DOC =
+      "Set 'true' or 'false' to enable or disable authorization for KSQL service";
+
+  static final String ENABLE_IMPERSONATION_CONFIG = "impersonation.enable";
+  private static final String ENABLE_IMPERSONATION_DOC =
+      "Set to true if you want impersonations for streams to be enabled, if false "
+          + "- all manipulation will be performed from admin of cluster user";
   private static final String KSQL_SERVER_PRECONDITIONS_DOC =
       "A comma separated list of classes implementing KsqlServerPrecondition. The KSQL server "
       + "will not start serving requests until all preconditions are satisfied. Until that time, "
@@ -641,6 +653,24 @@ public class KsqlRestConfig extends AbstractConfig {
             5,
             Importance.LOW,
             KSQL_WEBSOCKETS_NUM_THREADS_DOC
+        ).define(
+            ENABLE_AUTHORIZATION_CONFIG,
+            ConfigDef.Type.BOOLEAN,
+            false,
+            ConfigDef.Importance.LOW,
+            ENABLE_AUTHORIZATION_DOC
+        ).define(
+            ENABLE_AUTHENTICATION_CONFIG,
+            ConfigDef.Type.BOOLEAN,
+            false,
+            ConfigDef.Importance.LOW,
+            ENABLE_AUTHENTICATION_DOC
+        ).define(
+            ENABLE_IMPERSONATION_CONFIG,
+            ConfigDef.Type.BOOLEAN,
+            false,
+            ConfigDef.Importance.LOW,
+            ENABLE_IMPERSONATION_DOC
         ).define(
             KSQL_SERVER_PRECONDITIONS,
             Type.LIST,

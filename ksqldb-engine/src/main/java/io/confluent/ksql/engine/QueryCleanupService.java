@@ -166,12 +166,13 @@ public class QueryCleanupService extends AbstractExecutionThreadService {
           "internal topics"
       );
 
-      LOG.info("Deleting offsets for appId: {}", appId);
-      tryRun(
-          () -> serviceContext
-              .getConsumerGroupClient()
-              .deleteConsumerGroups(ImmutableSet.of(appId)),
-          "internal consumer groups");
+      // deleteConsumerGroups API not implemented
+      // LOG.info("Deleting offsets for appId: {}", appId);
+      // tryRun(
+      //     () -> serviceContext
+      //         .getConsumerGroupClient()
+      //         .deleteConsumerGroups(ImmutableSet.of(appId)),
+      //     "internal consumer groups");
     }
 
     private void tryRun(final Runnable runnable, final String resource) {

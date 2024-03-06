@@ -15,6 +15,7 @@
 
 package io.confluent.ksql.test.driver;
 
+import io.confluent.ksql.testutils.AvoidMaprFSAppDirCreation;
 import io.confluent.ksql.tools.test.parser.SqlTestLoader;
 import io.confluent.ksql.tools.test.parser.SqlTestLoader.SqlTest;
 import io.confluent.ksql.tools.test.SqlTestExecutor;
@@ -29,9 +30,16 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.powermock.core.classloader.annotations.MockPolicy;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.modules.junit4.rule.PowerMockRule;
 
 @RunWith(Parameterized.class)
+@MockPolicy(AvoidMaprFSAppDirCreation.class)
+@PowerMockIgnore("javax.management.*")
 public class KsqlTesterTest {
+  @Rule
+  public PowerMockRule rule = new PowerMockRule();
   private static final String TEST_DIR = "/sql-tests";
 
   // parameterized

@@ -683,7 +683,7 @@ The {{ site.sr }} URL path to connect ksqlDB to. To communicate with {{ site.sr 
 over a secure connection, see
 [Configure ksqlDB for Secured {{ site.srlong }}](/operate-and-deploy/installation/server-config/security#configure-ksqldb-for-secured-confluent-schema-registry).
 
-The default for {{ site.cp }} is `http://schema-registry:8081`. The default for
+The default for {{ site.cp }} is `http://schema-registry:8087`. The default for
 {{ site.ccloud }} depends on the environment.
 
 ## `ksql.service.id`
@@ -1054,23 +1054,23 @@ The `listeners` setting controls the REST API endpoint for the ksqlDB
 Server. For more info, see
 [ksqlDB REST API Reference](/developer-guide/api).
 
-The default `listeners` is `http://0.0.0.0:8088`, which binds to all
-IPv4 interfaces. Set `listeners` to `http://[::]:8088` to bind to all
+The default `listeners` is `http://0.0.0.0:8084`, which binds to all
+IPv4 interfaces. Set `listeners` to `http://[::]:8084` to bind to all
 IPv6 interfaces. Update this to a specific interface to bind only to a
 single interface. For example:
 
 ```properties
 # Bind to all IPv4 interfaces.
-listeners=http://0.0.0.0:8088
+listeners=http://0.0.0.0:8084
 
 # Bind to all IPv6 interfaces.
-listeners=http://[::]:8088
+listeners=http://[::]:8084
 
 # Bind only to localhost.
-listeners=http://localhost:8088
+listeners=http://localhost:8084
 
 # Bind to specific hostname or ip.
-listeners=http://server1245:8088
+listeners=http://server1245:8084
 ```
 
 You can configure ksqlDB Server to use HTTPS. For more information, see

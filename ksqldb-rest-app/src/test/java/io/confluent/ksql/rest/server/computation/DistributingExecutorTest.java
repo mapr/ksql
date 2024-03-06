@@ -89,6 +89,7 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.errors.ProducerFencedException;
 import org.apache.kafka.common.errors.TimeoutException;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
@@ -186,6 +187,7 @@ public class DistributingExecutorTest {
   }
 
   @Test
+  @Ignore // no transactions support
   public void shouldEnqueueSuccessfulCommandTransactionally() {
     // When:
     distributor.execute(CONFIGURED_STATEMENT, executionContext, securityContext);
@@ -209,6 +211,7 @@ public class DistributingExecutorTest {
   }
 
   @Test
+  @Ignore // no transactions support
   public void shouldNotAbortTransactionIfInitTransactionFails() {
     // Given:
     doThrow(TimeoutException.class).when(transactionalProducer).initTransactions();
@@ -231,24 +234,28 @@ public class DistributingExecutorTest {
   }
 
   @Test
+  @Ignore // no transactions support
   public void shouldPreserveExistingTopicOnTimeout() {
     doThrow(new TimeoutException()).when(transactionalProducer).initTransactions();
     checkTopicCreationBehavior(true);
   }
 
   @Test
+  @Ignore // no transactions support
   public void shouldPreserveExistingTopicWhenFenced() {
     doThrow(new ProducerFencedException("test")).when(transactionalProducer).beginTransaction();
     checkTopicCreationBehavior(true);
   }
 
   @Test
+  @Ignore // no transactions support
   public void shouldDeleteCreatedTopicOnTimeout() {
     doThrow(new TimeoutException()).when(transactionalProducer).initTransactions();
     checkTopicCreationBehavior(false);
   }
 
   @Test
+  @Ignore // no transactions support
   public void shouldDeleteCreatedTopicWhenFenced() {
     doThrow(new ProducerFencedException("test")).when(transactionalProducer).beginTransaction();
     checkTopicCreationBehavior(false);
@@ -335,7 +342,8 @@ public class DistributingExecutorTest {
         "Could not write the statement 'statement' into the command topic."));
     assertThat(e.getSqlStatement(), containsString("statement"));
     assertThat(e.getCause(), (is(cause)));
-    verify(transactionalProducer, times(1)).abortTransaction();
+    //we don't support transactions
+//    verify(transactionalProducer, times(1)).abortTransaction();
   }
 
   @Test
@@ -463,8 +471,7 @@ public class DistributingExecutorTest {
         );
     final DataSource dataSource = mock(DataSource.class);
     doReturn(dataSource).when(metaStore).getSource(SourceName.of("s1"));
-    when(dataSource.getKafkaTopicName()).thenReturn("default_ksql_processing_log");
-
+    when(dataSource.getKafkaTopicName()).thenReturn("/apps/ksql/default_/KSQL_PROCESSING_LOG:default_ksql_processing_log");
     // When:
     final Exception e = assertThrows(
         KsqlException.class,
@@ -474,7 +481,7 @@ public class DistributingExecutorTest {
     // Then:
     assertThat(e.getMessage(), containsString(
         "Cannot insert into read-only topic: "
-            + "default_ksql_processing_log"));
+            + "/apps/ksql/default_/KSQL_PROCESSING_LOG:default_ksql_processing_log"));
   }
 
   @Test
@@ -503,6 +510,7 @@ public class DistributingExecutorTest {
   }
 
   @Test
+  @Ignore // no transactions support
   public void shouldAbortOnError_ProducerFencedException() {
     // When:
     doThrow(new ProducerFencedException("Error!")).when(transactionalProducer).commitTransaction();
@@ -521,6 +529,7 @@ public class DistributingExecutorTest {
   }
 
   @Test
+  @Ignore // no transactions support
   public void shouldAbortOnError_Exception() {
     // When:
     doThrow(new RuntimeException("Error!")).when(transactionalProducer).commitTransaction();

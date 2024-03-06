@@ -72,8 +72,12 @@ public final class ReservedInternalTopics {
   ) {
     final String topicNameConfig = config.getString(ProcessingLogConfig.TOPIC_NAME);
     if (topicNameConfig.equals(ProcessingLogConfig.TOPIC_NAME_NOT_SET)) {
+      final String ksqlServiceId = ksqlConfig.getString(KsqlConfig.KSQL_SERVICE_ID_CONFIG);
       return String.format(
-          "%s%s",
+          "%s%s/%s:%s%s",
+          KsqlConfig.KSQL_SERVICES_COMMON_FOLDER,
+          ksqlServiceId,
+          config.getString(ProcessingLogConfig.STREAM_NAME),
           ksqlConfig.getString(KsqlConfig.KSQL_SERVICE_ID_CONFIG),
           ProcessingLogConfig.TOPIC_NAME_DEFAULT_SUFFIX
       );
@@ -90,10 +94,13 @@ public final class ReservedInternalTopics {
    * @return The computed topic name.
    */
   private static String toKsqlInternalTopic(final KsqlConfig ksqlConfig, final String topicSuffix) {
+    final String ksqlServiceId = ksqlConfig.getString(KsqlConfig.KSQL_SERVICE_ID_CONFIG);
     return String.format(
-        "%s%s_%s",
+        "%s%s/ksql-commands:%s%s_%s",
+        KsqlConfig.KSQL_SERVICES_COMMON_FOLDER,
+        ksqlServiceId,
         KSQL_INTERNAL_TOPIC_PREFIX,
-        ksqlConfig.getString(KsqlConfig.KSQL_SERVICE_ID_CONFIG),
+        ksqlServiceId,
         topicSuffix
     );
   }

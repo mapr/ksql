@@ -27,14 +27,19 @@ import io.confluent.ksql.rest.entity.FunctionInfo;
 import io.confluent.ksql.rest.entity.FunctionType;
 import io.confluent.ksql.rest.server.TemporaryEngine;
 import java.util.Arrays;
+import io.confluent.ksql.util.MaprFSUtils;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(MaprFSUtils.class)
+@PowerMockIgnore({"javax.management.*","javax.net.ssl.*"})
 public class DescribeFunctionExecutorTest {
 
   @Rule public TemporaryEngine engine = new TemporaryEngine();

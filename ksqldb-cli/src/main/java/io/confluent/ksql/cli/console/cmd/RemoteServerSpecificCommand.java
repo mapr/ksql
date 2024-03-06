@@ -16,6 +16,7 @@
 package io.confluent.ksql.cli.console.cmd;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_ACCEPTABLE;
+import static io.netty.handler.codec.http.HttpResponseStatus.UNAUTHORIZED;
 
 import io.confluent.ksql.links.DocumentationLinks;
 import io.confluent.ksql.rest.Errors;
@@ -97,6 +98,10 @@ public final class RemoteServerSpecificCommand implements CliSpecificCommand {
         final KsqlErrorMessage ksqlError = restResponse.getErrorMessage();
         if (Errors.toStatusCode(ksqlError.getErrorCode()) == NOT_ACCEPTABLE.code()) {
           writer.format("This CLI version no longer supported: %s%n%n", ksqlError);
+          return;
+        } else if (Errors.toStatusCode(ksqlError.getErrorCode()) == UNAUTHORIZED.code()) {
+          writer.format(
+              "Could not authenticate successfully with the supplied credentials or ticket.%n%n");
           return;
         }
         writer.format(

@@ -99,7 +99,7 @@ public class TopicCreateInjectorTest {
     overrides = new HashMap<>();
     config = new KsqlConfig(new HashMap<>());
 
-    injector = new TopicCreateInjector(topicClient, metaStore);
+    injector = new TopicCreateInjector(new KsqlConfig(ImmutableMap.of(KsqlConfig.KSQL_DEFAULT_STREAM_CONFIG, "/sample-stream")), topicClient, metaStore);
 
     final KsqlTopic sourceTopic = new KsqlTopic(
         "source",
@@ -348,7 +348,7 @@ public class TopicCreateInjectorTest {
 
     // Then:
     verify(topicClient).createTopic(
-        "expectedName",
+        "/sample-stream:expectedName",
         10,
         (short) 10,
         ImmutableMap.of(
@@ -367,7 +367,7 @@ public class TopicCreateInjectorTest {
 
     // Then:
     verify(topicClient).createTopic(
-        "expectedName",
+        "/sample-stream:expectedName",
         10,
         (short) 10,
         ImmutableMap.of(
@@ -387,7 +387,7 @@ public class TopicCreateInjectorTest {
 
     // Then:
     verify(topicClient).createTopic(
-        "expectedName",
+        "/sample-stream:expectedName",
         10,
         (short) 10,
         ImmutableMap.of(TopicConfig.CLEANUP_POLICY_CONFIG, TopicConfig.CLEANUP_POLICY_COMPACT));
@@ -404,7 +404,7 @@ public class TopicCreateInjectorTest {
 
     // Then:
     verify(topicClient).createTopic(
-        "topic",
+        "/sample-stream:topic",
         10,
         (short) 10,
         ImmutableMap.of(TopicConfig.CLEANUP_POLICY_CONFIG, TopicConfig.CLEANUP_POLICY_COMPACT));
@@ -422,7 +422,7 @@ public class TopicCreateInjectorTest {
 
     // Then:
     verify(topicClient).createTopic(
-        "expectedName",
+        "/sample-stream:expectedName",
         10,
         (short) 10,
         ImmutableMap.of(TopicConfig.CLEANUP_POLICY_CONFIG,
@@ -442,7 +442,7 @@ public class TopicCreateInjectorTest {
 
     // Then:
     verify(topicClient).createTopic(
-        "expectedName",
+        "/sample-stream:expectedName",
         10,
         (short) 10,
         ImmutableMap.of(
@@ -465,7 +465,7 @@ public class TopicCreateInjectorTest {
 
     // Then:
     verify(topicClient).createTopic(
-        "topic",
+        "/sample-stream:topic",
         2,
         (short) 1,
         ImmutableMap.of(

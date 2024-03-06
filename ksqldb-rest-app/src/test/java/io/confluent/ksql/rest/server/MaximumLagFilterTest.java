@@ -23,8 +23,8 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class MaximumLagFilterTest {
 
-  private static KsqlHostInfo HOST1 = new KsqlHostInfo("host", 8088);
-  private static KsqlHostInfo HOST2 = new KsqlHostInfo("host2", 8088);
+  private static KsqlHostInfo HOST1 = new KsqlHostInfo("host", 8084);
+  private static KsqlHostInfo HOST2 = new KsqlHostInfo("host2", 8084);
   private static List<KsqlHostInfo> HOSTS = ImmutableList.of(HOST1, HOST2);
   private static String APPLICATION_ID = "app_id";
   private static String STATE_STORE = "state_store";

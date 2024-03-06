@@ -60,7 +60,7 @@ public final class KsqlConfigTestUtil {
   public static KsqlConfig create(
       final String kafkaBootstrapServers
   ) {
-    return create(kafkaBootstrapServers, ImmutableMap.of());
+    return create(kafkaBootstrapServers, ImmutableMap.of(KsqlConfig.KSQL_DEFAULT_STREAM_CONFIG, "/default-stream"));
   }
 
   public static KsqlConfig create(

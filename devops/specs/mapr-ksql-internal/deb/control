@@ -1,0 +1,10 @@
+Package: mapr-ksql-internal
+Version: __RELEASE_VERSION__
+Section: base
+Priority: optional
+Architecture: all
+Depends: mapr-core (>= 7.1.0) , mapr-kafka (>= 2.6.1)
+Maintainer: Hewlett Packard Enterprise <ezmeral_software_support@hpe.com>
+Description: Ezmeral Ecosystem Pack: KSQL internal package
+  Tag: __RELEASE_BRANCH__
+  Commit: __GIT_COMMIT__

@@ -35,6 +35,7 @@ import io.confluent.ksql.rest.client.RestResponse;
 import io.confluent.ksql.rest.entity.ServerInfo;
 import io.confluent.ksql.rest.server.KsqlRestConfig;
 import io.confluent.ksql.rest.server.TestKsqlRestApp;
+import io.confluent.ksql.test.categories.UnsupportedTest;
 import io.confluent.ksql.test.util.EmbeddedSingleNodeKafkaCluster;
 import io.confluent.ksql.test.util.KsqlTestFolder;
 import io.vertx.core.MultiMap;
@@ -57,7 +58,7 @@ import org.junit.experimental.categories.Category;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TemporaryFolder;
 
-@Category({IntegrationTest.class})
+@Category({IntegrationTest.class, UnsupportedTest.class})
 public class BasicAuthFunctionalTest {
 
   private static final TemporaryFolder TMP_FOLDER = KsqlTestFolder.temporaryFolder();
@@ -159,7 +160,8 @@ public class BasicAuthFunctionalTest {
         ImmutableMap.of(),
         ImmutableMap.of(),
         Optional.of(credentials),
-        Optional.empty()
+        Optional.empty(),
+            null
     )) {
       final RestResponse<ServerInfo> response = restClient.getServerInfo();
       if (response.isSuccessful()) {

@@ -72,12 +72,17 @@ public class KsqlTest {
     ksql = new Ksql(options, systemProps, clientBuilder, cliBuilder);
 
     when(options.getOutputFormat()).thenReturn(OutputFormat.TABULAR);
-    when(clientBuilder.build(any(), any(), any(), any(), any())).thenReturn(client);
+    when(clientBuilder.build(any(), any(), any(), any(), any(), any(), any())).thenReturn(client);
     when(cliBuilder.build(any(), any(), any(), any())).thenReturn(cli);
   }
 
   @Test
-  public void shouldRunInteractively() {
+  public void shouldRunInteractively() throws Exception {
+    givenConfigFile(
+            "ssl.truststore.location=some/path" + System.lineSeparator()
+                    + "ssl.truststore.password=letmein"
+    );
+
     // When:
     ksql.run();
 
@@ -86,10 +91,14 @@ public class KsqlTest {
   }
 
   @Test
-  public void shouldAddDefinedVariablesToCliBeforeRunningCommands() {
+  public void shouldAddDefinedVariablesToCliBeforeRunningCommands() throws Exception {
     // Given:
     when(options.getVariables()).thenReturn(ImmutableMap.of("env", "qa"));
     when(options.getExecute()).thenReturn(Optional.of("this is a command"));
+    givenConfigFile(
+            "ssl.truststore.location=some/path" + System.lineSeparator()
+                    + "ssl.truststore.password=letmein"
+    );
 
     // When:
     ksql.run();
@@ -101,9 +110,13 @@ public class KsqlTest {
   }
 
   @Test
-  public void shouldRunNonInteractiveCommandWhenExecuteOptionIsUsed() {
+  public void shouldRunNonInteractiveCommandWhenExecuteOptionIsUsed() throws Exception {
     // Given:
     when(options.getExecute()).thenReturn(Optional.of("this is a command"));
+    givenConfigFile(
+            "ssl.truststore.location=some/path" + System.lineSeparator()
+                    + "ssl.truststore.password=letmein"
+    );
 
     // When:
     ksql.run();
@@ -113,10 +126,14 @@ public class KsqlTest {
   }
 
   @Test
-  public void shouldRunScriptFileWhenFileOptionIsUsed() throws IOException {
+  public void shouldRunScriptFileWhenFileOptionIsUsed() throws Exception {
     // Given:
     final String sqlFile = TMP.newFile().getAbsolutePath();
     when(options.getScriptFile()).thenReturn(Optional.of(sqlFile));
+    givenConfigFile(
+            "ssl.truststore.location=some/path" + System.lineSeparator()
+                    + "ssl.truststore.password=letmein"
+    );
 
     // When:
     ksql.run();
@@ -126,15 +143,19 @@ public class KsqlTest {
   }
 
   @Test
-  public void shouldBuildClientWithCorrectServerAddress() {
+  public void shouldBuildClientWithCorrectServerAddress() throws Exception {
     // Given:
     when(options.getServer()).thenReturn("in a galaxy far far away");
+    givenConfigFile(
+        "ssl.truststore.location=some/path" + System.lineSeparator()
+            + "ssl.truststore.password=letmein"
+    );
 
     // When:
     ksql.run();
 
     // Then:
-    verify(clientBuilder).build(eq("in a galaxy far far away"), any(), any(), any(), any());
+    verify(clientBuilder).build(eq("in a galaxy far far away"), any(), any(), any(), any(), any(), any());
   }
 
   @Test
@@ -152,7 +173,7 @@ public class KsqlTest {
     verify(clientBuilder).build(any(), any(), eq(ImmutableMap.of(
         "ssl.truststore.location", "some/path",
         "ssl.truststore.password", "letmein"
-    )), any(), any());
+    )), any(), any(), any(), any());
   }
 
   @Test
@@ -175,7 +196,7 @@ public class KsqlTest {
     verify(clientBuilder).build(any(), any(), eq(ImmutableMap.of(
         "ssl.truststore.location", "some/path",
         "ssl.truststore.password", "letmein"
-    )), any(), any());
+    )), any(), any(), any(), any());
   }
 
   @Test
@@ -191,7 +212,8 @@ public class KsqlTest {
     ksql.run();
 
     // Then:
-    verify(clientBuilder).build(any(), eq(ImmutableMap.of("some.other.setting", "value")), any(), any(), any());
+    verify(clientBuilder).build(any(),
+        eq(ImmutableMap.of("some.other.setting", "value")), any(), any(), any(), any(), any());
   }
 
   private void givenConfigFile(final String content) throws Exception {

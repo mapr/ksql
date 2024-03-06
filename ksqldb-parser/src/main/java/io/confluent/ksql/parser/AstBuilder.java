@@ -684,8 +684,19 @@ public class AstBuilder {
 
     @Override
     public Node visitListTopics(final SqlBaseParser.ListTopicsContext context) {
+      final Optional<SourceName> streamName = Optional.ofNullable(
+              context.STRING() != null
+                      ?
+                      SourceName.of(ParserUtil.unquote(context.STRING().getText(), "'"))
+                      :
+                      context.sourceName() != null
+                              ?
+                              ParserUtil.getSourceName(context.sourceName())
+                              :
+                              null
+      );
       return new ListTopics(getLocation(context),
-          context.ALL() != null, context.EXTENDED() != null);
+          context.ALL() != null, context.EXTENDED() != null, streamName);
     }
 
     @Override

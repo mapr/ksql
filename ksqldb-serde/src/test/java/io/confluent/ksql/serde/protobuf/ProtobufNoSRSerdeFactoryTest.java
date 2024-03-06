@@ -17,10 +17,16 @@ package io.confluent.ksql.serde.protobuf;
 
 import com.google.common.collect.ImmutableMap;
 import io.confluent.ksql.serde.SerdeFactory;
+import io.confluent.ksql.test.util.UserGroupInformationMockPolicy;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.core.classloader.annotations.MockPolicy;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(PowerMockRunner.class)
+@MockPolicy(UserGroupInformationMockPolicy.class)
+@PowerMockIgnore("javax.net.ssl.*")
 public class ProtobufNoSRSerdeFactoryTest extends AbstractProtobufSerdeFactoryTest {
 
   @Override

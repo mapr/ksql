@@ -206,7 +206,7 @@ In case of error, an error response (see below) is sent. For an error response f
 ## Example curl command
 
 ```bash
-curl -X "POST" "http://<ksqldb-host-name>:8088/query-stream" \
+curl -X "POST" "http://<ksqldb-host-name>:8084/query-stream" \
      -d $'{
   "sql": "SELECT * FROM PAGEVIEWS EMIT CHANGES;",
   "streamsProperties": {}

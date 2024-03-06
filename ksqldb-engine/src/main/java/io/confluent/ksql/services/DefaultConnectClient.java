@@ -32,6 +32,7 @@ import io.confluent.ksql.util.KsqlException;
 import io.confluent.ksql.util.KsqlServerException;
 import io.confluent.ksql.util.QueryMask;
 import io.vertx.core.http.HttpHeaders;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
@@ -472,5 +473,14 @@ public class DefaultConnectClient implements ConnectClient {
 
       return ConnectResponse.success(data, code);
     };
+  }
+
+  @Override
+  public void close() {
+    try {
+      this.httpClient.close();
+    } catch (IOException e) {
+      throw new KsqlException("Could not close httpClient", e);
+    }
   }
 }

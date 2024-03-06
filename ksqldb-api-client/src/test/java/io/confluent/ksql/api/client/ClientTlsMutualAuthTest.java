@@ -17,8 +17,12 @@ package io.confluent.ksql.api.client;
 
 import io.confluent.ksql.rest.server.KsqlRestConfig;
 import java.util.Map;
-import org.apache.kafka.common.config.SslConfigs;
 
+import io.confluent.ksql.test.categories.UnsupportedTest;
+import org.apache.kafka.common.config.SslConfigs;
+import org.junit.experimental.categories.Category;
+
+@Category({UnsupportedTest.class})
 public class ClientTlsMutualAuthTest extends ClientTlsTest {
 
   @Override

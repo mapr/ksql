@@ -52,6 +52,7 @@ import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.ksql.util.KsqlException;
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -772,7 +773,7 @@ public class KsqlAvroSerializerTest {
     final byte[] bytes = serializer.serialize(SOME_TOPIC, value);
 
     // Then:
-    assertThat(deserialize(bytes), is((List<GenericRecord>) ImmutableList.of(avroOrder)));
+    assertThat(deserialize(bytes), is(Arrays.asList(avroOrder)));
   }
 
   @Test
@@ -1437,7 +1438,8 @@ public class KsqlAvroSerializerTest {
 
   @SuppressWarnings("unchecked")
   private <T> T deserialize(final byte[] serializedRow) {
-    return (T) deserializer.deserialize(SOME_TOPIC, serializedRow);
+    T deserialize = (T) deserializer.deserialize(SOME_TOPIC, serializedRow);
+    return deserialize;
   }
 
   private void shouldSerializeFieldTypeCorrectly(

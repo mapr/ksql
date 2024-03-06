@@ -36,16 +36,20 @@ import io.confluent.ksql.rest.entity.ServerClusterId;
 import io.confluent.ksql.rest.entity.ServerInfo;
 import io.confluent.ksql.rest.entity.ServerMetadata;
 import io.confluent.ksql.rest.entity.StreamedRow;
+import io.confluent.ksql.util.Pair;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpVersion;
 import java.io.Closeable;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
@@ -60,6 +64,10 @@ public final class KsqlRestClient implements Closeable {
   private final LocalProperties localProperties;
   private final AtomicReference<String> serializedConsistencyVector;
   private final Optional<BasicCredentials> ccloudApiKey;
+
+  private Optional<String> authMethod = Optional.empty();
+  private String authHeader;
+  private String clusterName;
 
   private List<URI> serverAddresses;
   private boolean isCCloudServer;
@@ -77,7 +85,9 @@ public final class KsqlRestClient implements Closeable {
       final String serverAddress,
       final Map<String, ?> localProps,
       final Map<String, String> clientProps,
-      final Optional<BasicCredentials> creds
+      final Optional<BasicCredentials> creds,
+      final Optional<String> authMethod,
+      final String clusterName
   ) {
     return create(
         serverAddress,
@@ -85,6 +95,8 @@ public final class KsqlRestClient implements Closeable {
         clientProps,
         creds,
         Optional.empty(),
+        authMethod,
+        clusterName,
         (cprops, credz, lprops) -> new KsqlClient(cprops, credz, lprops,
             new HttpClientOptions(),
             Optional.of(new HttpClientOptions().setProtocolVersion(HttpVersion.HTTP_2)))
@@ -104,7 +116,9 @@ public final class KsqlRestClient implements Closeable {
       final Map<String, ?> localProps,
       final Map<String, String> clientProps,
       final Optional<BasicCredentials> creds,
-      final Optional<BasicCredentials> ccloudApiKey
+      final Optional<BasicCredentials> ccloudApiKey,
+      final Optional<String> authMethod,
+      final String clusterName
   ) {
     return create(
         serverAddress,
@@ -112,6 +126,8 @@ public final class KsqlRestClient implements Closeable {
         clientProps,
         creds,
         ccloudApiKey,
+        authMethod,
+        clusterName,
         (cprops, credz, lprops) -> new KsqlClient(cprops, credz, lprops,
             new HttpClientOptions(),
             Optional.of(new HttpClientOptions().setProtocolVersion(HttpVersion.HTTP_2)))
@@ -125,11 +141,14 @@ public final class KsqlRestClient implements Closeable {
       final Map<String, String> clientProps,
       final Optional<BasicCredentials> creds,
       final Optional<BasicCredentials> ccloudApiKey,
+      final Optional<String> authMethod,
+      final String clusterName,
       final KsqlClientSupplier clientSupplier
   ) {
     final LocalProperties localProperties = new LocalProperties(localProps);
     final KsqlClient client = clientSupplier.get(clientProps, creds, localProperties);
-    return new KsqlRestClient(client, serverAddress, localProperties, ccloudApiKey);
+    return new KsqlRestClient(client, serverAddress, localProperties,
+            ccloudApiKey, authMethod, clusterName);
   }
 
   @FunctionalInterface
@@ -145,14 +164,53 @@ public final class KsqlRestClient implements Closeable {
       final KsqlClient client,
       final String serverAddress,
       final LocalProperties localProps,
-      final Optional<BasicCredentials> ccloudApiKey
-  ) {
+      final Optional<BasicCredentials> ccloudApiKey,
+      final Optional<String> authMethod,
+      final String clusterName) {
     this.client = requireNonNull(client, "client");
     this.serverAddresses = parseServerAddresses(serverAddress);
     this.localProperties = requireNonNull(localProps, "localProps");
     this.ccloudApiKey = ccloudApiKey;
     this.serializedConsistencyVector = new AtomicReference<>();
     this.isCCloudServer = false;
+    this.clusterName = clusterName;
+    if (authMethod.isPresent()) {
+      this.authMethod = authMethod;
+      setupAuthenticationCredentials(false);
+    } else {
+      this.authMethod = Optional.of("None");
+    }
+  }
+
+  public void setupAuthenticationCredentials(final boolean sessionExpired) {
+    if (authMethod.get().equalsIgnoreCase("basic")) {
+      final Pair<String, String> credentials = AuthenticationUtils
+          .readUsernameAndPassword(sessionExpired);
+      this.setBasicAuthHeader(Objects.requireNonNull(credentials.left),
+          Objects.requireNonNull(credentials.right));
+      this.client.setBasicAuthHeader(Objects.requireNonNull(credentials.left),
+              Objects.requireNonNull(credentials.right));
+    }
+    if (authMethod.get().equalsIgnoreCase("maprsasl")) {
+      final String readChallangeString = AuthenticationUtils.readChallengeString(this.clusterName);
+      this.setMapRSaslAuthHeader(readChallangeString);
+    }
+  }
+
+  private void setMapRSaslAuthHeader(final String challangeString) {
+    authHeader = String.format("MAPR-Negotiate %s", challangeString);
+  }
+
+  private void setBasicAuthHeader(final String user,
+                                  final String password) {
+    final byte[] userPass;
+    try {
+      userPass = String.format("%s:%s",user, password).getBytes("UTF-8");
+    } catch (UnsupportedEncodingException e) {
+      throw new RuntimeException(e);
+    }
+    final String encoding = Base64.getEncoder().encodeToString(userPass);
+    authHeader = String.format("Basic %s", encoding);
   }
 
   public URI getServerAddress() {
@@ -332,6 +390,14 @@ public final class KsqlRestClient implements Closeable {
     return localProperties.set(property, value);
   }
 
+  public String getAuthHeader() {
+    return authHeader;
+  }
+
+  public void setAuthHeader(final String authHeader) {
+    this.authHeader = authHeader;
+  }
+
   public Object unsetProperty(final String property) {
     return localProperties.unset(property);
   }
@@ -347,7 +413,9 @@ public final class KsqlRestClient implements Closeable {
   }
 
   private KsqlTarget target() {
-    return target(false);
+    final KsqlTarget target = target(false);
+    target.setRestClient(this);
+    return target;
   }
 
   private KsqlTarget target(final boolean includeConnectorHeaders) {

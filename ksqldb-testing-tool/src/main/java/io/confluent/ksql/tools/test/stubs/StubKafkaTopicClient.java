@@ -141,6 +141,11 @@ public class StubKafkaTopicClient implements KafkaTopicClient {
   }
 
   @Override
+  public Set<String> listTopicNames(final String stream) {
+    return Collections.emptySet();
+  }
+
+  @Override
   public Map<String, TopicDescription> describeTopics(final Collection<String> topicNames) {
     return topicNames.stream()
         .collect(Collectors.toMap(Function.identity(), this::describeTopic));

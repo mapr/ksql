@@ -148,7 +148,7 @@ public class SchemaRegisterInjectorTest {
   public void setUp() throws IOException, RestClientException {
     metaStore = new MetaStoreImpl(new InternalFunctionRegistry());
     config = new KsqlConfig(ImmutableMap.of(
-        KsqlConfig.SCHEMA_REGISTRY_URL_PROPERTY, "foo:8081"
+        KsqlConfig.SCHEMA_REGISTRY_URL_PROPERTY, "foo:8087"
     ));
     injector = new SchemaRegisterInjector(executionContext, serviceContext);
 

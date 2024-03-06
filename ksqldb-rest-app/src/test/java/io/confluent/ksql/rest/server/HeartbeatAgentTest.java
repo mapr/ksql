@@ -63,11 +63,11 @@ public class HeartbeatAgentTest {
   private KsqlHostInfo localHost;
   private KsqlHostInfo remoteHost;
   private Map<KsqlHostInfo, HostStatus> hostsStatus;
-  private static final String LOCALHOST_URL = "http://localhost:8088";
+  private static final String LOCALHOST_URL = "http://localhost:8084";
 
   @Before
   public void setUp() {
-    localHost = new KsqlHostInfo("localhost", 8088);
+    localHost = new KsqlHostInfo("localhost", 8084);
     remoteHost = new KsqlHostInfo("localhost", 8089);
 
     Builder builder = HeartbeatAgent.builder();

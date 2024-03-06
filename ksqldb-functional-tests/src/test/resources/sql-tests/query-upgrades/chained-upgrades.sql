@@ -3,7 +3,7 @@
 ----------------------------------------------------------------------------------------------------
 SET 'ksql.create.or.replace.enabled' = 'true';
 
-CREATE STREAM a (id INT KEY, col1 INT, col2 INT) WITH (kafka_topic='a', value_format='JSON');
+CREATE STREAM a (id INT KEY, col1 INT, col2 INT) WITH (kafka_topic='/s:a', value_format='JSON');
 
 CREATE STREAM b AS SELECT id, col1 FROM a;
 
@@ -21,12 +21,12 @@ ASSERT VALUES b (id, col1, col2) VALUES (1, 1, 1);
 --@test: ddl evolution
 ----------------------------------------------------------------------------------------------------
 
-CREATE STREAM a (id INT KEY, col1 INT) WITH (kafka_topic='a', value_format='JSON');
+CREATE STREAM a (id INT KEY, col1 INT) WITH (kafka_topic='/s:a', value_format='JSON');
 CREATE STREAM b AS SELECT * FROM a;
 
 INSERT INTO a (id, col1) VALUES (1, 1);
 ASSERT VALUES b (id, col1) VALUES (1, 1);
-CREATE OR REPLACE STREAM a (id INT KEY, col1 INT, col2 INT) WITH (kafka_topic='a', value_format='JSON');
+CREATE OR REPLACE STREAM a (id INT KEY, col1 INT, col2 INT) WITH (kafka_topic='/s:a', value_format='JSON');
 
 INSERT INTO a (id, col1, col2) VALUES (1, 55, 1);
 ASSERT VALUES b (id, col1) VALUES (1, 55);

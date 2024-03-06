@@ -196,6 +196,7 @@ public class RestoreCommandTopicIntegrationTest {
         Collections.emptyMap(),
         Collections.emptyMap(),
         Optional.empty(),
+        Optional.empty(),
         Optional.of(Command.VERSION + 1),
         Command.VERSION + 1);
 

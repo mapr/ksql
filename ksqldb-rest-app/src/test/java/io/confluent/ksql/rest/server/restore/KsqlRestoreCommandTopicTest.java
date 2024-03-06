@@ -15,6 +15,7 @@
 
 package io.confluent.ksql.rest.server.restore;
 
+import static org.mockito.Mockito.mock;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertThrows;
@@ -28,6 +29,7 @@ import static org.mockito.Mockito.when;
 import com.google.common.collect.ImmutableMap;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.confluent.ksql.services.KafkaTopicClient;
+import io.confluent.ksql.testutils.AvoidMaprFSAppDirCreation;
 import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.ksql.util.KsqlException;
 import io.confluent.ksql.util.Pair;
@@ -47,8 +49,12 @@ import org.junit.runner.RunWith;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.core.classloader.annotations.MockPolicy;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(PowerMockRunner.class)
+@MockPolicy(AvoidMaprFSAppDirCreation.class)
 public class KsqlRestoreCommandTopicTest {
   private static final String COMMAND_TOPIC_NAME = "command_topic_name";
 
@@ -90,16 +96,11 @@ public class KsqlRestoreCommandTopicTest {
         command.getRight());
   }
 
-  @Mock
-  private KafkaTopicClient topicClient;
-  @Mock
-  private Producer<byte[], byte[]> kafkaProducer;
-  @Mock
-  private Future<RecordMetadata> future1;
-  @Mock
-  private Future<RecordMetadata> future2;
-  @Mock
-  private Future<RecordMetadata> future3;
+  private KafkaTopicClient topicClient = mock(KafkaTopicClient.class);
+  private Producer<byte[], byte[]> kafkaProducer = mock(Producer.class);
+  private Future<RecordMetadata> future1 = mock(Future.class);
+  private Future<RecordMetadata> future2= mock(Future.class);
+  private Future<RecordMetadata> future3= mock(Future.class);
 
   private KsqlRestoreCommandTopic restoreCommandTopic;
 

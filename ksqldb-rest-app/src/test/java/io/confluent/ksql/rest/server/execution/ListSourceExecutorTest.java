@@ -57,10 +57,13 @@ import io.confluent.ksql.services.KafkaTopicClient;
 import io.confluent.ksql.services.ServiceContext;
 import io.confluent.ksql.services.TestServiceContext;
 import io.confluent.ksql.statement.ConfiguredStatement;
+import io.confluent.ksql.testutils.AvoidMaprFSAppDirCreation;
 import io.confluent.ksql.util.IdentifierUtil;
+import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.ksql.util.KsqlConstants;
 import io.confluent.ksql.util.KsqlHostInfo;
 import io.confluent.ksql.util.KsqlStatementException;
+import io.confluent.ksql.util.MaprFSUtils;
 import io.confluent.ksql.util.PersistentQueryMetadata;
 import java.util.Arrays;
 import java.util.Collections;
@@ -76,19 +79,24 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.core.classloader.annotations.MockPolicy;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(MaprFSUtils.class)
+@PowerMockIgnore({"javax.management.*","javax.net.ssl.*"})
+@MockPolicy(AvoidMaprFSAppDirCreation.class)
 public class ListSourceExecutorTest {
 
   EasyRandom objectMother = new EasyRandom();
 
   @Rule
-  public final TemporaryEngine engine = new TemporaryEngine();
+  public final TemporaryEngine engine = new TemporaryEngine().withConfigs(ImmutableMap.of(KsqlConfig.KSQL_DEFAULT_STREAM_CONFIG, "/default-stream"));
 
-  @Mock
-  private SessionProperties SESSION_PROPERTIES;
-  @Mock
-  private TopicDescription topicWith1PartitionAndRfOf1;
+  private SessionProperties SESSION_PROPERTIES = mock(SessionProperties.class);
+  private TopicDescription topicWith1PartitionAndRfOf1 = mock(TopicDescription.class);
 
   private KsqlHostInfo ksqlHostInfo = objectMother.nextObject(KsqlHostInfo.class);
 

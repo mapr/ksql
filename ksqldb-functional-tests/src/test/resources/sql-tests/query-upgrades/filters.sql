@@ -5,7 +5,7 @@
 ----------------------------------------------------------------------------------------------------
 SET 'ksql.create.or.replace.enabled' = 'true';
 
-CREATE STREAM a (id INT KEY, col1 INT) WITH (kafka_topic='a', value_format='JSON');
+CREATE STREAM a (id INT KEY, col1 INT) WITH (kafka_topic='/s:a', value_format='JSON');
 CREATE STREAM b AS SELECT * FROM a;
 
 INSERT INTO a (id, col1) VALUES (1, 0);
@@ -23,7 +23,7 @@ ASSERT VALUES b (id, col1) VALUES (1, 1);
 ----------------------------------------------------------------------------------------------------
 SET 'ksql.create.or.replace.enabled' = 'true';
 
-CREATE STREAM a (id INT KEY, col1 INT) WITH (kafka_topic='a', value_format='JSON');
+CREATE STREAM a (id INT KEY, col1 INT) WITH (kafka_topic='/s:a', value_format='JSON');
 CREATE STREAM b AS SELECT * FROM a WHERE col1 > 0;
 
 INSERT INTO a (id, col1) VALUES (2, 0);
@@ -39,7 +39,7 @@ ASSERT VALUES b (id, col1) VALUES (1, 0);
 ----------------------------------------------------------------------------------------------------
 SET 'ksql.create.or.replace.enabled' = 'true';
 
-CREATE STREAM a (id INT KEY, col1 INT) WITH (kafka_topic='a', value_format='JSON');
+CREATE STREAM a (id INT KEY, col1 INT) WITH (kafka_topic='/s:a', value_format='JSON');
 CREATE STREAM b AS SELECT * FROM a WHERE col1 > 0;
 
 INSERT INTO a (id, col1) VALUES (1, 0);
@@ -58,7 +58,7 @@ ASSERT VALUES b (id, col1) VALUES (1, -1);
 ----------------------------------------------------------------------------------------------------
 SET 'ksql.create.or.replace.enabled' = 'true';
 
-CREATE TABLE a (id INT PRIMARY KEY, col1 INT) WITH (kafka_topic='a', value_format='JSON');
+CREATE TABLE a (id INT PRIMARY KEY, col1 INT) WITH (kafka_topic='/s:a', value_format='JSON');
 CREATE TABLE b AS SELECT * FROM a;
 
 INSERT INTO a (id, col1) VALUES (1, 0);
@@ -84,7 +84,7 @@ ASSERT NULL VALUES b (id) KEY (1);
 ----------------------------------------------------------------------------------------------------
 SET 'ksql.create.or.replace.enabled' = 'true';
 
-CREATE TABLE a (id INT PRIMARY KEY, col1 INT) WITH (kafka_topic='a', value_format='JSON');
+CREATE TABLE a (id INT PRIMARY KEY, col1 INT) WITH (kafka_topic='/s:a', value_format='JSON');
 CREATE TABLE b AS SELECT * FROM a WHERE col1 > 0;
 
 INSERT INTO a (id, col1) VALUES (1, 1);
@@ -106,7 +106,7 @@ ASSERT VALUES b (id, col1) VALUES (1, -1);
 ----------------------------------------------------------------------------------------------------
 SET 'ksql.create.or.replace.enabled' = 'true';
 
-CREATE TABLE a (id INT PRIMARY KEY, col1 INT) WITH (kafka_topic='a', value_format='JSON');
+CREATE TABLE a (id INT PRIMARY KEY, col1 INT) WITH (kafka_topic='/s:a', value_format='JSON');
 CREATE TABLE b AS SELECT * FROM a WHERE col1 > 0;
 
 INSERT INTO a (id, col1) VALUES (1, 1);
@@ -135,8 +135,8 @@ ASSERT NULL VALUES b (id) KEY (1);
 --@expected.message: Upgrades not yet supported for StreamTableJoin
 ----------------------------------------------------------------------------------------------------
 SET 'ksql.create.or.replace.enabled' = 'true';
-CREATE STREAM s (id INT KEY, foo INT) WITH (kafka_topic='s', value_format='JSON');
-CREATE TABLE t (id INT PRIMARY KEY, bar INT) WITH (kafka_topic='t', value_format='JSON');
+CREATE STREAM s (id INT KEY, foo INT) WITH (kafka_topic='/s:s', value_format='JSON');
+CREATE TABLE t (id INT PRIMARY KEY, bar INT) WITH (kafka_topic='/s:t', value_format='JSON');
 
 CREATE STREAM j AS SELECT s.id, s.foo, t.bar FROM s JOIN t ON s.id = t.id;
 CREATE OR REPLACE STREAM j AS SELECT s.id, s.foo, t.bar FROM s JOIN t ON s.id = t.id WHERE s.foo > 0;
@@ -146,7 +146,7 @@ CREATE OR REPLACE STREAM j AS SELECT s.id, s.foo, t.bar FROM s JOIN t ON s.id = 
 ----------------------------------------------------------------------------------------------------
 SET 'ksql.create.or.replace.enabled' = 'true';
 
-CREATE STREAM foo (id INT KEY, col1 INT) WITH (kafka_topic='foo', value_format='JSON');
+CREATE STREAM foo (id INT KEY, col1 INT) WITH (kafka_topic='/s:foo', value_format='JSON');
 CREATE TABLE bar AS SELECT id, COUNT(*) as count FROM foo WHERE col1 >= 0 GROUP BY id;
 
 INSERT INTO foo (id, col1) VALUES (1, 0);
@@ -167,7 +167,7 @@ ASSERT VALUES bar (id, count) VALUES (2, 2);
 ----------------------------------------------------------------------------------------------------
 SET 'ksql.create.or.replace.enabled' = 'true';
 
-CREATE STREAM foo (id INT KEY, col1 INT) WITH (kafka_topic='foo', value_format='JSON');
+CREATE STREAM foo (id INT KEY, col1 INT) WITH (kafka_topic='/s:foo', value_format='JSON');
 CREATE TABLE bar AS SELECT col1, COUNT(*) as count FROM foo WHERE col1 >= 0 GROUP BY col1;
 
 INSERT INTO foo (col1, id) VALUES (1, 0);
@@ -188,7 +188,7 @@ ASSERT VALUES bar (col1, count) VALUES (2, 2);
 ----------------------------------------------------------------------------------------------------
 SET 'ksql.create.or.replace.enabled' = 'true';
 
-CREATE STREAM foo (id INT KEY, col1 INT) WITH (kafka_topic='foo', value_format='JSON');
+CREATE STREAM foo (id INT KEY, col1 INT) WITH (kafka_topic='/s:foo', value_format='JSON');
 CREATE TABLE bar AS SELECT id, COUNT(col1) as count FROM foo GROUP BY id;
 
 INSERT INTO foo (id, col1) VALUES (1, 0);
@@ -209,7 +209,7 @@ ASSERT VALUES bar (id, count) VALUES (2, 2);
 ----------------------------------------------------------------------------------------------------
 SET 'ksql.create.or.replace.enabled' = 'true';
 
-CREATE STREAM foo (id INT KEY, col1 INT) WITH (kafka_topic='foo', value_format='JSON');
+CREATE STREAM foo (id INT KEY, col1 INT) WITH (kafka_topic='/s:foo', value_format='JSON');
 CREATE TABLE bar AS SELECT id, COUNT(col1) as count FROM foo WHERE col1 > 0 GROUP BY id;
 
 INSERT INTO foo (id, col1) VALUES (1, 1);
@@ -227,7 +227,7 @@ ASSERT VALUES bar (id, count) VALUES (1, 2);
 ----------------------------------------------------------------------------------------------------
 SET 'ksql.create.or.replace.enabled' = 'true';
 
-CREATE STREAM foo (id INT KEY, col1 INT) WITH (kafka_topic='foo', value_format='JSON');
+CREATE STREAM foo (id INT KEY, col1 INT) WITH (kafka_topic='/s:foo', value_format='JSON');
 CREATE TABLE bar AS SELECT id, COUNT(col1) as count FROM foo WHERE col1 >= 0 GROUP BY id;
 
 INSERT INTO foo (id, col1) VALUES (1, 0);
@@ -248,7 +248,7 @@ ASSERT VALUES bar (id, count) VALUES (2, 2);
 ----------------------------------------------------------------------------------------------------
 SET 'ksql.create.or.replace.enabled' = 'true';
 
-CREATE STREAM foo (id INT KEY, col1 INT) WITH (kafka_topic='foo', value_format='JSON');
+CREATE STREAM foo (id INT KEY, col1 INT) WITH (kafka_topic='/s:foo', value_format='JSON');
 CREATE TABLE bar AS SELECT id, COUNT(col1) as count FROM foo WHERE col1 >= 0 GROUP BY id;
 CREATE TABLE baz AS SELECT * FROM bar;
 
@@ -271,7 +271,7 @@ ASSERT VALUES baz (id, count) VALUES (1, 3);
 ----------------------------------------------------------------------------------------------------
 SET 'ksql.create.or.replace.enabled' = 'true';
 
-CREATE STREAM foo (id INT KEY, col1 INT) WITH (kafka_topic='foo', value_format='JSON');
+CREATE STREAM foo (id INT KEY, col1 INT) WITH (kafka_topic='/s:foo', value_format='JSON');
 CREATE TABLE bar AS SELECT id, COUNT(*) as count FROM foo WHERE col1 > 0 GROUP BY id;
 
 CREATE OR REPLACE TABLE bar AS SELECT id, COUNT(*) as count FROM foo GROUP BY id;
@@ -286,7 +286,7 @@ CREATE OR REPLACE TABLE bar AS SELECT id, COUNT(*) as count FROM foo GROUP BY id
 ----------------------------------------------------------------------------------------------------
 SET 'ksql.create.or.replace.enabled' = 'true';
 
-CREATE STREAM foo (id INT KEY, col1 INT) WITH (kafka_topic='foo', value_format='JSON');
+CREATE STREAM foo (id INT KEY, col1 INT) WITH (kafka_topic='/s:foo', value_format='JSON');
 CREATE TABLE bar AS SELECT id, COUNT(*) as count FROM foo GROUP BY id;
 CREATE OR REPLACE TABLE bar AS SELECT id, COUNT(col1) as count FROM foo WHERE col1 > 0 GROUP BY id;
 
@@ -295,7 +295,7 @@ CREATE OR REPLACE TABLE bar AS SELECT id, COUNT(col1) as count FROM foo WHERE co
 ----------------------------------------------------------------------------------------------------
 SET 'ksql.create.or.replace.enabled' = 'true';
 
-CREATE STREAM a (id INT KEY, col1 INT) WITH (kafka_topic='a', value_format='JSON');
+CREATE STREAM a (id INT KEY, col1 INT) WITH (kafka_topic='/s:a', value_format='JSON');
 CREATE STREAM b AS SELECT * FROM a PARTITION BY col1;
 
 INSERT INTO a (id, col1) VALUES (0, 0);
@@ -315,7 +315,7 @@ ASSERT VALUES b (id, col1) VALUES (0, 1);
 ----------------------------------------------------------------------------------------------------
 SET 'ksql.create.or.replace.enabled' = 'true';
 
-CREATE STREAM a (id INT KEY, col1 INT) WITH (kafka_topic='a', value_format='JSON');
+CREATE STREAM a (id INT KEY, col1 INT) WITH (kafka_topic='/s:a', value_format='JSON');
 CREATE TABLE b AS SELECT id, COUNT(*)
   FROM a WINDOW TUMBLING (SIZE 30 SECONDS)
   GROUP BY id;

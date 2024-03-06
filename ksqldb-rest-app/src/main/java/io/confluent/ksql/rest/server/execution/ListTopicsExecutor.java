@@ -16,12 +16,14 @@
 package io.confluent.ksql.rest.server.execution;
 
 import io.confluent.ksql.KsqlExecutionContext;
+import io.confluent.ksql.name.SourceName;
 import io.confluent.ksql.parser.tree.ListTopics;
 import io.confluent.ksql.rest.SessionProperties;
 import io.confluent.ksql.rest.entity.KafkaTopicInfo;
 import io.confluent.ksql.rest.entity.KafkaTopicInfoExtended;
 import io.confluent.ksql.rest.entity.KafkaTopicsList;
 import io.confluent.ksql.rest.entity.KafkaTopicsListExtended;
+import io.confluent.ksql.schema.utils.FormatOptions;
 import io.confluent.ksql.services.KafkaConsumerGroupClient;
 import io.confluent.ksql.services.KafkaConsumerGroupClient.ConsumerSummary;
 import io.confluent.ksql.services.KafkaConsumerGroupClientImpl;
@@ -30,7 +32,6 @@ import io.confluent.ksql.services.ServiceContext;
 import io.confluent.ksql.statement.ConfiguredStatement;
 import io.confluent.ksql.util.ReservedInternalTopics;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -57,17 +58,15 @@ public final class ListTopicsExecutor {
       final ServiceContext serviceContext
   ) {
     final KafkaTopicClient client = serviceContext.getTopicClient();
-    final Map<String, TopicDescription> topicDescriptions = listTopics(client, statement);
+    final String defaultStream = serviceContext.getKsqlConfig().getKsqlDefaultStream();
+    final Map<String, TopicDescription> topicDescriptions =
+        listTopics(client, statement, defaultStream);
 
     if (statement.getStatement().getShowExtended()) {
-      final KafkaConsumerGroupClient consumerGroupClient
-          = new KafkaConsumerGroupClientImpl(serviceContext::getAdminClient);
-      final Map<String, List<Integer>> topicConsumersAndGroupCount
-          = getTopicConsumerAndGroupCounts(consumerGroupClient);
 
       final List<KafkaTopicInfoExtended> topicInfoExtendedList = topicDescriptions.values()
           .stream().map(desc ->
-              topicDescriptionToTopicInfoExtended(desc, topicConsumersAndGroupCount))
+              topicDescriptionToTopicInfoExtended(desc))
           .collect(Collectors.toList());
 
       return StatementExecutorResponse.handled(Optional.of(
@@ -82,19 +81,32 @@ public final class ListTopicsExecutor {
     }
   }
 
+  private static Set<String> decorateTopicsWithStreamName(final Collection<String> topics,
+                                                          final String stream) {
+    return topics.stream().map(x -> String.format("%s:%s", stream, x)).collect(Collectors.toSet());
+  }
+
   private static Map<String, TopicDescription> listTopics(
       final KafkaTopicClient topicClient,
-      final ConfiguredStatement<ListTopics> statement
+      final ConfiguredStatement<ListTopics> statement,
+      final String defaultStream
   ) {
     final ReservedInternalTopics internalTopics =
         new ReservedInternalTopics(statement.getSessionConfig().getConfig(false));
+    final Optional<SourceName> stream = statement.getStatement().getStream();
 
-    final Set<String> topics = statement.getStatement().getShowAll()
-        ? topicClient.listTopicNames()
-        : internalTopics.removeHiddenTopics(topicClient.listTopicNames());
+    final String streamName = stream.isPresent()
+        ? stream.get().toString(FormatOptions.noEscape())
+        : defaultStream;
+
+    final Set<String> topics =
+        decorateTopicsWithStreamName(topicClient.listTopicNames(streamName),
+            streamName);
 
     // TreeMap is used to keep elements sorted
-    return new TreeMap<>(topicClient.describeTopics(topics));
+    return statement.getStatement().getShowAll()
+        ? new TreeMap<>(topicClient.describeTopics(topics))
+        : new TreeMap<>(topicClient.describeTopics(internalTopics.removeHiddenTopics(topics)));
   }
 
   private static KafkaTopicInfo topicDescriptionToTopicInfo(final TopicDescription description) {
@@ -105,19 +117,15 @@ public final class ListTopicsExecutor {
   }
 
   private static KafkaTopicInfoExtended topicDescriptionToTopicInfoExtended(
-      final TopicDescription topicDescription,
-      final Map<String, List<Integer>> topicConsumersAndGroupCount
+      final TopicDescription topicDescription
   ) {
-
-    final List<Integer> consumerAndGroupCount = topicConsumersAndGroupCount
-        .getOrDefault(topicDescription.name(), Arrays.asList(0, 0));
 
     return new KafkaTopicInfoExtended(
         topicDescription.name(),
         topicDescription.partitions()
             .stream().map(partition -> partition.replicas().size()).collect(Collectors.toList()),
-        consumerAndGroupCount.get(0),
-        consumerAndGroupCount.get(1));
+        -1,
+        -1);
   }
 
   /**
@@ -127,7 +135,7 @@ public final class ListTopicsExecutor {
       final KafkaConsumerGroupClient consumerGroupClient
   ) {
 
-    final List<String> consumerGroups = consumerGroupClient.listGroups();
+    final List<String> consumerGroups = new ArrayList<>();
 
     final Map<String, AtomicInteger> topicConsumerCount = new HashMap<>();
     final Map<String, Set<String>> topicConsumerGroupCount = new HashMap<>();

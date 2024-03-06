@@ -67,7 +67,7 @@ import io.confluent.ksql.services.FakeKafkaTopicClient;
 import io.confluent.ksql.services.ServiceContext;
 import io.confluent.ksql.services.TestServiceContext;
 import io.confluent.ksql.statement.ConfiguredStatement;
-import io.confluent.ksql.test.util.EmbeddedSingleNodeKafkaCluster;
+import io.confluent.ksql.testutils.AvoidMaprFSAppDirCreation;
 import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.ksql.util.KsqlException;
 import io.confluent.ksql.util.KsqlStatementException;
@@ -93,11 +93,14 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatcher;
 import org.mockito.InOrder;
-import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.core.classloader.annotations.MockPolicy;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(PowerMockRunner.class)
+@MockPolicy(AvoidMaprFSAppDirCreation.class)
+@PowerMockIgnore({"javax.management.*","javax.net.ssl.*"})
 public class InteractiveStatementExecutorTest {
   private static final String CREATE_STREAM_FOO_STATEMENT = "CREATE STREAM foo ("
       + "biz bigint,"
@@ -115,33 +118,23 @@ public class InteractiveStatementExecutorTest {
   private ServiceContext serviceContext;
   private InteractiveStatementExecutor statementExecutorWithMocks;
 
-  @Mock
-  private StatementParser mockParser;
-  @Mock
-  private SpecificQueryIdGenerator mockQueryIdGenerator;
-  @Mock
-  private KsqlEngine mockEngine;
-  @Mock
-  private PersistentQueryMetadata mockQueryMetadata;
-  @Mock
-  private QueuedCommand queuedCommand;
-  @Mock
-  private KsqlPlan plan;
-  @Mock
-  private CommandStatusFuture status;
-  @Mock
-  private Deserializer<Command> commandDeserializer;
+  private StatementParser mockParser = mock(StatementParser.class);
+  private SpecificQueryIdGenerator mockQueryIdGenerator = mock(SpecificQueryIdGenerator.class);
+  private KsqlEngine mockEngine = mock(KsqlEngine.class);
+  private PersistentQueryMetadata mockQueryMetadata = mock(PersistentQueryMetadata.class);
+  private QueuedCommand queuedCommand = mock(QueuedCommand.class);
+  private KsqlPlan plan = mock(KsqlPlan.class);
+  private CommandStatusFuture status = mock(CommandStatusFuture.class);
+  private Deserializer<Command> commandDeserializer = mock(Deserializer.class);
 
   private Command plannedCommand;
 
   @Before
   public void setUp() {
-    ksqlConfig = KsqlConfigTestUtil.create(
-        CLUSTER,
-        ImmutableMap.of(StreamsConfig.APPLICATION_SERVER_CONFIG, "http://host:1234")
-    );
+    ksqlConfig = new KsqlConfig(ImmutableMap.of(StreamsConfig.APPLICATION_SERVER_CONFIG, "http://host:1234",
+                KsqlConfig.KSQL_DEFAULT_STREAM_CONFIG, "/sample-stream"));
 
-    final FakeKafkaTopicClient fakeKafkaTopicClient = new FakeKafkaTopicClient();
+    final FakeKafkaTopicClient fakeKafkaTopicClient = new FakeKafkaTopicClient(ksqlConfig);
     fakeKafkaTopicClient.createTopic("pageview_topic", 1, (short) 1, emptyMap());
     fakeKafkaTopicClient.createTopic("foo", 1, (short) 1, emptyMap());
     fakeKafkaTopicClient.createTopic("pageview_topic_json", 1, (short) 1, emptyMap());
@@ -184,6 +177,7 @@ public class InteractiveStatementExecutorTest {
         CREATE_STREAM_FOO_STATEMENT,
         emptyMap(),
         ksqlConfig.getAllConfigPropsWithSecretsObfuscated(),
+        Optional.empty(),
         Optional.of(plan)
     );
   }
@@ -194,12 +188,9 @@ public class InteractiveStatementExecutorTest {
     serviceContext.close();
   }
 
-  private static final EmbeddedSingleNodeKafkaCluster CLUSTER = EmbeddedSingleNodeKafkaCluster.build();
-
   @ClassRule
   public static final RuleChain CLUSTER_WITH_RETRY = RuleChain
-      .outerRule(Retry.of(3, ZooKeeperClientException.class, 3, TimeUnit.SECONDS))
-      .around(CLUSTER);
+      .outerRule(Retry.of(3, ZooKeeperClientException.class, 3, TimeUnit.SECONDS));
 
   @Test(expected = IllegalStateException.class)
   public void shouldThrowOnHandleStatementIfNotConfigured() {
@@ -248,6 +239,7 @@ public class InteractiveStatementExecutorTest {
         statementText,
         emptyMap(),
         emptyMap(),
+        Optional.empty(),
         Optional.empty()
     );
     final CommandId commandId = new CommandId(
@@ -289,6 +281,7 @@ public class InteractiveStatementExecutorTest {
         statementText,
         emptyMap(),
         originalConfig.getAllConfigPropsWithSecretsObfuscated(),
+        Optional.empty(),
         Optional.of(plan)
     );
     final CommandId csasCommandId = new CommandId(
@@ -339,6 +332,7 @@ public class InteractiveStatementExecutorTest {
         "ALTER SYSTEM 'TEST'='TEST';",
         emptyMap(),
         ksqlConfig.getAllConfigPropsWithSecretsObfuscated(),
+        Optional.empty(),
         Optional.empty()
     );
 
@@ -442,6 +436,7 @@ public class InteractiveStatementExecutorTest {
         CREATE_STREAM_FOO_STATEMENT,
         emptyMap(),
         savedConfigs,
+        Optional.empty(),
         Optional.of(plan)
     );
     final KsqlConfig mockConfig = mock(KsqlConfig.class);
@@ -508,6 +503,7 @@ public class InteractiveStatementExecutorTest {
         "CREATE STREAM",
         emptyMap(),
         emptyMap(),
+        Optional.empty(),
         Optional.empty());
 
     // When
@@ -532,6 +528,7 @@ public class InteractiveStatementExecutorTest {
         "CSAS",
         emptyMap(),
         emptyMap(),
+        Optional.empty(),
         Optional.empty());
 
     // When
@@ -556,6 +553,7 @@ public class InteractiveStatementExecutorTest {
         "DROP STREAM",
         emptyMap(),
         emptyMap(),
+        Optional.empty(),
         Optional.empty());
 
     // When
@@ -668,7 +666,7 @@ public class InteractiveStatementExecutorTest {
     // Given:
     mockReplayCSAS(new QueryId("csas-query-id"));
 
-    final Command command = new Command("CSAS", emptyMap(), emptyMap(), Optional.of(plan));
+    final Command command = new Command("CSAS", emptyMap(), emptyMap(), Optional.empty(), Optional.of(plan));
     when(commandDeserializer.deserialize(any(), any())).thenReturn(command);
 
     // When:
@@ -691,7 +689,7 @@ public class InteractiveStatementExecutorTest {
     final QueryId queryId = new QueryId("csas-query-id");
     final String name = "foo";
     final PersistentQueryMetadata mockQuery = mockReplayCSAS(queryId);
-    final Command command = new Command("CSAS", emptyMap(), emptyMap(), Optional.of(plan));
+    final Command command = new Command("CSAS", emptyMap(), emptyMap(), Optional.empty(), Optional.of(plan));
     when(commandDeserializer.deserialize(any(), any())).thenReturn(command);
 
     // When:
@@ -764,7 +762,7 @@ public class InteractiveStatementExecutorTest {
 
     when(mockEngine.getPersistentQueries()).thenReturn(ImmutableList.of(query0, query1));
 
-    final Command command = new Command("terminate all", emptyMap(), emptyMap(), Optional.empty());
+    final Command command = new Command("terminate all", emptyMap(), emptyMap(), Optional.empty(), Optional.empty());
     when(commandDeserializer.deserialize(any(), any())).thenReturn(command);
 
     // When:
@@ -799,7 +797,7 @@ public class InteractiveStatementExecutorTest {
         .thenReturn(Optional.of(query))
         .thenReturn(Optional.empty());
 
-    final Command command = new Command("terminate all", emptyMap(), emptyMap(), Optional.empty());
+    final Command command = new Command("terminate all", emptyMap(), emptyMap(), Optional.empty(), Optional.empty());
     when(commandDeserializer.deserialize(any(), any())).thenReturn(command);
 
     final QueuedCommand cmd = new QueuedCommand(
@@ -1005,6 +1003,7 @@ public class InteractiveStatementExecutorTest {
         "TERMINATE CSAS_USER1PV_1;",
         emptyMap(),
         ksqlConfig.getAllConfigPropsWithSecretsObfuscated(),
+        Optional.empty(),
         Optional.empty()
     );
     final CommandId terminateCommandId1 =
@@ -1018,6 +1017,7 @@ public class InteractiveStatementExecutorTest {
         "TERMINATE CTAS_TABLE1_2;",
         emptyMap(),
         ksqlConfig.getAllConfigPropsWithSecretsObfuscated(),
+        Optional.empty(),
         Optional.empty()
     );
     final CommandId terminateCommandId2 =
@@ -1047,6 +1047,6 @@ public class InteractiveStatementExecutorTest {
     final SessionConfig sessionConfig = SessionConfig.of(ksqlConfig, emptyMap());
     final ConfiguredStatement<?> configured = ConfiguredStatement.of(prepared, sessionConfig);
     final KsqlPlan plan = ksqlEngine.plan(serviceContext, configured);
-    return new Command(sql, Collections.emptyMap(), originalProperties, Optional.of(plan));
+    return new Command(sql, Collections.emptyMap(), originalProperties, Optional.empty(), Optional.of(plan));
   }
 }

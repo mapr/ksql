@@ -93,8 +93,8 @@ public class KsqlRestClientTest {
   @Test
   public void shouldParseMultipleServerAddresses() throws Exception {
     // Given:
-    final String firstServerAddress = "http://firstServer:8088";
-    final String multipleServerAddresses = firstServerAddress + ",http://secondServer:8088";
+    final String firstServerAddress = "http://firstServer:8084";
+    final String multipleServerAddresses = firstServerAddress + ",http://secondServer:8084";
     final URI firstServerURI = new URI(firstServerAddress);
 
     // When:
@@ -110,18 +110,18 @@ public class KsqlRestClientTest {
     // When:
     final Exception e = assertThrows(
         KsqlRestClientException.class,
-        () -> clientWithServerAddresses("http://firstServer:8088,secondBuggyServer.8088")
+        () -> clientWithServerAddresses("http://firstServer:8084,secondBuggyServer.8084")
     );
 
     // Then:
     assertThat(e.getMessage(), containsString(
-        "The supplied serverAddress is invalid: secondBuggyServer.8088"));
+        "The supplied serverAddress is invalid: secondBuggyServer.8084"));
   }
 
   @Test
   public void shouldParseHttpsAddress() throws Exception {
     // Given:
-    final String serverAddress = "https://singleServer:8088";
+    final String serverAddress = "https://singleServer:8084";
     final URI serverURI = new URI(serverAddress);
 
     // When:
@@ -238,11 +238,11 @@ public class KsqlRestClientTest {
   public void shouldAllowCallingCreateWithoutNeedingACCloudApiKey() {
     // This is a backwards compatibility check
 
-    final KsqlRestClient client = KsqlRestClient.create(SOME_SERVER_ADDRESS, LOCAL_PROPS, CLIENT_PROPS, Optional.empty());
+    final KsqlRestClient client = KsqlRestClient.create(SOME_SERVER_ADDRESS, LOCAL_PROPS, CLIENT_PROPS, Optional.empty(), Optional.empty(), "");
     assertThat(client, is(instanceOf(KsqlRestClient.class)));
 
     // Also with new signature
-    final KsqlRestClient ccloudClient = KsqlRestClient.create(SOME_SERVER_ADDRESS, LOCAL_PROPS, CLIENT_PROPS, Optional.empty(), Optional.empty());
+    final KsqlRestClient ccloudClient = KsqlRestClient.create(SOME_SERVER_ADDRESS, LOCAL_PROPS, CLIENT_PROPS, Optional.empty(), Optional.empty(), Optional.empty(), "");
     assertThat(ccloudClient, is(instanceOf(KsqlRestClient.class)));
   }
 
@@ -260,6 +260,8 @@ public class KsqlRestClientTest {
         CLIENT_PROPS,
         Optional.empty(),
         ccloudApiKey,
+        Optional.empty(),
+        "",
         clientSupplier
     );
   }

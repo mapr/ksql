@@ -1,0 +1,21 @@
+#!/bin/bash
+
+[ -n "$VERBOSE" ] && echo "preinst called with argument \`$1'" >&2
+[ -n "$VERBOSE" ] && set -x
+
+if [ "$1" = "upgrade" ]; then
+   #Saving of old configurations
+   OLD_TIMESTAMP="$2"
+   OLD_VERSION=$( echo $OLD_TIMESTAMP | cut -d'.' -f1-3 )
+   mkdir -p __PREFIX__/ksql/ksql-${OLD_TIMESTAMP}/etc/ksql
+   cp __PREFIX__/ksql/ksql-${OLD_VERSION}/etc/ksql/* __PREFIX__/ksql/ksql-${OLD_TIMESTAMP}/etc/ksql
+
+   DAEMON_CONF=__PREFIX__/conf/daemon.conf
+   if [ -f "$DAEMON_CONF" ]; then
+       MAPR_USER=$( awk -F = '$1 == "mapr.daemon.user" { print $2 }' $DAEMON_CONF)
+       MAPR_GROUP=$( awk -F = '$1 == "mapr.daemon.group" { print $2 }' $DAEMON_CONF)
+       if [ ! -z "$MAPR_USER" ]; then
+           chown -R ${MAPR_USER}:${MAPR_GROUP} __PREFIX__/ksql/ksql-${OLD_TIMESTAMP}
+       fi
+   fi
+fi

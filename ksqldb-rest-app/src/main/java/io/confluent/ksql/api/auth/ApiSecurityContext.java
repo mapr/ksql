@@ -27,4 +27,8 @@ public interface ApiSecurityContext {
   Optional<String> getAuthHeader();
 
   List<Entry<String, String>> getRequestHeaders();
+
+  Optional<String> getAuthToken();
+
+  Optional<String> getCookie();
 }

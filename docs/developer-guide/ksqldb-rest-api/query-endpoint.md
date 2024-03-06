@@ -62,7 +62,7 @@ Response JSON Object:
 
 ```bash
 curl --http1.1 \
-     -X "POST" "http://<ksqldb-host-name>:8088/query" \
+     -X "POST" "http://<ksqldb-host-name>:8084/query" \
      -H "Accept: application/vnd.ksql.v1+json" \
      -d $'{
   "ksql": "SELECT * FROM USERS EMIT CHANGES;",

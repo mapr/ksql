@@ -8,6 +8,7 @@ import static org.mockito.ArgumentMatchers.anyShort;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.hamcrest.MockitoHamcrest.argThat;
@@ -20,6 +21,7 @@ import io.confluent.ksql.rest.server.computation.ConfigStore;
 import io.confluent.ksql.rest.util.RocksDBConfigSetterHandler;
 import io.confluent.ksql.services.KafkaTopicClient;
 import io.confluent.ksql.services.ServiceContext;
+import io.confluent.ksql.testutils.AvoidMaprFSAppDirCreation;
 import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.ksql.util.ReservedInternalTopics;
 import io.confluent.ksql.version.metrics.VersionCheckerAgent;
@@ -35,13 +37,15 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.InOrder;
-import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.core.classloader.annotations.MockPolicy;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(PowerMockRunner.class)
+@MockPolicy(AvoidMaprFSAppDirCreation.class)
+@PowerMockIgnore("javax.management.*")
 public class StandaloneExecutorFactoryTest {
   private static final String QUERIES_FILE = "queries";
   private static final String INSTALL_DIR = "install";
@@ -51,24 +55,18 @@ public class StandaloneExecutorFactoryTest {
   private final KsqlConfig mergedConfig = new KsqlConfig(Collections.emptyMap());
   private final String configTopicName = ReservedInternalTopics.configsTopic(baseConfig);
 
-  @Mock
-  private Function<KsqlConfig, ServiceContext> serviceContextFactory;
-  @Mock
-  private BiFunction<String, KsqlConfig, ConfigStore> configStoreFactory;
-  @Mock
-  private ServiceContext serviceContext;
-  @Mock
-  private KafkaTopicClient topicClient;
-  @Mock
-  private ConfigStore configStore;
-  @Mock
-  private StandaloneExecutorConstructor constructor;
-  @Mock
-  private StandaloneExecutor standaloneExecutor;
-  @Mock
-  private VersionCheckerAgent versionChecker;
-  @Captor
-  private ArgumentCaptor<KsqlEngine> engineCaptor;
+  @SuppressWarnings("unchecked")
+  private Function<KsqlConfig, ServiceContext> serviceContextFactory = mock(Function.class);
+  @SuppressWarnings("unchecked")
+  private BiFunction<String, KsqlConfig, ConfigStore> configStoreFactory = mock(BiFunction.class);
+  private ServiceContext serviceContext = mock(ServiceContext.class);
+  private KafkaTopicClient topicClient = mock(KafkaTopicClient.class);
+  private ConfigStore configStore = mock(ConfigStore.class);
+  private StandaloneExecutorConstructor constructor = mock(StandaloneExecutorConstructor.class);
+  private StandaloneExecutor standaloneExecutor = mock(StandaloneExecutor.class);
+  private VersionCheckerAgent versionChecker = mock(VersionCheckerAgent.class);
+
+  private ArgumentCaptor<KsqlEngine> engineCaptor = ArgumentCaptor.forClass(KsqlEngine.class);
 
   private final ArgumentCaptor<KsqlEngine> argumentCaptor = ArgumentCaptor.forClass(KsqlEngine.class);
 

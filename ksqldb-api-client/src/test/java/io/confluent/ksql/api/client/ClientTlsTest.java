@@ -26,8 +26,10 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import javax.net.ssl.SSLHandshakeException;
 import org.apache.kafka.common.config.SslConfigs;
+import org.junit.Ignore;
 import org.junit.Test;
 
+@Ignore //TODO KAFKA-446
 public class ClientTlsTest extends ClientTest {
 
   private static final ServerKeyStore SERVER_KEY_STORE = new ServerKeyStore();

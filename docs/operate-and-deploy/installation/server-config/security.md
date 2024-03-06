@@ -173,7 +173,7 @@ Settings for the CLI can be stored in a suitable file and passed to the
 CLI by using the `--config-file` command-line arguments, for example:
 
 ```bash
-<ksql-install>bin/ksql --config-file ./config/ksql-cli.properties https://localhost:8088
+<ksql-install>bin/ksql --config-file ./config/ksql-cli.properties https://localhost:8084
 ```
 
 Configuring listener for HTTP-BASIC Authentication/Authorization
@@ -327,7 +327,7 @@ credentials when starting the CLI by using the `--user` and
 `--password` command-line arguments, for example:
 
 ```bash
-<ksql-install>bin/ksql --user fred --password letmein http://localhost:8088
+<ksql-install>bin/ksql --user fred --password letmein http://localhost:8084
 ```
 
 Securing dual-listener setup
@@ -381,7 +381,7 @@ ssl.key.password=yyyy
 ssl.truststore.location=/var/private/ssl/ksql.server.truststore.jks
 ssl.truststore.password=zzzz
 
-listeners=http://0.0.0.0:8088
+listeners=http://0.0.0.0:8084
 ksql.internal.listener=https://node-1.internal.example.com:8099
 
 # This enables mutual auth checking for the internal listener
@@ -410,7 +410,7 @@ ssl.key.password=yyyy
 ssl.truststore.location=/var/private/ssl/ksql.server.truststore.jks
 ssl.truststore.password=zzzz
 
-listeners=http://0.0.0.0:8088
+listeners=http://0.0.0.0:8084
 ksql.internal.listener=https://node-1.internal.example.com:8099
 
 ksql.internal.ssl.client.authentication=REQUIRED
@@ -458,7 +458,7 @@ ksql.ssl.keystore.alias.internal=internal_node1
 ssl.truststore.location=/var/private/ssl/ksql.server.truststore.jks
 ssl.truststore.password=zzzz
 
-listeners=https://external.example.com:8088
+listeners=https://external.example.com:8084
 ksql.internal.listener=https://node-1.internal.example.com:8099
 
 # Enable mutual auth checking for the internal listener

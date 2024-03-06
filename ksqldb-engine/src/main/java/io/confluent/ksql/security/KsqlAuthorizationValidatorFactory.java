@@ -15,6 +15,7 @@
 
 package io.confluent.ksql.security;
 
+import io.confluent.ksql.security.filter.AuthorizationFilterProvider;
 import io.confluent.ksql.services.KafkaClusterUtil;
 import io.confluent.ksql.services.ServiceContext;
 import io.confluent.ksql.util.KsqlConfig;
@@ -37,8 +38,14 @@ public final class KsqlAuthorizationValidatorFactory {
   public static Optional<KsqlAuthorizationValidator> create(
       final KsqlConfig ksqlConfig,
       final ServiceContext serviceContext,
-      final Optional<KsqlAuthorizationProvider> externalAuthorizationProvider
+      final Optional<KsqlAuthorizationProvider> externalAuthorizationProvider,
+      final boolean authorizationEnabled
   ) {
+
+    if (authorizationEnabled) {
+      return Optional.of(AuthorizationFilterProvider.configure(ksqlConfig));
+    }
+
     final Optional<KsqlAccessValidator> accessValidator = getAccessValidator(
         ksqlConfig,
         serviceContext,

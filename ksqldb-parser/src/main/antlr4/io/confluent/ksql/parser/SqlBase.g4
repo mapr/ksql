@@ -47,7 +47,7 @@ singleExpression
 statement
     : query                                                                 #queryStatement
     | (LIST | SHOW) PROPERTIES                                              #listProperties
-    | (LIST | SHOW) ALL? TOPICS EXTENDED?                                   #listTopics
+    | (LIST | SHOW) ALL? TOPICS EXTENDED? (sourceName | STRING)?            #listTopics
     | (LIST | SHOW) STREAMS EXTENDED?                                       #listStreams
     | (LIST | SHOW) TABLES EXTENDED?                                        #listTables
     | (LIST | SHOW) FUNCTIONS                                               #listFunctions

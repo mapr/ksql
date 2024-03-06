@@ -42,6 +42,7 @@ import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.Executors;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("UnstableApiUsage")
 public final class DataGen {
@@ -136,7 +137,16 @@ public final class DataGen {
     props.put(KsqlConfig.SCHEMA_REGISTRY_URL_PROPERTY, arguments.schemaRegistryUrl);
 
     if (arguments.propertiesFile != null) {
-      props.load(arguments.propertiesFile);
+      final Properties tmp = new Properties();
+      tmp.load(arguments.propertiesFile);
+      final Map<Object, Object> map = tmp
+          .entrySet()
+          .stream()
+          .collect(Collectors
+              .toMap(
+                  Map.Entry::getKey,
+                  e -> ((String)e.getValue()).trim()));
+      props.putAll(map);
     }
 
     return props;
@@ -153,7 +163,7 @@ public final class DataGen {
             + "'pageviews')] " + newLine
             + "schema=<avro schema file> " + newLine
             + "[schemaRegistryUrl=<url for Confluent Schema Registry> "
-            + "(defaults to http://localhost:8081)] " + newLine
+            + "(defaults to http://localhost:8087)] " + newLine
             + "key-format=<message key format> (case-insensitive; one of 'avro', 'json', 'kafka' "
             + "or 'delimited') " + newLine
             + "value-format=<message value format> (case-insensitive; one of 'avro', 'json' or "
@@ -298,7 +308,7 @@ public final class DataGen {
         keyName = null;
         timestampColumnName = null;
         iterations = -1;
-        schemaRegistryUrl = "http://localhost:8081";
+        schemaRegistryUrl = "http://localhost:8087";
         propertiesFile = null;
         msgRate = -1;
         numThreads = 1;

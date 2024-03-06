@@ -60,6 +60,7 @@ public final class SandboxedServiceContextTest {
           .ignore("getSchemaRegistryClientFactory")
           .ignore("getConnectClient")
           .ignore("getConsumerGroupClient")
+          .ignore("getKsqlConfig")
           .ignore("close")
           .build();
     }

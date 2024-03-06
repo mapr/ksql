@@ -136,7 +136,9 @@ public class SqlTestExecutor implements Closeable {
     final KafkaTopicClient topicClient = new StubKafkaTopicClient();
     final KafkaClientSupplier kafkaClientSupplier = new StubKafkaClientSupplier();
     final SchemaRegistryClient srClient = new MockSchemaRegistryClient();
+    final KsqlConfig config = new KsqlConfig(BASE_CONFIG);
     final ServiceContext serviceContext = new DefaultServiceContext(
+            config,
         kafkaClientSupplier,
         () -> kafkaClientSupplier.getAdmin(Collections.emptyMap()),
         () -> kafkaClientSupplier.getAdmin(Collections.emptyMap()),
@@ -153,7 +155,6 @@ public class SqlTestExecutor implements Closeable {
         new StubKafkaConsumerGroupClient()
     );
     final Map<QueryId, DriverAndProperties> drivers = new HashMap<>();
-    final KsqlConfig config = new KsqlConfig(BASE_CONFIG);
 
     return new SqlTestExecutor(
         serviceContext,

@@ -17,8 +17,11 @@ package io.confluent.ksql.rest.server;
 
 import io.confluent.ksql.integration.IntegrationTestHarness;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 
+//TEST_HARNESS::kafkaBootstrapServers is not supported (NPE will be thrown)
+@Ignore
 public final class TestKsqlRestAppTest {
 
   @ClassRule

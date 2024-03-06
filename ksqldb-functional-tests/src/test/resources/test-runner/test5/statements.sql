@@ -1,4 +1,4 @@
-CREATE STREAM TEST (NAME STRING KEY, ID int, VALUE double) WITH (kafka_topic='test_topic', value_format='DELIMITED');
+CREATE STREAM TEST (NAME STRING KEY, ID int, VALUE double) WITH (kafka_topic='/s:test_topic', value_format='DELIMITED');
 INSERT INTO TEST VALUES ('abc', 101, 13.54);
 INSERT INTO TEST VALUES ('foo', 30, 4.5);
 INSERT INTO TEST (ID, NAME) VALUES (123, 'bar');

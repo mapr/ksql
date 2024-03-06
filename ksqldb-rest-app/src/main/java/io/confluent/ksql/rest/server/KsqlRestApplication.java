@@ -24,6 +24,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.mapr.web.security.SslConfig;
+import com.mapr.web.security.WebSecurityManager;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.ksql.ServiceInfo;
 import io.confluent.ksql.api.auth.AuthenticationPlugin;
@@ -111,6 +113,7 @@ import io.confluent.ksql.util.KsqlConfigurable;
 import io.confluent.ksql.util.KsqlConstants;
 import io.confluent.ksql.util.KsqlException;
 import io.confluent.ksql.util.KsqlServerException;
+import io.confluent.ksql.util.MaprFSUtils;
 import io.confluent.ksql.util.ReservedInternalTopics;
 import io.confluent.ksql.util.RetryUtil;
 import io.confluent.ksql.util.WelcomeMsgUtils;
@@ -154,6 +157,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.apache.kafka.clients.admin.Admin;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.config.SslConfigs;
 import org.apache.kafka.common.errors.WakeupException;
 import org.apache.kafka.common.utils.Time;
 import org.apache.kafka.streams.StreamsConfig;
@@ -315,15 +319,39 @@ public final class KsqlRestApplication implements Executable {
     log.debug("Starting the ksqlDB API server");
     this.serverMetadataResource = ServerMetadataResource.create(serviceContext, ksqlConfigNoPort);
     final StatementParser statementParser = new StatementParser(ksqlEngine);
+
+    // It's already a copy, ok to update it
+    final Map<String, Object> props = ksqlConfigNoPort.originals();
+    final KsqlRestConfig ksqlRestConfig =
+        new KsqlRestConfig(updateServerSslWithDefaultsIfNeeded(props));
+
+    final boolean authorizationEnabled =
+        ksqlRestConfig.getBoolean(KsqlRestConfig.ENABLE_AUTHORIZATION_CONFIG);
+
+    final boolean authenticationEnabled =
+        ksqlRestConfig.getBoolean(KsqlRestConfig.ENABLE_AUTHENTICATION_CONFIG);
+    
+    if (authorizationEnabled && !authenticationEnabled) {
+      throw new KsqlException(String.format(
+          "Authorization is not allowed without authentication. Configure %s=true",
+          KsqlRestConfig.ENABLE_AUTHENTICATION_CONFIG));
+    }
+
+    if (ksqlRestConfig.getBoolean(KsqlRestConfig.ENABLE_IMPERSONATION_CONFIG)) {
+      if (!ksqlRestConfig.getBoolean(KsqlRestConfig.ENABLE_AUTHENTICATION_CONFIG)) {
+        throw new KsqlException(String.format(
+            "Impersonation is not allowed without authentication. Configure %s=true",
+            KsqlRestConfig.ENABLE_AUTHENTICATION_CONFIG));
+      }
+    }
+
     final Optional<KsqlAuthorizationValidator> authorizationValidator =
         KsqlAuthorizationValidatorFactory.create(ksqlConfigNoPort, serviceContext,
-            securityExtension.getAuthorizationProvider());
+            securityExtension.getAuthorizationProvider(), authorizationEnabled);
     final Errors errorHandler = new Errors(restConfig.getConfiguredInstance(
         KsqlRestConfig.KSQL_SERVER_ERROR_MESSAGES,
         ErrorMessages.class
     ));
-
-    final KsqlRestConfig ksqlRestConfig = new KsqlRestConfig(ksqlConfigNoPort.originals());
 
     oldApiWebsocketExecutor = MoreExecutors.listeningDecorator(
         Executors.newScheduledThreadPool(
@@ -397,6 +425,30 @@ public final class KsqlRestApplication implements Executable {
     }
   }
 
+  private Map<?, ?> updateServerSslWithDefaultsIfNeeded(final Map<String, Object> props) {
+    if (!props.containsKey(SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG)) {
+      final SslConfig sslConfig = WebSecurityManager.getSslConfig();
+
+      props.put(SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG, sslConfig.getServerKeystoreLocation());
+      props.put(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG,
+              String.valueOf(sslConfig.getServerKeystorePassword()));
+      props.put(SslConfigs.SSL_KEYSTORE_TYPE_CONFIG,
+          sslConfig.getServerKeystoreType().toUpperCase());
+      props.put(SslConfigs.SSL_KEY_PASSWORD_CONFIG,
+              String.valueOf(sslConfig.getServerKeyPassword()));
+    }
+    if (!props.containsKey(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG)) {
+      final SslConfig sslConfig = WebSecurityManager.getSslConfig();
+
+      props.put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, sslConfig.getServerTruststoreLocation());
+      props.put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG,
+              String.valueOf(sslConfig.getServerTruststorePassword()));
+      props.put(SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG,
+          sslConfig.getServerTruststoreType().toUpperCase());
+    }
+    return props;
+  }
+
   @VisibleForTesting
   void startKsql(final KsqlConfig ksqlConfigWithPort) {
     cleanupOldState();
@@ -433,6 +485,8 @@ public final class KsqlRestApplication implements Executable {
 
     commandStore.start();
 
+    MaprFSUtils.createAppDirAndProceccingLogStreamIfNotExists(
+        processingLogContext.getConfig(), ksqlConfigNoPort);
     ProcessingLogServerUtils.maybeCreateProcessingLogTopic(
         serviceContext.getTopicClient(),
         processingLogContext.getConfig(),
@@ -615,11 +669,12 @@ public final class KsqlRestApplication implements Executable {
 
     final Map<String, Object> updatedRestProps = restConfig.getOriginals();
     final KsqlConfig ksqlConfig = new KsqlConfig(restConfig.getKsqlConfigProperties());
-    final Vertx vertx = Vertx.vertx(
-        new VertxOptions()
+    final VertxOptions vertxOptions = new VertxOptions()
             .setMaxWorkerExecuteTimeUnit(TimeUnit.MILLISECONDS)
             .setMaxWorkerExecuteTime(Long.MAX_VALUE)
-            .setMetricsOptions(setUpHttpMetrics(ksqlConfig)));
+            .setMetricsOptions(setUpHttpMetrics(ksqlConfig));
+    vertxOptions.getFileSystemOptions().setFileCacheDir(KsqlClient.VERTX_CACHE_DIR);
+    final Vertx vertx = Vertx.vertx(vertxOptions);
     vertx.exceptionHandler(t -> log.error("Unhandled exception in Vert.x", t));
     final KsqlClient sharedClient = InternalKsqlClientFactory.createInternalClient(
         PropertiesUtil.toMapStrings(ksqlConfig.originals()),
@@ -783,7 +838,8 @@ public final class KsqlRestApplication implements Executable {
     final String commandTopicName = ReservedInternalTopics.commandTopic(ksqlConfig);
 
     final Admin internalAdmin = createCommandTopicAdminClient(restConfig, ksqlConfig);
-    final KafkaTopicClient internalTopicClient = new KafkaTopicClientImpl(() -> internalAdmin);
+    final KafkaTopicClient internalTopicClient =
+            new KafkaTopicClientImpl(() -> internalAdmin, ksqlConfig.getKsqlDefaultStream());
 
     final CommandStore commandStore = CommandStore.Factory.create(
         ksqlConfig,
@@ -818,9 +874,12 @@ public final class KsqlRestApplication implements Executable {
     final Optional<AuthenticationPlugin> securityHandlerPlugin = loadAuthenticationPlugin(
         restConfig);
 
+    final Boolean authorizationEnabled =
+        restConfig.getBoolean(KsqlRestConfig.ENABLE_AUTHORIZATION_CONFIG);
+
     final Optional<KsqlAuthorizationValidator> authorizationValidator =
         KsqlAuthorizationValidatorFactory.create(ksqlConfig, serviceContext,
-            securityExtension.getAuthorizationProvider());
+            securityExtension.getAuthorizationProvider(), authorizationEnabled);
 
     final Errors errorHandler = new Errors(restConfig.getConfiguredInstance(
         KsqlRestConfig.KSQL_SERVER_ERROR_MESSAGES,

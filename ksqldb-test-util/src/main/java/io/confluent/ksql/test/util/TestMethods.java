@@ -258,7 +258,7 @@ public final class TestMethods {
       } catch (final IllegalAccessException e) {
         throw new AssertionError("Invoke failed", e);
       } catch (final InvocationTargetException e) {
-        throw e.getCause();
+        throw e.getCause() == null ? e.getTargetException() : e.getCause();
       }
     }
 

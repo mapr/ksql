@@ -24,6 +24,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyShort;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -38,33 +39,47 @@ import io.confluent.ksql.metrics.MetricCollectors;
 import io.confluent.ksql.services.KafkaTopicClient;
 import io.confluent.ksql.services.ServiceContext;
 import io.confluent.ksql.services.TestServiceContext;
+import io.confluent.ksql.testutils.AvoidMaprFSAppDirCreation;
 import io.confluent.ksql.util.KsqlConfig;
 import java.util.Optional;
+
+import io.confluent.ksql.util.MaprFSUtils;
 import org.junit.After;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.api.easymock.PowerMock;
+import org.powermock.core.classloader.annotations.MockPolicy;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(PowerMockRunner.class)
+@MockPolicy(AvoidMaprFSAppDirCreation.class)
+@PowerMockIgnore({"javax.management.*", "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "org.w3c.*", "javax.net.ssl.*"})
 public class ProcessingLogServerUtilsTest {
+  static {
+    PowerMock.mockStaticPartial(MaprFSUtils.class,
+            "createAppDirAndInternalStreamsIfNotExist");
+  }
 
   private static final String STREAM = "PROCESSING_LOG_STREAM";
   private static final String TOPIC = "processing_log_topic";
   private static final String CLUSTER_ID = "ksql_cluster.";
   private static final int PARTITIONS = 10;
   private static final short REPLICAS = 3;
-  private static final String DEFAULT_TOPIC =
+  private static final String DEFAULT_TOPIC = "/apps/ksql/ksql_cluster./KSQL_PROCESSING_LOG:" +
       CLUSTER_ID + ProcessingLogConfig.TOPIC_NAME_DEFAULT_SUFFIX;
 
-  private final ServiceContext serviceContext = TestServiceContext.create();
-  private final KafkaTopicClient spyTopicClient = spy(serviceContext.getTopicClient());
-  private final MutableMetaStore metaStore = new MetaStoreImpl(new InternalFunctionRegistry());
-  private final KsqlEngine ksqlEngine = KsqlEngineTestUtil.createKsqlEngine(
-      serviceContext,
-      metaStore,
-      new MetricCollectors()
+
+  private static final KsqlConfig ksqlConfig = new KsqlConfig(
+          ImmutableMap.of(KsqlConfig.KSQL_SERVICE_ID_CONFIG, CLUSTER_ID,
+                  KsqlConfig.KSQL_DEFAULT_STREAM_CONFIG, "/sample-stream")
   );
+
+  private static final ServiceContext serviceContext = TestServiceContext.create(ksqlConfig);
+  private final KafkaTopicClient spyTopicClient = spy(serviceContext.getTopicClient());
+  private static final MutableMetaStore metaStore = new MetaStoreImpl(new InternalFunctionRegistry());
+  private static KsqlEngine ksqlEngine;
   private final ProcessingLogConfig config = new ProcessingLogConfig(
       ImmutableMap.of(
           ProcessingLogConfig.TOPIC_AUTO_CREATE,
@@ -79,12 +94,17 @@ public class ProcessingLogServerUtilsTest {
           STREAM
       )
   );
-  private final KsqlConfig ksqlConfig = new KsqlConfig(
-      ImmutableMap.of(KsqlConfig.KSQL_SERVICE_ID_CONFIG, CLUSTER_ID)
-  );
 
-  @Mock
-  private KafkaTopicClient mockTopicClient;
+  private KafkaTopicClient mockTopicClient = mock(KafkaTopicClient.class);
+
+  @BeforeClass
+  public static void setUp() {
+    ksqlEngine = KsqlEngineTestUtil.createKsqlEngine(
+            serviceContext,
+            metaStore,
+            ksqlConfig
+    );
+  }
 
   @After
   public void teardown() {
@@ -137,7 +157,7 @@ public class ProcessingLogServerUtilsTest {
 
     // Then:
     assertThat(statement,
-        containsString("KAFKA_TOPIC='ksql_cluster.ksql_processing_log'"));
+        containsString("KAFKA_TOPIC='/apps/ksql/ksql_cluster./PROCESSING_LOG_STREAM:ksql_cluster.ksql_processing_log'"));
   }
 
   @Test

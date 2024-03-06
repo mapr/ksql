@@ -233,7 +233,7 @@ final class ProtobufSerdeFactory implements SerdeFactory {
 
     protobufConfig.put(
         ProtobufConverterConfig.SCHEMA_REGISTRY_URL_CONFIG,
-        ksqlConfig.getString(KsqlConfig.SCHEMA_REGISTRY_URL_PROPERTY)
+        ksqlConfig.getSchemaRegistryUrl()
     );
 
     if (schemaId.isPresent()) {

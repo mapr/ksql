@@ -17,6 +17,7 @@ package io.confluent.ksql.parser.tree;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
+import io.confluent.ksql.name.SourceName;
 import io.confluent.ksql.parser.NodeLocation;
 import java.util.Objects;
 import java.util.Optional;
@@ -24,18 +25,25 @@ import java.util.Optional;
 public class ListTopics extends StatementWithExtendedClause {
 
   private final boolean showAll;
+  private final Optional<SourceName> stream;
 
   public ListTopics(
       final Optional<NodeLocation> location,
       final boolean showAll,
-      final boolean showExtended
+      final boolean showExtended,
+      final Optional<SourceName> stream
   ) {
     super(location, showExtended);
     this.showAll = showAll;
+    this.stream = stream;
   }
 
   public boolean getShowAll() {
     return showAll;
+  }
+
+  public Optional<SourceName> getStream() {
+    return stream;
   }
 
   @Override
@@ -47,12 +55,13 @@ public class ListTopics extends StatementWithExtendedClause {
       return false;
     }
     final ListTopics that = (ListTopics) o;
-    return showAll == that.showAll && showExtended == that.showExtended;
+    return showAll == that.showAll && showExtended == that.showExtended
+        && Objects.equals(stream, that.stream);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(showAll, showExtended);
+    return Objects.hash(showAll, showExtended, stream);
   }
 
   @Override
@@ -60,6 +69,7 @@ public class ListTopics extends StatementWithExtendedClause {
     return toStringHelper(this)
         .add("showAll", showAll)
         .add("showExtended", showExtended)
+        .add("stream", stream)
         .toString();
   }
 }

@@ -118,6 +118,7 @@ import org.slf4j.LoggerFactory;
  */
 @SuppressWarnings("OptionalGetWithoutIsPresent")
 @Category({IntegrationTest.class})
+//TEST_HARNESS::kafkaBootstrapServers is not supported (NPE will be thrown)
 @Ignore
 public class PullQueryRoutingFunctionalTest {
   private static final Logger LOG = LoggerFactory.getLogger(PullQueryRoutingFunctionalTest.class);

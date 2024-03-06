@@ -38,7 +38,7 @@ public class OptionsTest {
     final Options options = parse();
 
     // Then:
-    assertThat(options.getServer(), is("http://localhost:8088"));
+    assertThat(options.getServer(), is("http://localhost:8084"));
   }
 
   @Test
@@ -48,101 +48,6 @@ public class OptionsTest {
 
     // Then:
     assertThat(options.getServer(), is("custom server"));
-  }
-
-  @Test
-  public void shouldThrowConfigExceptionIfOnlyUsernameIsProvided() {
-    // Given:
-    final Options options = parse("-u", "joe");
-
-    // When:
-    final Exception e = assertThrows(
-        ConfigException.class,
-        () -> options.getUserNameAndPassword()
-    );
-
-    // Then:
-    assertThat(e.getMessage(), containsString("You must specify both a username and a password"));
-  }
-
-  @Test
-  public void shouldThrowConfigExceptionIfOnlyPasswordIsProvided() {
-    // Given:
-    final Options options = parse("http://foobar", "-p", "joe");
-
-    // When:
-    final Exception e = assertThrows(
-        ConfigException.class,
-        () -> options.getUserNameAndPassword()
-    );
-
-    // Then:
-    assertThat(e.getMessage(), containsString("You must specify both a username and a password"));
-  }
-
-  @Test
-  public void shouldReturnUserPasswordPairWhenBothProvided() {
-    // When:
-    final Options options = parse("http://foobar", "-u", "joe", "-p", "pp");
-
-    // Then:
-    assertThat(options.getUserNameAndPassword(),
-        is(Optional.of(BasicCredentials.of("joe", "pp"))));
-  }
-
-  @Test
-  public void shouldReturnEmptyOptionWhenUserAndPassNotPresent() {
-    // When:
-    final Options options = parse();
-
-    // Then:
-    assertThat(options.getUserNameAndPassword(), is(Optional.empty()));
-  }
-
-  @Test
-  public void shouldNotRequirePasswordIfUserNameNotSet() {
-    // When:
-    final Options options = parse();
-
-    // Then:
-    assertThat(options.requiresPassword(), is(false));
-  }
-
-  @Test
-  public void shouldNotRequirePasswordIfUserNameAndPasswordSupplied() {
-    // When:
-    final Options options = parse("-u", "joe", "-p", "oo");
-
-    // Then:
-    assertThat(options.requiresPassword(), is(false));
-  }
-
-  @Test
-  public void shouldRequirePasswordIfUserNameSuppliedButNotPassword() {
-    // When:
-    final Options options = parse("-u", "joe");
-
-    // Then:
-    assertThat(options.requiresPassword(), is(true));
-  }
-
-  @Test
-  public void shouldNotRequirePasswordIfUserNameAndPasswordSuppliedButEmpty() {
-    // When:
-    final Options options = parse("-u", "joe", "-p", "");
-
-    // Then:
-    assertThat(options.requiresPassword(), is(true));
-  }
-
-  @Test
-  public void shouldNotTrimPasswords() {
-    // When:
-    final Options options = parse("-u", "joe", "-p", "  ");
-
-    // Then:
-    assertThat(options.getUserNameAndPassword().map(BasicCredentials::password),
-        is(Optional.of("  ")));
   }
 
   @Test

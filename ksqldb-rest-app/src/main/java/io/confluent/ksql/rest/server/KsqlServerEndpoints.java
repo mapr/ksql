@@ -51,6 +51,7 @@ import io.confluent.ksql.security.KsqlSecurityContext;
 import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.ksql.util.ReservedInternalTopics;
 import io.confluent.ksql.util.VertxCompletableFuture;
+import io.confluent.rest.impersonation.ImpersonationUtils;
 import io.vertx.core.Context;
 import io.vertx.core.MultiMap;
 import io.vertx.core.WorkerExecutor;
@@ -178,33 +179,39 @@ public class KsqlServerEndpoints implements Endpoints {
   public CompletableFuture<EndpointResponse> executeKsqlRequest(final KsqlRequest request,
       final WorkerExecutor workerExecutor,
       final ApiSecurityContext apiSecurityContext) {
-
-    return executeOldApiEndpointOnWorker(apiSecurityContext,
-        ksqlSecurityContext -> ksqlResource.handleKsqlStatements(
-            ksqlSecurityContext,
-            request), workerExecutor);
+    return ImpersonationUtils.runAsUserIfImpersonationEnabled(() ->
+            executeOldApiEndpointOnWorker(apiSecurityContext,
+                ksqlSecurityContext -> ksqlResource.handleKsqlStatements(
+                    ksqlSecurityContext,
+                    request), workerExecutor),
+        apiSecurityContext.getAuthToken().orElse(null),
+        apiSecurityContext.getCookie().orElse(null));
   }
 
   @Override
   public CompletableFuture<EndpointResponse> executeQueryRequest(
-      final KsqlRequest request,
-      final WorkerExecutor workerExecutor,
-      final CompletableFuture<Void> connectionClosedFuture,
-      final ApiSecurityContext apiSecurityContext,
-      final Optional<Boolean> isInternalRequest,
-      final KsqlMediaType mediaType,
-      final MetricsCallbackHolder metricsCallbackHolder,
-      final Context context
+          final KsqlRequest request,
+          final WorkerExecutor workerExecutor,
+          final CompletableFuture<Void> connectionClosedFuture,
+          final ApiSecurityContext apiSecurityContext,
+          final Optional<Boolean> isInternalRequest,
+          final KsqlMediaType mediaType,
+          final MetricsCallbackHolder metricsCallbackHolder,
+          final Context context
   ) {
-    return executeOldApiEndpointOnWorker(apiSecurityContext,
-        ksqlSecurityContext -> streamedQueryResource.streamQuery(
-            ksqlSecurityContext,
-            request,
-            connectionClosedFuture,
-            isInternalRequest,
-            metricsCallbackHolder,
-            context
-        ), workerExecutor);
+    return ImpersonationUtils.runAsUserIfImpersonationEnabled(() ->
+                    executeOldApiEndpointOnWorker(apiSecurityContext,
+                            ksqlSecurityContext -> streamedQueryResource.streamQuery(
+                                    ksqlSecurityContext,
+                                    request,
+                                    connectionClosedFuture,
+                                    isInternalRequest,
+                                    metricsCallbackHolder,
+                                    context
+                            ), workerExecutor),
+            apiSecurityContext.getAuthToken().orElse(null),
+            apiSecurityContext.getCookie().orElse(null));
+
   }
 
   @Override
@@ -212,17 +219,23 @@ public class KsqlServerEndpoints implements Endpoints {
       final ClusterTerminateRequest request,
       final WorkerExecutor workerExecutor,
       final ApiSecurityContext apiSecurityContext) {
-    return executeOldApiEndpointOnWorker(apiSecurityContext,
-        ksqlSecurityContext -> ksqlResource.terminateCluster(
-            ksqlSecurityContext,
-            request), workerExecutor);
+    return ImpersonationUtils.runAsUserIfImpersonationEnabled(() ->
+            executeOldApiEndpointOnWorker(apiSecurityContext,
+                ksqlSecurityContext -> ksqlResource.terminateCluster(
+                    ksqlSecurityContext,
+                    request), workerExecutor),
+        apiSecurityContext.getAuthToken().orElse(null),
+        apiSecurityContext.getCookie().orElse(null));
   }
 
   @Override
   public CompletableFuture<EndpointResponse> executeInfo(
       final ApiSecurityContext apiSecurityContext) {
-    return executeOldApiEndpoint(apiSecurityContext,
-        ksqlSecurityContext -> serverInfoResource.get());
+    return ImpersonationUtils.runAsUserIfImpersonationEnabled(() ->
+            executeOldApiEndpoint(apiSecurityContext,
+                ksqlSecurityContext -> serverInfoResource.get()),
+        apiSecurityContext.getAuthToken().orElse(null),
+        apiSecurityContext.getCookie().orElse(null));
   }
 
   @Override
@@ -247,8 +260,11 @@ public class KsqlServerEndpoints implements Endpoints {
   @Override
   public CompletableFuture<EndpointResponse> executeStatus(final String type, final String entity,
       final String action, final ApiSecurityContext apiSecurityContext) {
-    return executeOldApiEndpoint(apiSecurityContext,
-        ksqlSecurityContext -> statusResource.getStatus(type, entity, action));
+    return ImpersonationUtils.runAsUserIfImpersonationEnabled(() ->
+            executeOldApiEndpoint(apiSecurityContext,
+                ksqlSecurityContext -> statusResource.getStatus(type, entity, action)),
+        apiSecurityContext.getAuthToken().orElse(null),
+        apiSecurityContext.getCookie().orElse(null));
   }
 
   @Override
@@ -263,8 +279,11 @@ public class KsqlServerEndpoints implements Endpoints {
   @Override
   public CompletableFuture<EndpointResponse> executeAllStatuses(
       final ApiSecurityContext apiSecurityContext) {
-    return executeOldApiEndpoint(apiSecurityContext,
-        ksqlSecurityContext -> statusResource.getAllStatuses());
+    return ImpersonationUtils.runAsUserIfImpersonationEnabled(() ->
+            executeOldApiEndpoint(apiSecurityContext,
+                ksqlSecurityContext -> statusResource.getAllStatuses()),
+        apiSecurityContext.getAuthToken().orElse(null),
+        apiSecurityContext.getCookie().orElse(null));
   }
 
   @Override

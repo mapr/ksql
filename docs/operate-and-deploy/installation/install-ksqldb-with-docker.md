@@ -61,9 +61,9 @@ Run a ksqlDB Server that enables manual interaction by using the ksqlDB CLI:
 
 ```bash
 docker run -d \
-  -p 127.0.0.1:8088:8088 \
+  -p 127.0.0.1:8084:8084 \
   -e KSQL_BOOTSTRAP_SERVERS=localhost:9092 \
-  -e KSQL_LISTENERS=http://0.0.0.0:8088/ \
+  -e KSQL_LISTENERS=http://0.0.0.0:8084/ \
   -e KSQL_KSQL_SERVICE_ID=ksql_service_2_ \
   confluentinc/ksqldb-server:{{ site.ksqldbversion }}
 ```
@@ -81,7 +81,7 @@ docker run -d \
 `KSQL_LISTENERS`
 
 :   A list of URIs, including the protocol, that the broker listens on.
-    If you are using IPv6, set it to `http://[::]:8088`.
+    If you are using IPv6, set it to `http://[::]:8084`.
 
 `KSQL_CLASSPATH`
 
@@ -140,9 +140,9 @@ Run a ksqlDB Server that uses a secure connection to a {{ site.ak }} cluster:
 
 ```bash
 docker run -d \
-  -p 127.0.0.1:8088:8088 \
+  -p 127.0.0.1:8084:8084 \
   -e KSQL_BOOTSTRAP_SERVERS=REMOTE_SERVER1:9092,REMOTE_SERVER2:9093,REMOTE_SERVER3:9094 \
-  -e KSQL_LISTENERS=http://0.0.0.0:8088/ \
+  -e KSQL_LISTENERS=http://0.0.0.0:8084/ \
   -e KSQL_KSQL_SERVICE_ID=default_ \
   -e KSQL_KSQL_SINK_REPLICAS=3 \
   -e KSQL_KSQL_STREAMS_REPLICATION_FACTOR=3 \
@@ -166,7 +166,7 @@ docker run -d \
 `KSQL_LISTENERS`
 
 :   A list of URIs, including the protocol, that the broker listens on.
-    If you are using IPv6, set it to `http://[::]:8088`.
+    If you are using IPv6, set it to `http://[::]:8084`.
 
 `KSQL_KSQL_SINK_REPLICAS`
 
@@ -284,13 +284,13 @@ As an example using `docker-compose`, you can mount a udf directory and use it l
       - broker
       - schema-registry
     ports:
-      - "8088:8088"
+      - "8088:8084"
     volumes:
       - "./extensions/:/opt/ksqldb-udfs"
     environment:
-      KSQL_LISTENERS: "http://0.0.0.0:8088"
+      KSQL_LISTENERS: "http://0.0.0.0:8084"
       KSQL_BOOTSTRAP_SERVERS: "broker:9092"
-      KSQL_KSQL_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
+      KSQL_KSQL_SCHEMA_REGISTRY_URL: "http://schema-registry:8087"
       KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE: "true"
       KSQL_KSQL_LOGGING_PROCESSING_TOPIC_AUTO_CREATE: "true"
       # Configuration for UDFs
@@ -317,13 +317,13 @@ that's running in a different container.
 
 ```bash
 # Run ksqlDB Server.
-docker run -d -p 10.0.0.11:8088:8088 \
+docker run -d -p 10.0.0.11:8084:8084 \
   -e KSQL_BOOTSTRAP_SERVERS=localhost:9092 \
-  -e KSQL_OPTS="-Dksql.service.id=ksql_service_3_  -Dlisteners=http://0.0.0.0:8088/" \  
+  -e KSQL_OPTS="-Dksql.service.id=ksql_service_3_  -Dlisteners=http://0.0.0.0:8084/" \  
   confluentinc/ksqldb-server:{{ site.ksqldbversion }}
 
 # Connect the ksqlDB CLI to the server.
-docker run -it confluentinc/ksqldb-cli ksql http://10.0.0.11:8088 
+docker run -it confluentinc/ksqldb-cli ksql http://10.0.0.11:8084 
 ```
 
 `KSQL_BOOTSTRAP_SERVERS`
@@ -334,7 +334,7 @@ docker run -it confluentinc/ksqldb-cli ksql http://10.0.0.11:8088
 `KSQL_OPTS`
 
 :   A space-separated list of Java options. If you are using IPv6, set
-    `listeners` to `http://[::]:8088`.
+    `listeners` to `http://[::]:8084`.
 
 The Docker network created by ksqlDB Server enables you to connect with a
 dockerized ksqlDB CLI.
@@ -351,7 +351,7 @@ ls /path/on/host/ksql-cli.properties
 
 docker run -it \
   -v /path/on/host/:/path/in/container  \
-  confluentinc/ksqldb-cli:{{ site.ksqldbversion }} ksql http://10.0.0.11:8088 \
+  confluentinc/ksqldb-cli:{{ site.ksqldbversion }} ksql http://10.0.0.11:8084 \
   --config-file /path/in/container/ksql-cli.properties
 ```
 
@@ -402,14 +402,14 @@ Use the following bash commands to wait for ksqlDB Server to be available:
 
 ```bash
 echo -e "\n\n⏳ Waiting for ksqlDB to be available before launching CLI\n"
-while [ $(curl -s -o /dev/null -w %{http_code} http://<ksql-server-ip-address>:8088/) -eq 000 ]
+while [ $(curl -s -o /dev/null -w %{http_code} http://<ksql-server-ip-address>:8084/) -eq 000 ]
 do 
-  echo -e $(date) "ksqlDB Server HTTP state: " $(curl -s -o /dev/null -w %{http_code} http://<ksql-server-ip-address>:8088/) " (waiting for 200)"
+  echo -e $(date) "ksqlDB Server HTTP state: " $(curl -s -o /dev/null -w %{http_code} http://<ksql-server-ip-address>:8084/) " (waiting for 200)"
   sleep 5
 done
 ```
 
-This script pings the ksqlDB Server at `<ksql-server-ip-address>:8088`
+This script pings the ksqlDB Server at `<ksql-server-ip-address>:8084`
 every five seconds, until it receives an HTTP 200 response.
 
 !!! note
@@ -421,7 +421,7 @@ available, use the following Docker Compose command:
 
 ```bash
 docker-compose exec ksql-cli bash -c \
-'echo -e "\n\n⏳ Waiting for ksqlDB to be available before launching CLI\n"; while [ $(curl -s -o /dev/null -w %{http_code} http://<ksql-server-ip-address>:8088/) -eq 000 ] ; do echo -e $(date) "ksqlDB Server HTTP state: " $(curl -s -o /dev/null -w %{http_code} http://<ksql-server-ip-address>:8088/) " (waiting for 200)" ; sleep 5 ; done; ksql http://<ksql-server-ip-address>:8088'
+'echo -e "\n\n⏳ Waiting for ksqlDB to be available before launching CLI\n"; while [ $(curl -s -o /dev/null -w %{http_code} http://<ksql-server-ip-address>:8084/) -eq 000 ] ; do echo -e $(date) "ksqlDB Server HTTP state: " $(curl -s -o /dev/null -w %{http_code} http://<ksql-server-ip-address>:8084/) " (waiting for 200)" ; sleep 5 ; done; ksql http://<ksql-server-ip-address>:8084'
 ```
 
 ### Wait for a particular phrase in a container's log
@@ -475,7 +475,7 @@ ksql-server:
     - kafka
   environment:
     KSQL_BOOTSTRAP_SERVERS: <bootstrap-server-ip>:29092
-    KSQL_LISTENERS: http://0.0.0.0:8088
+    KSQL_LISTENERS: http://0.0.0.0:8084
   command: 
     - /bin/bash
     - -c 
@@ -515,13 +515,13 @@ ksql-cli:
     - -c
     - |
       echo -e "\n\n⏳ Waiting for ksqlDB to be available before launching CLI\n"
-      while [ $$(curl -s -o /dev/null -w %{http_code} http://<ksql-server-ip>:8088/) -eq 000 ]
+      while [ $$(curl -s -o /dev/null -w %{http_code} http://<ksql-server-ip>:8084/) -eq 000 ]
       do 
-        echo -e $$(date) "ksqlDB Server HTTP state: " $$(curl -s -o /dev/null -w %{http_code} http://<ksql-server-ip>:8088/) " (waiting for 200)"
+        echo -e $$(date) "ksqlDB Server HTTP state: " $$(curl -s -o /dev/null -w %{http_code} http://<ksql-server-ip>:8084/) " (waiting for 200)"
         sleep 5
       done
       echo -e "\n\n-> Running SQL commands\n"
-      cat /data/scripts/my-ksql-script.sql <(echo -e '\nEXIT')| ksql http://<ksql-server-ip>:8088
+      cat /data/scripts/my-ksql-script.sql <(echo -e '\nEXIT')| ksql http://<ksql-server-ip>:8084
       echo -e "\n\n-> Sleeping…\n"
       sleep infinity
 ```

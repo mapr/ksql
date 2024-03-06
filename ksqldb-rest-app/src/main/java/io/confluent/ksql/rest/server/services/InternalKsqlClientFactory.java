@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import org.apache.kafka.common.config.SslConfigs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,20 +72,28 @@ public final class InternalKsqlClientFactory {
       httpClientOptions.setVerifyHost(verifyHost);
       httpClientOptions.setSsl(true);
 
-      final Optional<JksOptions> trustStoreOptions =
-          VertxSslOptionsFactory.getJksTrustStoreOptions(clientProps);
+      if ("BCFKS".equalsIgnoreCase(clientProps.get(SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG))) {
+        VertxSslOptionsFactory.getBcfksTrustStoreOptions(clientProps)
+                .ifPresent(httpClientOptions::setTrustOptions);
+        VertxSslOptionsFactory.getBcfksKeyStoreOptions(clientProps)
+                .ifPresent(httpClientOptions::setKeyCertOptions);
+      } else {
+        final Optional<JksOptions> trustStoreOptions =
+                VertxSslOptionsFactory.getJksTrustStoreOptions(clientProps);
 
-      if (trustStoreOptions.isPresent()) {
-        httpClientOptions.setTrustStoreOptions(trustStoreOptions.get());
+        if (trustStoreOptions.isPresent()) {
+          httpClientOptions.setTrustStoreOptions(trustStoreOptions.get());
 
-        final Optional<JksOptions> keyStoreOptions =
-            VertxSslOptionsFactory.buildJksKeyStoreOptions(
-                clientProps,
-                Optional.ofNullable(
-                    clientProps.get(KsqlRestConfig.KSQL_SSL_KEYSTORE_ALIAS_INTERNAL_CONFIG))
-            );
+          final Optional<JksOptions> keyStoreOptions =
+                  VertxSslOptionsFactory.buildJksKeyStoreOptions(
+                          clientProps,
+                          Optional.ofNullable(
+                                  clientProps.get(
+                                          KsqlRestConfig.KSQL_SSL_KEYSTORE_ALIAS_INTERNAL_CONFIG))
+                  );
 
-        keyStoreOptions.ifPresent(options -> httpClientOptions.setKeyStoreOptions(options));
+          keyStoreOptions.ifPresent(options -> httpClientOptions.setKeyStoreOptions(options));
+        }
       }
 
       return httpClientOptions;

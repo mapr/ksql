@@ -42,12 +42,12 @@ final class SchemaRegistryClientFactory {
       return Optional.empty();
     }
 
-    if (ksqlConfig.getString(KsqlConfig.SCHEMA_REGISTRY_URL_PROPERTY) == null) {
+    if (ksqlConfig.getSchemaRegistryUrl() == null) {
       throw new KsqlException("Schema registry url is not set.");
     }
 
     return Optional.of(new CachedSchemaRegistryClient(
-        ImmutableList.of(ksqlConfig.getString(KsqlConfig.SCHEMA_REGISTRY_URL_PROPERTY)),
+        ImmutableList.of(ksqlConfig.getSchemaRegistryUrl()),
         100,
         ImmutableList.of(
             new AvroSchemaProvider(), new ProtobufSchemaProvider(), new JsonSchemaProvider()),

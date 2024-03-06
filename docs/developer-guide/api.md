@@ -17,7 +17,7 @@ description: Learn how to communicate with ksqlDB by using HTTP
 REST Endpoint
 -------------
 
-The default HTTP API endpoint is `http://0.0.0.0:8088/`.
+The default HTTP API endpoint is `http://0.0.0.0:8084/`.
 
 Change the server configuration that controls the HTTP API endpoint by
 setting the `listeners` parameter in the ksqlDB server config file. For
@@ -58,7 +58,7 @@ Here's an example request that returns the results from the
 `LIST STREAMS` command:
 
 ```bash
-curl -X "POST" "http://localhost:8088/ksql" \
+curl -X "POST" "http://localhost:8084/ksql" \
      -H "Accept: application/vnd.ksql.v1+json" \
      -d $'{
   "ksql": "LIST STREAMS;",
@@ -70,7 +70,7 @@ Here's an example request that retrieves streaming data from
 `TEST_STREAM`:
 
 ```bash
-curl -X "POST" "http://localhost:8088/query" \
+curl -X "POST" "http://localhost:8084/query" \
      -H "Accept: application/vnd.ksql.v1+json" \
      -d $'{
   "ksql": "SELECT * FROM TEST_STREAM EMIT CHANGES;",
@@ -87,7 +87,7 @@ Accept: application/vnd.ksql.v1+protobuf
 The following example shows a curl command that issues a Pull query on a table called `CURRENTLOCATION`
 with the `PROTOBUF` content type:
 ```bash
-curl -X "POST" "http://localhost:8088/query" \
+curl -X "POST" "http://localhost:8084/query" \
      -H "Accept: application/vnd.ksql.v1+protobuf" \
      -d $'{
   "ksql": "SELECT * FROM CURRENTLOCATION;",
@@ -111,7 +111,7 @@ Provide the `--basic` and `--user` options if basic HTTPS authentication is
 enabled on the cluster, as shown in the following command.
 
 ```bash hl_lines="3"
-curl -X "POST" "https://localhost:8088/ksql" \
+curl -X "POST" "https://localhost:8084/ksql" \
      -H "Accept: application/vnd.ksql.v1+json" \
      --basic --user "<API key>:<secret>" \
      -d $'{

@@ -10,7 +10,7 @@ The `/is_valid_property` resource tells you whether a property is prohibited fro
 can use the `curl` command to query the `/is_valid_property` endpoint:
 
 ```bash
-curl -sX GET "http://localhost:8088/is_valid_property/propertyName" | jq '.'
+curl -sX GET "http://localhost:8084/is_valid_property/propertyName" | jq '.'
 ```
 
 If the property is not prohibited from setting, the endpoint should return `true`. Otherwise, the

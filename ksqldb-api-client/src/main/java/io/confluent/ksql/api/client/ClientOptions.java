@@ -24,7 +24,7 @@ import java.util.Map;
 public interface ClientOptions {
 
   String DEFAULT_HOST = "localhost";
-  int DEFAULT_HOST_PORT = 8088;
+  int DEFAULT_HOST_PORT = 8084;
   int DEFAULT_EXECUTE_QUERY_MAX_RESULT_ROWS = 10000;
   int DEFAULT_HTTP2_MULTIPLEXING_LIMIT = -1;
 
@@ -37,7 +37,7 @@ public interface ClientOptions {
   ClientOptions setHost(String host);
 
   /**
-   * Sets the host port of the ksqlDB server to connect to. Defaults to 8088.
+   * Sets the host port of the ksqlDB server to connect to. Defaults to 8084.
    *
    * @param port host port
    * @return a reference to this
@@ -83,6 +83,14 @@ public interface ClientOptions {
    * @return a reference to this
    */
   ClientOptions setTrustStorePassword(String trustStorePassword);
+
+  /**
+   * Sets the key store type.
+   *
+   * @param keyStoreType key store type
+   * @return a reference to this
+   */
+  ClientOptions setKeyType(String keyStoreType);
 
   /**
    * Sets the key store path.
@@ -249,6 +257,13 @@ public interface ClientOptions {
    * @return trust store password
    */
   String getTrustStorePassword();
+
+  /**
+   * Returns the key store type.
+   *
+   * @return key store type
+   */
+  String getKeyType();
 
   /**
    * Returns the key store path.

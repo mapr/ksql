@@ -35,8 +35,8 @@ Health Checks
 -------------
 
 - The ksqlDB REST API supports a "server info" request at
-  `http://<server>:8088/info` and a basic server health check endpoint at
-  `http://<server>:8088/healthcheck`.
+  `http://<server>:8084/info` and a basic server health check endpoint at
+  `http://<server>:8084/healthcheck`.
 - Check runtime stats for the ksqlDB server that you are connected to
   via `DESCRIBE <stream or table> EXTENDED` and
   `EXPLAIN <name of query>`.

@@ -1,0 +1,12 @@
+#!/bin/sh
+#set -e
+
+PID_FILE=__PREFIX__/pid/ksql.pid
+if [ ! -z "$PID_FILE" ] && [ -f "$PID_FILE" ] && [ -s "$PID_FILE" ] && [ -r "$PID_FILE" ]; then
+    PID=`cat "$PID_FILE"`
+    ps -p $PID >/dev/null 2>&1
+    if [ $? -eq 0 ] ; then
+        kill $PID >/dev/null 2>&1
+        rm -f $PID_FILE >/dev/null 2>&1
+    fi
+fi

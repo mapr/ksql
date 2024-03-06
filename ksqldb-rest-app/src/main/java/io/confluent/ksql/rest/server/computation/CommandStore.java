@@ -32,7 +32,6 @@ import java.io.Closeable;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -41,15 +40,11 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.apache.kafka.clients.consumer.Consumer;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
-import org.apache.kafka.common.IsolationLevel;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.Deserializer;
@@ -81,6 +76,7 @@ public class CommandStore implements CommandQueue, Closeable {
   private final Deserializer<CommandId> commandIdDeserializer;
   private final CommandTopicBackup commandTopicBackup;
 
+  private final ProducerPool commandProducerPool;
 
   public static final class Factory {
 
@@ -94,22 +90,22 @@ public class CommandStore implements CommandQueue, Closeable {
         final Map<String, Object> kafkaConsumerProperties,
         final Map<String, Object> kafkaProducerProperties,
         final KafkaTopicClient internalTopicClient) {
-      kafkaConsumerProperties.put(
-          ConsumerConfig.ISOLATION_LEVEL_CONFIG,
-          IsolationLevel.READ_COMMITTED.toString().toLowerCase(Locale.ROOT)
-      );
-      kafkaConsumerProperties.put(
-          ConsumerConfig.AUTO_OFFSET_RESET_CONFIG,
-          "none"
-      );
-      kafkaProducerProperties.put(
-          ProducerConfig.TRANSACTIONAL_ID_CONFIG,
-          ksqlConfig.getString(KsqlConfig.KSQL_SERVICE_ID_CONFIG)
-      );
-      kafkaProducerProperties.put(
-          ProducerConfig.ACKS_CONFIG,
-          "all"
-      );
+      //NOTE: mapr streams idempotent producer requires topicperm permission,
+      //ksql internal stream is created with topicperm u:<owner> at the moment,
+      //so producing from mapruser1 would fail
+      //
+      //kafkaConsumerProperties.put(
+      //    ConsumerConfig.ISOLATION_LEVEL_CONFIG,
+      //    IsolationLevel.READ_COMMITTED.toString().toLowerCase(Locale.ROOT)
+      //);
+      //kafkaProducerProperties.put(
+      //    ProducerConfig.TRANSACTIONAL_ID_CONFIG,
+      //    transactionId
+      //);
+      //kafkaProducerProperties.put(
+      //    ProducerConfig.ACKS_CONFIG,
+      //    "all"
+      //);
 
       CommandTopicBackup commandTopicBackup = new CommandTopicBackupNoOp();
       if (!CommandTopicBackupUtil.backupLocation(ksqlConfig).isEmpty()) {
@@ -170,6 +166,12 @@ public class CommandStore implements CommandQueue, Closeable {
         Objects.requireNonNull(commandIdDeserializer, "commandIdDeserializer");
     this.commandTopicBackup =
         Objects.requireNonNull(commandTopicBackup, "commandTopicBackup");
+
+    commandProducerPool = new ProducerPool(
+        kafkaProducerProperties,
+        InternalTopicSerdes.serializer(),
+        InternalTopicSerdes.serializer());
+
   }
 
   @Override
@@ -191,6 +193,7 @@ public class CommandStore implements CommandQueue, Closeable {
   @Override
   public void close() {
     commandTopic.close();
+    commandProducerPool.close();
   }
 
   @Override
@@ -302,11 +305,7 @@ public class CommandStore implements CommandQueue, Closeable {
 
   @Override
   public Producer<CommandId, Command> createTransactionalProducer() {
-    return new KafkaProducer<>(
-        kafkaProducerProperties,
-        commandIdSerializer,
-        commandSerializer
-    );
+    return commandProducerPool.getProducer();
   }
 
   @Override

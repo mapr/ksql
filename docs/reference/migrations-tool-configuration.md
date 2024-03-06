@@ -27,7 +27,7 @@ Required Configs
 
 ### `ksql.server.url`
 
-The URL for your ksqlDB server. For example, `http://localhost:8088`.
+The URL for your ksqlDB server. For example, `http://localhost:8084`.
 
 Migrations Metadata Configs
 ---------------------------

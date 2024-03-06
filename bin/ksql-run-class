@@ -5,6 +5,13 @@
 
 base_dir=$( cd -P "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )
 
+# This will set MAPR_HOME, etc.
+source `which mapr-config.sh` # Both "mapr" and "mapr-config.sh" are symlinked in "/usr/bin"
+
+# calling env var and its overridden file
+env=${MAPR_HOME:-/opt/mapr}/conf/env.sh
+[ -f $env ] && . $env
+
 # Log directory to use
 if [ "x$LOG_DIR" = "x" ]; then
   LOG_DIR="$base_dir/logs"
@@ -48,8 +55,8 @@ if [ -z "$KSQL_LOG4J_OPTS" ]; then
   # installed
   if [ -e "$base_dir/config/log4j.properties" ]; then # Dev environment
     KSQL_LOG4J_OPTS="-Dlog4j.configuration=file:$base_dir/config/log4j.properties"
-  elif [ -e "$base_dir/etc/ksqldb/log4j.properties" ]; then # Simple zip file layout
-    KSQL_LOG4J_OPTS="-Dlog4j.configuration=file:$base_dir/etc/ksqldb/log4j.properties"
+  elif [ -e "$base_dir/etc/ksql/log4j.properties" ]; then # Simple zip file layout
+    KSQL_LOG4J_OPTS="-Dlog4j.configuration=file:$base_dir/etc/ksql/log4j.properties"
   elif [ -e "/etc/ksqldb/log4j.properties" ]; then # Normal install layout
     KSQL_LOG4J_OPTS="-Dlog4j.configuration=file:/etc/ksqldb/log4j.properties"
   fi
@@ -57,15 +64,133 @@ fi
 
  KSQL_LOG4J_OPTS="-Dksql.log.dir=$LOG_DIR ${KSQL_LOG4J_OPTS}"
 
+# main class should be assigned before jmx options
+MAIN="$1"
+shift
+
 # JMX settings
-if [ -z "$KSQL_JMX_OPTS" ]; then
-  KSQL_JMX_OPTS="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false "
+isSecure="false"
+if [ -f "${MAPR_HOME:-/opt/mapr}/conf/mapr-clusters.conf" ]; then
+  isSecure=$(head -1 ${MAPR_HOME:-/opt/mapr}/conf/mapr-clusters.conf | grep -o 'secure=\w*' | cut -d= -f2)
 fi
 
-# JMX port to use
-if [ ! -z "$JMX_PORT" ]; then
-  KSQL_JMX_OPTS="$KSQL_JMX_OPTS -Dcom.sun.management.jmxremote.port=$JMX_PORT "
+MAPR_JMX_PORT=${MAPR_JMX_KSQL_PORT:-3415}
+
+JMX_JAR=$(echo ${MAPR_HOME:-/opt/mapr}/lib/jmxagent*)
+
+if [ -z "$MAPR_JMXLOCALBINDING" ]; then
+  MAPR_JMXLOCALBINDING="false"
 fi
+
+if [ -z "$MAPR_JMXAUTH" ]; then
+  MAPR_JMXAUTH="false"
+fi
+
+if [ -z "$MAPR_JMXSSL" ]; then
+  MAPR_JMXSSL="false"
+fi
+
+if [ -z "$MAPR_AUTH_LOGIN_CONFIG_FILE" ]; then
+  MAPR_AUTH_LOGIN_CONFIG_FILE="${MAPR_HOME:-/opt/mapr}/conf/mapr.login.conf"
+fi
+
+if [ -z "$MAPR_LOGIN_CONFIG" ]; then
+  MAPR_LOGIN_CONFIG="JMX_AGENT_LOGIN"
+fi
+
+if [ -z "$MAPR_JMXDISABLE" ] && [ -z "$MAPR_JMXLOCALHOST" ] && [ -z "$MAPR_JMXREMOTEHOST" ]; then
+  echo "No MapR JMX options given - defaulting to local binding"
+fi
+
+if [[ ( -z "$MAPR_JMXDISABLE" || "$MAPR_JMXDISABLE" = 'false' ) && ( $MAIN == *"KsqlServerMain" ) && \
+      ( -z "$MAPR_JMX_KSQL_ENABLE" || "$MAPR_JMX_KSQL_ENABLE" = "true" ) ]]; then
+  # default setting for localBinding
+  MAPR_JMX_OPTS="-Dcom.sun.management.jmxremote"
+
+  if [ "$MAPR_JMXLOCALHOST" = "true" ] && [ "$MAPR_JMXREMOTEHOST" = "true" ]; then
+    echo "WARNING: Both MAPR_JMXLOCALHOST and MAPR_JMXREMOTEHOST options are enabled - defaulting to MAPR_JMXLOCAHOST config"
+    MAPR_JMXREMOTEHOST=false
+  fi
+
+  if [ "$isSecure" = "true" ] && [ "$MAPR_JMXREMOTEHOST" = "true" ]; then
+    if [ -n "$JMX_JAR" ] && [ -f ${JMX_JAR} ]; then
+      MAPR_JMX_OPTS="-javaagent:$JMX_JAR \
+      -Dmapr.jmx.agent.login.config=$MAPR_LOGIN_CONFIG"
+      MAPR_JMXAUTH="true"
+    else
+      echo "jmxagent jar file missed"
+      exit 1
+    fi
+  fi
+
+  if [ "$MAPR_JMXAUTH" = "true" ]; then
+    if [ "$isSecure" = "true" ]; then
+      if [ -f "$MAPR_AUTH_LOGIN_CONFIG_FILE" ] && [ -f "${MAPR_HOME:-/opt/mapr}/conf/jmxremote.access" ]; then
+        MAPR_JMX_OPTS="$MAPR_JMX_OPTS -Dcom.sun.management.jmxremote.authenticate=true \
+        -Djava.security.auth.login.config=$MAPR_AUTH_LOGIN_CONFIG_FILE \
+        -Dcom.sun.management.jmxremote.access.file=${MAPR_HOME:-/opt/mapr}/conf/jmxremote.access"
+      else
+        echo "JMX login config or access file missing - not starting since we are in secure mode"
+        exit 1
+      fi
+    else
+      echo "JMX login config or access file missing - not starting since we are in secure mode"
+      exit 1
+    fi
+
+      if [ "$MAPR_JMXREMOTEHOST" = "false" ]; then
+        MAPR_JMX_OPTS="$MAPR_JMX_OPTS -Dcom.sun.management.jmxremote.login.config=$MAPR_LOGIN_CONFIG"
+      fi
+  else
+    MAPR_JMX_OPTS="$MAPR_JMX_OPTS -Dcom.sun.management.jmxremote.authenticate=false"
+  fi
+
+  if [ "$MAPR_JMXLOCALHOST" = "true" ] || [ "$MAPR_JMXREMOTEHOST" = "true" ]; then
+    if [ "$MAPR_JMXSSL" = "true" ] && [ "$MAPR_JMXLOCALHOST" = "true" ] ; then
+      echo "WARNING: ssl is not supported in localhost. Setting default to false"
+      MAPR_JMX_OPTS="$MAPR_JMX_OPTS -Dcom.sun.management.jmxremote.ssl=false"
+    else
+      MAPR_JMX_OPTS="$MAPR_JMX_OPTS -Dcom.sun.management.jmxremote.ssl=false"
+    fi
+
+    if [ "$MAPR_JMXLOCALHOST" = "true" ]; then
+      MAPR_JMX_OPTS="$MAPR_JMX_OPTS -Djava.rmi.server.hostname=localhost \
+      -Dcom.sun.management.jmxremote.host=localhost \
+      -Dcom.sun.management.jmxremote.local.only=true"
+    fi
+
+    if [ -z "$MAPR_JMX_PORT" ]; then
+      echo "WARNING: No JMX port given for KSQL - disabling TCP base JMX service"
+      MAPR_JMX_OPTS=""
+    else
+      if [ "$MAPR_JMXREMOTEHOST" = "true" ] && [ "$isSecure" = "true" ]; then
+        MAPR_JMX_OPTS="$MAPR_JMX_OPTS -Dmapr.jmx.agent.port=$MAPR_JMX_PORT"
+        echo "Enabling TCP JMX for KSQL on port $MAPR_JMX_PORT"
+      else
+        MAPR_JMX_OPTS="$MAPR_JMX_OPTS -Dcom.sun.management.jmxremote.port=$MAPR_JMX_PORT"
+        if [ "$MAPR_JMXLOCALHOST" = "true" ]; then
+          echo "Enabling TCP JMX for KSQL only on localhost port $MAPR_JMX_PORT"
+        else
+          echo "Enabling TCP JMX for KSQL on port $MAPR_JMX_PORT"
+        fi
+      fi
+    fi
+  fi
+
+  if [ "$MAPR_JMXLOCALBINDING" = "true" ] && [ -z "$MAPR_JMX_OPTS" ]; then
+    echo "Enabling JMX local binding only"
+    MAPR_JMX_OPTS="-Dcom.sun.management.jmxremote"
+  fi
+else
+  if [[ $MAIN != *"KsqlServerMain" ]]; then
+    echo "JMX disabled - It is used for only KSQL server (skipped for avro consumer and producer)."
+  else
+    echo "JMX disabled by user request"
+  fi
+  MAPR_JMX_OPTS=""
+fi
+
+KSQL_JMX_OPTS=$MAPR_JMX_OPTS
 
 # Generic jvm settings you want to add
 if [ -z "$KSQL_OPTS" ]; then
@@ -94,9 +219,6 @@ then
   echo "USAGE: $0 [-daemon] [opts] [-help]"
     exit 1
 fi
-
-MAIN="$1"
-shift
 
 DAEMON_NAME=""
 GC_LOG_ENABLED=""
@@ -160,6 +282,11 @@ if [ "x$HELP" = "xtrue" ]; then
   exit 1
 fi
 
+# if FIPS mode is enabled, add security java options
+env=${MAPR_HOME:-/opt/mapr}/conf/env.sh
+[ -f "${env}" ] && . "${env}"
+KSQL_OPTS="${KSQL_OPTS} ${MAPR_COMMON_JAVA_OPTS}"
+
 OPTIONS=($KSQL_HEAP_OPTS)
 OPTIONS+=($KSQL_JVM_PERFORMANCE_OPTS)
 OPTIONS+=($KSQL_JMX_OPTS)
@@ -167,11 +294,42 @@ OPTIONS+=($KSQL_LOG4J_OPTS)
 OPTIONS+=($KSQL_OPTS)
 OPTIONS+=($KSQL_GC_LOG_OPTS)
 
+
+MAPR_CLIENT_CLASSPATH=$(mapr clientclasspath)
+# Add mapr-security-web.jar
+for file in "${BASEMAPR:-/opt/mapr}"/lib/mapr-security-web-*.jar
+do
+  MAPR_CLIENT_CLASSPATH="$MAPR_CLIENT_CLASSPATH":"$file"
+done
+KSQL_CLASSPATH=$KSQL_CLASSPATH:$MAPR_CLIENT_CLASSPATH
+KAFKA_VERSION=$(cat "/opt/mapr/kafka/kafkaversion")
+KSQL_CLASSPATH=$KSQL_CLASSPATH:/opt/mapr/kafka/kafka-$KAFKA_VERSION/libs/*
+
+# To enable PAM:
+JAVA_LIB_PATH="-Djava.library.path=${BASEMAPR:-/opt/mapr}/lib/"
+KSQL_CLASSPATH=$KSQL_CLASSPATH:${BASEMAPR:-/opt/mapr}/lib/JPam-1.1.jar
+
+# Add logger jars
+KSQL_CLASSPATH=$KSQL_CLASSPATH:$(get_log4j12_jars) # function in mapr-config.sh
+KSQL_CLASSPATH=$KSQL_CLASSPATH:$(get_mapr_app_jars) # function in mapr-config.sh
+
+
+if [ -f ${JMX_JAR} ]; then
+  KSQL_CLASSPATH=$KSQL_CLASSPATH:$JMX_JAR
+fi
+
+PID="/dev/null"
+if [[ $MAIN == *"KsqlServerMain" ]]; then
+    PID="${BASEMAPR:-/opt/mapr}/pid/ksql.pid"
+fi
+
+echo $$ > $PID
+
 # Launch mode
 if [ "x$DAEMON_MODE" = "xtrue" ]; then
   DAEMON_STDOUT_FILE="$LOG_DIR/ksql.out"
   echo "Writing console output to $DAEMON_STDOUT_FILE"
-  nohup "$JAVA" -cp "$KSQL_CLASSPATH" "${OPTIONS[@]}" "$MAIN" "$@" 2>&1 < /dev/null > "$DAEMON_STDOUT_FILE" &
+  nohup "$JAVA" $JAVA_LIB_PATH -cp "$KSQL_CLASSPATH" "${OPTIONS[@]}" "$MAIN" "$@" < /dev/null > "$DAEMON_STDOUT_FILE" 2>&1 &
 else
-  exec "$JAVA" -cp "$KSQL_CLASSPATH" "${OPTIONS[@]}" "$MAIN" "$@"
+  exec "$JAVA" $JAVA_LIB_PATH -cp "$KSQL_CLASSPATH" "${OPTIONS[@]}" "$MAIN" "$@"
 fi

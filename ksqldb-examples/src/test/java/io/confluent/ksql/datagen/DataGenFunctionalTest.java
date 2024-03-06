@@ -22,6 +22,7 @@ import static org.hamcrest.Matchers.startsWith;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import io.confluent.common.utils.IntegrationTest;
+import io.confluent.ksql.test.categories.UnsupportedTest;
 import io.confluent.ksql.test.util.EmbeddedSingleNodeKafkaCluster;
 import io.confluent.ksql.test.util.TopicTestUtil;
 import io.confluent.ksql.util.MockSystemExit;
@@ -38,7 +39,7 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-@Category({IntegrationTest.class})
+@Category({IntegrationTest.class, UnsupportedTest.class})
 public class DataGenFunctionalTest {
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();

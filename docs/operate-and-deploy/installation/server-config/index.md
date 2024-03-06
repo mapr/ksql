@@ -51,7 +51,7 @@ For example:
 
 ```properties
 bootstrap.servers=localhost:9092
-listeners=http://localhost:8088
+listeners=http://localhost:8084
 ```
 
 After you have updated the server configuration file, you can start the
@@ -286,10 +286,10 @@ routable from within the cluster, you might do the following:
 
 ```properties
 # Hostname that other nodes can resolve to an routable IP:
-listeners=https://ksqlHost56:8088
+listeners=https://ksqlHost56:8084
 
 # Or, routable IP address:
-listeners=https://192.168.1.101:8088
+listeners=https://192.168.1.101:8084
 ```
 
 In this setup, the node shares the first URL in the `listeners` config as its internal
@@ -308,10 +308,10 @@ URL that is externally accessible and which resolves to an endpoint defined in `
 
 ```properties
 # Non-routable wildcard ip:
-listeners=http://0.0.0.0:8088
+listeners=http://0.0.0.0:8084
 
 # Externally accessible name that resolves to the IP of the machine:
-ksql.advertised.listener=http://host1.internal.example.com:8088
+ksql.advertised.listener=http://host1.internal.example.com:8084
 ```
 
 In this setup, the node shares the URL in the `ksql.advertised.listener` config as its
@@ -338,10 +338,10 @@ listener, for example:
 
 ```properties
 # Client listener:
-listeners=https://192.168.1.101:8088
+listeners=https://192.168.1.101:8084
 
 # Inter-node listener on different NIC:
-ksql.internal.listener=https://192.168.1.102:8088
+ksql.internal.listener=https://192.168.1.102:8084
 ```
 
 !!! note
@@ -362,7 +362,7 @@ to set the internal listener:
 
 ```properties
 # Client listener:
-listeners=https://0.0.0.0:8088
+listeners=https://0.0.0.0:8084
 
 # Inter-node listener on wildcard address and different port:
 # Note: port 8099 could be locked down using port forward or other network tools.

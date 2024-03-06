@@ -47,11 +47,14 @@ import kafka.zookeeper.ZooKeeperClientException;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.rules.RuleChain;
 
 @Category({IntegrationTest.class})
+//TEST_HARNESS::kafkaBootstrapServers is not supported (NPE will be thrown)
+@Ignore
 public class ClusterTerminationTest {
 
   private static final PageViewDataProvider PAGE_VIEWS_PROVIDER = new PageViewDataProvider();

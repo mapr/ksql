@@ -117,13 +117,6 @@ public final class ApiServerUtils {
         if (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme)) {
           throw new ConfigException("Invalid URI scheme should be http or https: " + listenerName);
         }
-        if ("https".equalsIgnoreCase(scheme)) {
-          final String keyStoreLocation = config
-              .getString(SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG);
-          if (keyStoreLocation == null || keyStoreLocation.isEmpty()) {
-            throw new ConfigException("https listener specified but no keystore provided");
-          }
-        }
         listeners.add(uri);
       } catch (URISyntaxException e) {
         throw new ConfigException("Invalid listener URI: " + listenerName);

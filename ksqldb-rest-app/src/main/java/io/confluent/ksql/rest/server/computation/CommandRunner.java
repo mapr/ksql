@@ -26,11 +26,15 @@ import io.confluent.ksql.rest.util.ClusterTerminator;
 import io.confluent.ksql.rest.util.PersistentQueryCleanupImpl;
 import io.confluent.ksql.rest.util.TerminateCluster;
 import io.confluent.ksql.services.KafkaTopicClient;
+import io.confluent.ksql.util.KsqlException;
 import io.confluent.ksql.util.Pair;
 import io.confluent.ksql.util.PersistentQueryMetadata;
 import io.confluent.ksql.util.QueryMetadata;
 import io.confluent.ksql.util.RetryUtil;
+import io.confluent.rest.impersonation.ImpersonationUtils;
 import java.io.Closeable;
+import java.io.IOException;
+import java.security.PrivilegedAction;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -46,6 +50,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.kafka.clients.consumer.OffsetOutOfRangeException;
 import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.errors.WakeupException;
@@ -348,7 +353,22 @@ public class CommandRunner implements Closeable {
       if (closed) {
         LOG.info("Execution aborted as system is closing down");
       } else {
-        statementExecutor.handleStatement(queuedCommand);
+        final Optional<String> user = queuedCommand
+                .getAndDeserializeCommand(commandDeserializer).getUser();
+        if (ImpersonationUtils.isImpersonationEnabled() && user.isPresent()) {
+          try {
+            final UserGroupInformation ugi = UserGroupInformation.createProxyUser(user.get(),
+                UserGroupInformation.getLoginUser());
+            ugi.doAs((PrivilegedAction<Object>) () -> {
+              statementExecutor.handleStatement(queuedCommand);
+              return null;
+            });
+          } catch (IOException e) {
+            throw new KsqlException(e);
+          }
+        } else {
+          statementExecutor.handleStatement(queuedCommand);
+        }
         LOG.info("Executed statement: " + commandId);
       }
     };

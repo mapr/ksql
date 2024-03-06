@@ -63,7 +63,7 @@ This error occurs when the new ksqlDB version introduces a built-in function tha
 Usually, this happens when the ksqlDB CLI and ksqlDB Server versions are different. You can create an alias for ksqlDB CLI to make sure to change it to a newer version. You should ensure that the ksqlDB CLI and Server versions are the same. In "<Home-Folder-Path>/.bashrc" file, you can create an alias for logging into ksqlDB cli. 
 Eg : 
 (i) Open .bashrc file
-(ii) Create alias using command : "alias ksqldb='cd <ksqlDB bin folder location> && ./ksql http://<host-ip>:8088'" and save the changes. Now you can type "ksqldb" on shell and can login into ksqlDB.
+(ii) Create alias using command : "alias ksqldb='cd <ksqlDB bin folder location> && ./ksql http://<host-ip>:8084'" and save the changes. Now you can type "ksqldb" on shell and can login into ksqlDB.
 
 
 

@@ -16,7 +16,6 @@
 package io.confluent.ksql.execution.scalablepush;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.MoreExecutors;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.confluent.ksql.GenericRow;
@@ -535,9 +534,10 @@ public class ScalablePushRegistry {
       if (metadata == null || metadata.values().stream().allMatch(Objects::isNull)) {
         return;
       }
-      serviceContext
-          .getConsumerGroupClient()
-          .deleteConsumerGroups(ImmutableSet.of(consumerGroupId));
+      // deleteConsumerGroups API not implemented
+      // serviceContext
+      //     .getConsumerGroupClient()
+      //     .deleteConsumerGroups(ImmutableSet.of(consumerGroupId));
     } catch (Throwable t) {
       LOG.error("Failed to delete consumer group " + consumerGroupId, t);
     }

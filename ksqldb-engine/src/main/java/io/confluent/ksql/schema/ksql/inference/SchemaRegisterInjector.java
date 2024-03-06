@@ -54,6 +54,7 @@ import io.confluent.ksql.util.Pair;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import org.apache.kafka.common.utils.Utils;
 
 public class SchemaRegisterInjector implements Injector {
 
@@ -356,10 +357,11 @@ public class SchemaRegisterInjector implements Injector {
       return false;
     }
 
-    if (config.getString(KsqlConfig.SCHEMA_REGISTRY_URL_PROPERTY).isEmpty()) {
+    if (Utils.isBlank(config.getSchemaRegistryUrl())) {
       throw new KsqlSchemaRegistryNotConfiguredException(
           String.format(
-              "Cannot create topic '%s' with format %s without configuring '%s'",
+              "Cannot create topic '%s' with format %s without configuring '%s' "
+                  + "or getting Schema Registry URL from Zookeeper.",
               topic, format.name(), KsqlConfig.SCHEMA_REGISTRY_URL_PROPERTY)
       );
     }

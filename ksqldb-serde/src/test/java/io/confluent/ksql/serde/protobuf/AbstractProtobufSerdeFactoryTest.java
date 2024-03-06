@@ -15,6 +15,7 @@
 
 package io.confluent.ksql.serde.protobuf;
 
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
@@ -30,16 +31,14 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 public abstract class AbstractProtobufSerdeFactoryTest {
-  @Mock
-  private KsqlConfig config;
-  @Mock
-  private Supplier<SchemaRegistryClient> srClientFactory;
+  private KsqlConfig config = mock(KsqlConfig.class);
+  private Supplier<SchemaRegistryClient> srClientFactory = mock(Supplier.class);
 
   abstract SerdeFactory getSerdeFactory();
 
   @Before
   public void setUp() throws Exception {
-    when(config.getString(KsqlConfig.SCHEMA_REGISTRY_URL_PROPERTY)).thenReturn("http://localhost:8088");
+    when(config.getSchemaRegistryUrl()).thenReturn("http://localhost:8088");
   }
 
   @Test

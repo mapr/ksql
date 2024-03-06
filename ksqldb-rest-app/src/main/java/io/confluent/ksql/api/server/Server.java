@@ -304,6 +304,7 @@ public class Server {
     }
   }
 
+  // CHECKSTYLE_RULES.OFF: CyclomaticComplexity
   private static HttpServerOptions createHttpServerOptions(final KsqlRestConfig ksqlRestConfig,
       final String host, final int port, final boolean tls,
       final boolean isInternalListener, final boolean isProxyProtocolListener,

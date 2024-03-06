@@ -26,8 +26,8 @@ down? First, you must start multiple nodes and make sure inter-node communicatio
 is configured so that query forwarding works correctly:
 
 ```properties
-listeners=http://0.0.0.0:8088
-ksql.advertised.listener=http://host1.example.com:8088
+listeners=http://0.0.0.0:8084
+ksql.advertised.listener=http://host1.example.com:8084
 ```
 
 The `ksql.advertised.listener` configuration specifies the URL that is propagated to other nodes for inter-node requests, so

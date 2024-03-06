@@ -20,10 +20,22 @@ import static org.hamcrest.Matchers.is;
 
 import io.confluent.ksql.test.util.KsqlTestFolder;
 import java.io.IOException;
+
+import io.confluent.ksql.testutils.AvoidMaprFSAppDirCreation;
+import io.confluent.ksql.util.MaprFSUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.MockPolicy;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
+@RunWith(PowerMockRunner.class)
+@MockPolicy(AvoidMaprFSAppDirCreation.class)
+@PrepareForTest(MaprFSUtils.class)
+@PowerMockIgnore("javax.management.*")
 public class SqlTestingToolTest {
 
   private final static String TESTS_FOLDER = "src/test/resources/sql-test-runner";

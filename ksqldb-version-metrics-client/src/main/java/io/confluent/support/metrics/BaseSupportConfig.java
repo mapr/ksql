@@ -46,7 +46,7 @@ public abstract class BaseSupportConfig {
       "confluent.support.metrics.enable";
   private static final String CONFLUENT_SUPPORT_METRICS_ENABLE_DOC =
       "False to disable metric collection, true otherwise.";
-  public static final String CONFLUENT_SUPPORT_METRICS_ENABLE_DEFAULT = "true";
+  public static final String CONFLUENT_SUPPORT_METRICS_ENABLE_DEFAULT = "false";
 
   /**
    * <code>confluent.support.customer.id</code>

@@ -36,12 +36,12 @@ ksqldb-server:
     - broker
     - schema-registry
   ports:
-    - "8088:8088"
+    - "8084:8084"
     - "1099:1099"
   environment:
-    KSQL_LISTENERS: "http://0.0.0.0:8088"
+    KSQL_LISTENERS: "http://0.0.0.0:8084"
     KSQL_BOOTSTRAP_SERVERS: "broker:9092"
-    KSQL_KSQL_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
+    KSQL_KSQL_SCHEMA_REGISTRY_URL: "http://schema-registry:8087"
     KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE: "true"
     KSQL_KSQL_LOGGING_PROCESSING_TOPIC_AUTO_CREATE: "true"
     KSQL_KSQL_QUERY_PULL_METRICS_ENABLED: "true"

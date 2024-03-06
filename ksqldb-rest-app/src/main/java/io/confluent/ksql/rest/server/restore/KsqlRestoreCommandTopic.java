@@ -313,7 +313,8 @@ public class KsqlRestoreCommandTopic {
     this(
         serverConfig,
         ReservedInternalTopics.commandTopic(serverConfig),
-        new KafkaTopicClientImpl(() -> createAdminClient(serverConfig)),
+        new KafkaTopicClientImpl(() ->
+                createAdminClient(serverConfig), serverConfig.getKsqlDefaultStream()),
         () -> transactionalProducer(serverConfig)
     );
   }
@@ -452,7 +453,8 @@ public class KsqlRestoreCommandTopic {
       try {
         final Admin admin = new DefaultKafkaClientSupplier()
             .getAdmin(ksqlConfig.getKsqlAdminClientConfigProps());
-        final KafkaTopicClient topicClient = new KafkaTopicClientImpl(() -> admin);
+        final KafkaTopicClient topicClient =
+                new KafkaTopicClientImpl(() -> admin, ksqlConfig.getKsqlDefaultStream());
         topicClient.deleteInternalTopics(topicPrefix);
 
         new StateDirectory(

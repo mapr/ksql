@@ -59,7 +59,6 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.errors.AuthorizationException;
 import org.apache.kafka.common.errors.OutOfOrderSequenceException;
 import org.apache.kafka.common.errors.ProducerFencedException;
-import org.apache.kafka.common.errors.TimeoutException;
 
 /**
  * A {@code StatementExecutor} that encapsulates a command queue and will
@@ -214,24 +213,26 @@ public class DistributingExecutor {
 
     checkAuthorization(injected, securityContext, executionContext);
 
-    final Producer<CommandId, Command> transactionalProducer =
+    final Producer<CommandId, Command> notTransactionalProducer =
         commandQueue.createTransactionalProducer();
 
-    try {
-      transactionalProducer.initTransactions();
-    } catch (final TimeoutException e) {
-      throw new KsqlServerException(errorHandler.transactionInitTimeoutErrorMessage(e), e);
-    } catch (final Exception e) {
-      throw new KsqlStatementException(
-          "Could not write the statement into the command topic: " + e.getMessage(),
-          String.format(
-              "Could not write the statement '%s' into the command topic: " + e.getMessage(),
-              original.getMaskedStatementText()
-          ),
-          original.getMaskedStatementText(),
-          KsqlStatementException.Problem.OTHER,
-          e);
-    }
+    /*
+      try {
+        transactionalProducer.initTransactions();
+      } catch (final TimeoutException e) {
+        throw new KsqlServerException(errorHandler.transactionInitTimeoutErrorMessage(e), e);
+      } catch (final Exception e) {
+        throw new KsqlStatementException(
+            "Could not write the statement into the command topic: " + e.getMessage(),
+            String.format(
+                "Could not write the statement '%s' into the command topic: " + e.getMessage(),
+                original.getMaskedStatementText()
+            ),
+            original.getMaskedStatementText(),
+            KsqlStatementException.Problem.OTHER,
+            e);
+      }
+    */
 
     if (!rateLimiter.tryAcquire(1, TimeUnit.SECONDS)) {
       throw new KsqlRestException(
@@ -242,7 +243,7 @@ public class DistributingExecutor {
 
     CommandId commandId = null;
     try {
-      transactionalProducer.beginTransaction();
+      //      notTransactionalProducer.beginTransaction();
       commandQueue.waitForCommandConsumer();
 
       commandId = commandIdAssigner.getCommandId(original.getStatement());
@@ -251,9 +252,9 @@ public class DistributingExecutor {
           executionContext.createSandbox(executionContext.getServiceContext())
       );
       final QueuedCommandStatus queuedCommandStatus =
-          commandQueue.enqueueCommand(commandId, command, transactionalProducer);
+          commandQueue.enqueueCommand(commandId, command, notTransactionalProducer);
 
-      transactionalProducer.commitTransaction();
+      //      notTransactionalProducer.commitTransaction();
       final CommandStatus commandStatus = queuedCommandStatus
           .tryWaitForFinalStatus(distributedCmdResponseTimeout);
 
@@ -284,7 +285,7 @@ public class DistributingExecutor {
           e
       );
     } catch (final Exception e) {
-      transactionalProducer.abortTransaction();
+      //transactionalProducer.abortTransaction();
       if (commandId != null) {
         commandQueue.abortCommand(commandId);
       }
@@ -298,9 +299,9 @@ public class DistributingExecutor {
           KsqlStatementException.Problem.OTHER,
           e
       );
-    } finally {
+    } /*finally {
       transactionalProducer.close();
-    }
+    }*/
   }
 
   /**

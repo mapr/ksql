@@ -16,23 +16,31 @@
 package io.confluent.ksql;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.mapr.baseutils.cldbutils.CLDBRpcCommonUtils;
+import com.mapr.web.security.SslConfig;
+import com.mapr.web.security.WebSecurityManager;
 import io.confluent.ksql.cli.Cli;
 import io.confluent.ksql.cli.Options;
 import io.confluent.ksql.cli.console.OutputFormat;
 import io.confluent.ksql.properties.PropertiesUtil;
 import io.confluent.ksql.rest.client.BasicCredentials;
 import io.confluent.ksql.rest.client.KsqlRestClient;
+import io.confluent.ksql.rest.client.exception.KsqlRestClientException;
 import io.confluent.ksql.util.ErrorMessageUtil;
 import io.confluent.ksql.util.KsqlException;
+import io.confluent.rest.RestConfig;
 import java.io.Console;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.function.Predicate;
+import org.apache.hadoop.security.UserGroupInformation;
+import org.apache.kafka.common.config.SslConfigs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,14 +67,22 @@ public final class Ksql {
   }
 
   public static void main(final String[] args) throws IOException {
-    final Options options = Options.parse(args);
+    final boolean secureCluster = UserGroupInformation.isSecurityEnabled();
+    final String defaultKsqlServerUrl = secureCluster ? "https://localhost:8084"
+        : "http://localhost:8084";
+    final Options options = args.length == 0 ? Options.parse(defaultKsqlServerUrl)
+        : Options.parse(args);
+
     if (options == null) {
       System.exit(-1);
     }
 
-    // ask for password if not set through command parameters
-    if (options.requiresPassword()) {
-      options.setPassword(readPassword());
+    if (secureCluster && !options.getAuthMethod().isPresent()) {
+      options.setAuthMethod("maprsasl");
+    }
+
+    if (options.getClusterName() != null) {
+      CLDBRpcCommonUtils.getInstance().setCurrentClusterName(options.getClusterName());
     }
 
     int errorCode = 0;
@@ -143,11 +159,45 @@ public final class Ksql {
     final Map<String, String> localProps = stripClientSideProperties(configProps);
     final Map<String, String> clientProps = PropertiesUtil.applyOverrides(configProps, systemProps);
     final String server = options.getServer();
-    final Optional<BasicCredentials> creds = options.getUserNameAndPassword();
+    final Optional<BasicCredentials> creds = Optional.empty();
     final Optional<BasicCredentials> ccloudApiKey = options.getCCloudApiKey();
+    final Optional<String> authMethod = options.getAuthMethod();
+    final String clusterName = options.getClusterName();
 
-    return clientBuilder.build(
-        server, localProps, clientProps, creds, ccloudApiKey);
+    return clientBuilder.build(server, localProps,
+        updateClientSslWithDefaultsIfNeeded(clientProps),creds,
+            ccloudApiKey, authMethod, clusterName);
+  }
+
+  private Map<String, String> updateClientSslWithDefaultsIfNeeded(final Map<String, String> props) {
+    final Map<String, String> updatedProps = new HashMap<>(props);
+    if (!props.containsKey(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG)) {
+      final SslConfig sslConfig = WebSecurityManager.getSslConfig(
+              SslConfig.SslConfigScope.SCOPE_CLIENT_ONLY);
+      updatedProps.put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG,
+          sslConfig.getClientTruststoreLocation());
+      updatedProps.put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG,
+          String.valueOf(sslConfig.getClientTruststorePassword()));
+      updatedProps.put(SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG,
+          sslConfig.getClientTruststoreType().toUpperCase());
+    }
+    if (options.getSslTrustAllCertsEnable().isPresent()) {
+      updatedProps.put(RestConfig.SSL_TRUSTALLCERTS_CONFIG,
+          options.getSslTrustAllCertsEnable().get().toString());
+    }
+
+    if (options.getSslTruststore().isPresent()) {
+      updatedProps.put(RestConfig.SSL_TRUSTSTORE_LOCATION_CONFIG,
+          options.getSslTruststore().get());
+      if (options.getSslTruststorePassword().isPresent()) {
+        updatedProps.put(RestConfig.SSL_TRUSTSTORE_PASSWORD_CONFIG,
+            options.getSslTruststorePassword().get());
+      }
+    } else if (options.getSslTruststorePassword().isPresent()) {
+      throw new KsqlRestClientException("SSL truststore is not specified, "
+          + "but truststore password is specified. Truststore cannot be blank.");
+    }
+    return Collections.unmodifiableMap(updatedProps);
   }
 
   private static Map<String, String> stripClientSideProperties(final Map<String, String> props) {
@@ -164,8 +214,9 @@ public final class Ksql {
         Map<String, ?> localProperties,
         Map<String, String> clientProps,
         Optional<BasicCredentials> creds,
-        Optional<BasicCredentials> ccloudApiKey
-    );
+        Optional<BasicCredentials> ccloudApiKey,
+        Optional<String> challengeString,
+        String clusterName);
   }
 
   interface CliBuilder {

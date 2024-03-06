@@ -5,7 +5,7 @@
 ----------------------------------------------------------------------------------------------------
 SET 'ksql.create.or.replace.enabled' = 'true';
 
-CREATE STREAM a (id INT KEY, col1 INT, col2 INT) WITH (kafka_topic='a', value_format='JSON');
+CREATE STREAM a (id INT KEY, col1 INT, col2 INT) WITH (kafka_topic='/s:a', value_format='JSON');
 CREATE STREAM b AS SELECT * FROM a PARTITION BY col1;
 
 CREATE OR REPLACE STREAM b AS SELECT * FROM a PARTITION BY col2;
@@ -17,7 +17,7 @@ CREATE OR REPLACE STREAM b AS SELECT * FROM a PARTITION BY col2;
 ----------------------------------------------------------------------------------------------------
 SET 'ksql.create.or.replace.enabled' = 'true';
 
-CREATE STREAM a (id INT KEY, col1 INT) WITH (kafka_topic='a', value_format='JSON');
+CREATE STREAM a (id INT KEY, col1 INT) WITH (kafka_topic='/s:a', value_format='JSON');
 CREATE STREAM b AS SELECT * FROM a;
 
 CREATE OR REPLACE STREAM b AS SELECT * FROM a PARTITION BY col1;
@@ -29,7 +29,7 @@ CREATE OR REPLACE STREAM b AS SELECT * FROM a PARTITION BY col1;
 ----------------------------------------------------------------------------------------------------
 SET 'ksql.create.or.replace.enabled' = 'true';
 
-CREATE STREAM a (id INT KEY, col1 INT, col2 INT) WITH (kafka_topic='a', value_format='JSON');
+CREATE STREAM a (id INT KEY, col1 INT, col2 INT) WITH (kafka_topic='/s:a', value_format='JSON');
 CREATE TABLE b AS SELECT col1, COUNT(*) FROM a GROUP BY col1;
 
 CREATE OR REPLACE TABLE b AS SELECT col2, COUNT(*) FROM a GROUP BY col2;
@@ -41,7 +41,7 @@ CREATE OR REPLACE TABLE b AS SELECT col2, COUNT(*) FROM a GROUP BY col2;
 ----------------------------------------------------------------------------------------------------
 SET 'ksql.create.or.replace.enabled' = 'true';
 
-CREATE STREAM a (id INT KEY, col1 INT, col2 INT) WITH (kafka_topic='a', format='JSON');
+CREATE STREAM a (id INT KEY, col1 INT, col2 INT) WITH (kafka_topic='/s:a', format='JSON');
 CREATE TABLE b AS SELECT col1, col2, COUNT(*) FROM a GROUP BY col1, col2;
 
 CREATE OR REPLACE TABLE b AS SELECT col1, col2, COUNT(*) FROM a GROUP BY col2, col1;

@@ -25,9 +25,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 import org.apache.kafka.clients.admin.Admin;
-import org.apache.kafka.clients.admin.AdminClientConfig;
-import org.apache.kafka.common.network.ProxyProtocol;
-import org.apache.kafka.common.network.ProxyProtocolCommand;
 import org.apache.kafka.streams.KafkaClientSupplier;
 import org.apache.kafka.streams.processor.internals.DefaultKafkaClientSupplier;
 
@@ -72,13 +69,14 @@ public final class ServiceContextFactory {
           ksqlConfig.getKsqlAdminClientConfigProps());
 
       // Set Client address config for topicAdminClientSupplier if user principal exists
-      topicAdminConfig.put(AdminClientConfig.PROXY_PROTOCOL_CLIENT_MODE,
-          ProxyProtocolCommand.PROXY.name());
-      topicAdminConfig.put(AdminClientConfig.PROXY_PROTOCOL_CLIENT_ADDRESS,
-          userPrincipal.get().getIpAddress());
-      topicAdminConfig.put(AdminClientConfig.PROXY_PROTOCOL_CLIENT_PORT,
-          userPrincipal.get().getPort());
-      topicAdminConfig.put(AdminClientConfig.PROXY_PROTOCOL_CLIENT_VERSION, ProxyProtocol.V2.name);
+      //topicAdminConfig.put(AdminClientConfig.PROXY_PROTOCOL_CLIENT_MODE,
+      //    ProxyProtocolCommand.PROXY.name());
+      //topicAdminConfig.put(AdminClientConfig.PROXY_PROTOCOL_CLIENT_ADDRESS,
+      //    userPrincipal.get().getIpAddress());
+      //topicAdminConfig.put(AdminClientConfig.PROXY_PROTOCOL_CLIENT_PORT,
+      //    userPrincipal.get().getPort());
+      //topicAdminConfig.put(AdminClientConfig.PROXY_PROTOCOL_CLIENT_VERSION,
+      //    ProxyProtocol.V2.name);
       topicAdminClientSupplier = () -> kafkaClientSupplier.getAdmin(topicAdminConfig);
     } else {
       topicAdminClientSupplier = () -> kafkaClientSupplier.getAdmin(
@@ -86,6 +84,7 @@ public final class ServiceContextFactory {
     }
 
     return new DefaultServiceContext(
+        ksqlConfig,
         kafkaClientSupplier,
         () -> kafkaClientSupplier
             .getAdmin(ksqlConfig.getKsqlAdminClientConfigProps()),

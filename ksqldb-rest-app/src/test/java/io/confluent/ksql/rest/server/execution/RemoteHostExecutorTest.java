@@ -37,6 +37,7 @@ import io.confluent.ksql.rest.util.DiscoverRemoteHostsUtil;
 import io.confluent.ksql.services.SimpleKsqlClient;
 import io.confluent.ksql.statement.ConfiguredStatement;
 import io.confluent.ksql.util.KsqlConfig;
+import io.confluent.ksql.util.MaprFSUtils;
 import io.confluent.ksql.util.Pair;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -52,24 +53,24 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(MaprFSUtils.class)
+@PowerMockIgnore({"javax.net.ssl.*","javax.management.*"})
 public class RemoteHostExecutorTest {
   private final Set<HostInfo> hosts = Stream.of("otherhost:1234", "anotherhost:444")
       .map(HostInfo::buildFromEndpoint)
       .collect(Collectors.toSet());
   @Rule
   public TemporaryEngine engine = new TemporaryEngine();
-  @Mock
-  private SimpleKsqlClient ksqlClient;
-  @Mock
-  private SessionProperties sessionProperties;
-  @Mock
-  private RestResponse<KsqlEntityList> response;
-  @Mock
-  private KsqlEntityList ksqlEntityList;
-  @Mock
-  private KsqlConfig ksqlConfig;
+  private SimpleKsqlClient ksqlClient = mock(SimpleKsqlClient.class);
+  private SessionProperties sessionProperties = mock(SessionProperties.class);
+  private RestResponse<KsqlEntityList> response = mock(RestResponse.class);
+  private KsqlEntityList ksqlEntityList = mock(KsqlEntityList.class);
+  private KsqlConfig ksqlConfig = mock(KsqlConfig.class);
   private RemoteHostExecutor augmenter;
 
   @SuppressWarnings("unchecked")

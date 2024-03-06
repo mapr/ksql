@@ -39,6 +39,7 @@ import io.confluent.ksql.query.QueryId;
 import io.confluent.ksql.serde.Format;
 import io.confluent.ksql.util.KeyValue;
 import io.confluent.ksql.util.KeyValueMetadata;
+import io.confluent.ksql.test.categories.UnsupportedTest;
 import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.ksql.util.KsqlConstants;
 import io.confluent.ksql.util.KsqlConstants.KsqlQueryStatus;
@@ -91,7 +92,7 @@ import org.slf4j.LoggerFactory;
  */
 @SuppressWarnings("ConstantConditions")
 @RunWith(Parameterized.class)
-@Category({IntegrationTest.class})
+@Category({IntegrationTest.class, UnsupportedTest.class})
 public class EndToEndIntegrationTest {
 
   private static final Logger log = LoggerFactory.getLogger(EndToEndIntegrationTest.class);

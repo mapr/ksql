@@ -28,6 +28,8 @@ public final class DefaultApiSecurityContext implements ApiSecurityContext {
   private final Optional<KsqlPrincipal> principal;
   private final Optional<String> authToken;
   private final List<Entry<String, String>> requestHeaders;
+  // getting null here is expected by external lib
+  private final Optional<String> cookie;
 
   public static DefaultApiSecurityContext create(final RoutingContext routingContext,
       final Server server) {
@@ -38,6 +40,7 @@ public final class DefaultApiSecurityContext implements ApiSecurityContext {
     final ApiUser apiUser = (ApiUser) user;
 
     String authToken = routingContext.request().getHeader("Authorization");
+    final String cookie = routingContext.request().getHeader("Cookie");
     if (server.getAuthenticationPlugin().isPresent()) {
       authToken = server.getAuthenticationPlugin().get().getAuthHeader(routingContext);
     }
@@ -51,16 +54,19 @@ public final class DefaultApiSecurityContext implements ApiSecurityContext {
             ? apiUser.getPrincipal().withIpAddressAndPort(ipAddress == null ? "" : ipAddress, port)
             : null,
         authToken,
+        cookie,
         requestHeaders);
   }
 
   private DefaultApiSecurityContext(
       final KsqlPrincipal principal,
       final String authToken,
+      final String cookie,
       final List<Entry<String, String>> requestHeaders) {
     this.principal = Optional.ofNullable(principal);
     this.authToken = Optional.ofNullable(authToken);
     this.requestHeaders = requestHeaders;
+    this.cookie = Optional.ofNullable(cookie);
   }
 
   @Override
@@ -76,5 +82,15 @@ public final class DefaultApiSecurityContext implements ApiSecurityContext {
   @Override
   public List<Entry<String, String>> getRequestHeaders() {
     return ImmutableList.copyOf(requestHeaders);
+  }
+
+  @Override
+  public Optional<String> getAuthToken() {
+    return authToken;
+  }
+
+  @Override
+  public Optional<String> getCookie() {
+    return cookie;
   }
 }

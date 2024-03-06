@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import javax.net.ssl.SSLContext;
-import org.apache.kafka.common.config.internals.ConfluentConfigs;
 import org.apache.kafka.common.security.auth.SslEngineFactory;
 import org.apache.kafka.common.security.ssl.DefaultSslEngineFactory;
 import org.apache.kafka.common.utils.SecurityUtils;
@@ -67,14 +66,14 @@ public class KsqlSchemaRegistryClientFactory {
       final Map<String, String> schemaRegistryHttpHeaders
   ) {
     this(config,
-        () -> new RestService(config.getString(KsqlConfig.SCHEMA_REGISTRY_URL_PROPERTY)),
+        () -> new RestService(config.getSchemaRegistryUrl()),
         sslContext,
         CachedSchemaRegistryClient::new,
         schemaRegistryHttpHeaders
     );
 
     // Force config exception now:
-    config.getString(KsqlConfig.SCHEMA_REGISTRY_URL_PROPERTY);
+    // config.getString(KsqlConfig.SCHEMA_REGISTRY_URL_PROPERTY);
   }
 
   @VisibleForTesting
@@ -90,14 +89,16 @@ public class KsqlSchemaRegistryClientFactory {
 
     this.schemaRegistryClientFactory = schemaRegistryClientFactory;
     this.httpHeaders = httpHeaders;
-    this.schemaRegistryUrl = config.getString(KsqlConfig.SCHEMA_REGISTRY_URL_PROPERTY).trim();
+    this.schemaRegistryUrl = config.getSchemaRegistryUrl();
   }
 
   /**
    * Creates an SslContext configured to be used with the KsqlSchemaRegistryClient.
    */
   public static SSLContext newSslContext(final KsqlConfig config) {
-    if (config.getBoolean(ConfluentConfigs.ENABLE_FIPS_CONFIG)) {
+    // Hardcoded copy from org.apache.kafka.common.config.internals.ConfluentConfigs
+    // from org.apache.kafka:kafka-clients:7.6.0-ce
+    if (config.getBoolean("enable.fips")) {
       SecurityUtils.addConfiguredSecurityProviders(config.originals());
     }
     final DefaultSslEngineFactory sslFactory = new DefaultSslEngineFactory();

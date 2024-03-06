@@ -143,9 +143,16 @@ public interface KafkaTopicClient {
   boolean isTopicExists(String topic);
 
   /**
-   * @return set of existing topic names
+   * @return set of existing topic names for default stream
    */
   Set<String> listTopicNames();
+
+  /**
+   * Synchronous call to get a one or more topic's description.
+   *
+   * @return set of existing topic names for given stream
+   */
+  Set<String> listTopicNames(String stream);
 
   /**
    * Call to get a one or more topic's description.

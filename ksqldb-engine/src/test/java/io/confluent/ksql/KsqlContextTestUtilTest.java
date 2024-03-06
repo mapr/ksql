@@ -21,24 +21,28 @@ import io.confluent.ksql.embedded.KsqlContext;
 import io.confluent.ksql.embedded.KsqlContextTestUtil;
 import io.confluent.ksql.function.FunctionRegistry;
 import io.confluent.ksql.query.QueryId;
+import io.confluent.ksql.testutils.AvoidMaprFSAppDirCreation;
 import io.confluent.ksql.util.KsqlConfig;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.core.classloader.annotations.MockPolicy;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.mockito.Mockito.mock;
+
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"javax.management.*", "javax.net.ssl.*"})
+@MockPolicy(AvoidMaprFSAppDirCreation.class)
 public class KsqlContextTestUtilTest {
 
   private static final KsqlConfig BASE_CONFIG = new KsqlConfig(ImmutableMap.of(
       CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, "localhost:10"
   ));
 
-  @Mock
-  private SchemaRegistryClient srClient;
-  @Mock
-  private FunctionRegistry functionRegistry;
+  private SchemaRegistryClient srClient = mock(SchemaRegistryClient.class);
+  private FunctionRegistry functionRegistry = mock(FunctionRegistry.class);
 
   @SuppressWarnings("unused")
   @Test

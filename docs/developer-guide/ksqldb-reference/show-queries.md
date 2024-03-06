@@ -58,7 +58,7 @@ Query Type           : PERSISTENT
 SQL                  : CREATE STREAM TEST WITH (KAFKA_TOPIC='TEST', PARTITIONS=1, REPLICAS=1) AS SELECT *
 FROM KSQL_PROCESSING_LOG KSQL_PROCESSING_LOG
 EMIT CHANGES;
-Host Query Status    : {192.168.1.6:8088=RUNNING, 192.168.1.6:8089=RUNNING}
+Host Query Status    : {192.168.1.6:8084=RUNNING, 192.168.1.6:8089=RUNNING}
 
  Field   | Type                                                                                                                                                                                                                                                                                                                                    
 -------------------------------------------------------------------------------------

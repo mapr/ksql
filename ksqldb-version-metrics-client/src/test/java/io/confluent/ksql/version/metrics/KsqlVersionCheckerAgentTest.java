@@ -67,6 +67,8 @@ public class KsqlVersionCheckerAgentTest {
   public void setup() {
     properties = new Properties();
     properties.put("foo", "bar");
+    properties.setProperty(BaseSupportConfig
+        .CONFLUENT_SUPPORT_METRICS_ENABLE_CONFIG, "true");
     when(versionCheckerFactory.create(any(), any(), anyBoolean(), any()))
         .thenReturn(ksqlVersionChecker);
     ksqlVersionCheckerAgent = new KsqlVersionCheckerAgent(

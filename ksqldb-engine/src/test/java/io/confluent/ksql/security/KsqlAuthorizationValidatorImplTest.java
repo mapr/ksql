@@ -19,6 +19,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 
 import io.confluent.ksql.engine.KsqlEngine;
 import io.confluent.ksql.engine.KsqlEngineTestUtil;
@@ -45,15 +46,23 @@ import io.confluent.ksql.services.ServiceContext;
 import java.util.Collections;
 import java.util.Optional;
 
+import io.confluent.ksql.testutils.AvoidMaprFSAppDirCreation;
 import org.apache.kafka.common.acl.AclOperation;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.core.classloader.annotations.MockPolicy;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(MockitoJUnitRunner.class)
+import java.util.Collections;
+import java.util.Optional;
+
+
+@RunWith(PowerMockRunner.class)
+@MockPolicy(AvoidMaprFSAppDirCreation.class)
+@PowerMockIgnore("javax.management.*")
 public class KsqlAuthorizationValidatorImplTest {
 
   private static final LogicalSchema SCHEMA = LogicalSchema.builder()
@@ -84,10 +93,8 @@ public class KsqlAuthorizationValidatorImplTest {
   private final static KsqlTopic AVRO_KSQL_TOPIC =
       new KsqlTopic(AVRO_TOPIC, AVRO_KEY_FORMAT, AVRO_VALUE_FORMAT);
 
-  @Mock
-  private KsqlAccessValidator accessValidator;
-  @Mock
-  private ServiceContext serviceContext;
+  private KsqlAccessValidator accessValidator = mock(KsqlAccessValidator.class);
+  private ServiceContext serviceContext = mock(ServiceContext.class);
 
   private KsqlAuthorizationValidator authorizationValidator;
   private KsqlEngine ksqlEngine;

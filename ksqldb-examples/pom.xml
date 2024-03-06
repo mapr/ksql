@@ -22,7 +22,7 @@
     <parent>
         <groupId>io.confluent.ksql</groupId>
         <artifactId>ksqldb-parent</artifactId>
-        <version>7.6.0</version>
+        <version>7.6.0.0-eep-930-SNAPSHOT</version>
     </parent>
 
     <artifactId>ksqldb-examples</artifactId>
@@ -48,7 +48,19 @@
             <version>${io.confluent.schema-registry.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>io.confluent</groupId>
+            <artifactId>kafka-schema-registry-client</artifactId>
+        </dependency>
+
         <!-- Required for running tests -->
+
+        <!-- To avoid ClassNotFound on MapRClientSecurityException -->
+        <dependency>
+            <groupId>com.mapr.hadoop</groupId>
+            <artifactId>maprfs</artifactId>
+            <scope>test</scope>
+        </dependency>
 
         <dependency>
             <groupId>io.confluent.ksql</groupId>
@@ -70,6 +82,13 @@
             <artifactId>avro-random-generator</artifactId>
             <version>${avro.random.generator.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-streams</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
     </dependencies>
 
     <build>

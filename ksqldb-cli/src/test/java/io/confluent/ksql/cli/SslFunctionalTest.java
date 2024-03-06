@@ -35,6 +35,7 @@ import io.confluent.ksql.rest.client.exception.KsqlRestClientException;
 import io.confluent.ksql.rest.client.RestResponse;
 import io.confluent.ksql.rest.server.KsqlRestConfig;
 import io.confluent.ksql.rest.server.TestKsqlRestApp;
+import io.confluent.ksql.test.categories.UnsupportedTest;
 import io.confluent.ksql.test.util.secure.ClientTrustStore;
 import io.confluent.ksql.test.util.secure.ServerKeyStore;
 import io.confluent.ksql.util.OrderDataProvider;
@@ -51,7 +52,7 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.rules.RuleChain;
 
-@Category({IntegrationTest.class})
+@Category({IntegrationTest.class,  UnsupportedTest.class})
 public class SslFunctionalTest {
 
   private static final String TOPIC_NAME = new OrderDataProvider().topicName();
@@ -166,7 +167,8 @@ public class SslFunctionalTest {
         emptyMap(),
         clientProps,
         Optional.empty(),
-        Optional.empty()
+        Optional.empty(),
+            null
     )) {
       final RestResponse<?> response = restClient.makeKsqlRequest("show topics;");
       if (response.isSuccessful()) {

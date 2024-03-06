@@ -65,6 +65,7 @@ import org.apache.kafka.common.config.TopicConfig;
 import org.apache.kafka.common.errors.TopicAuthorizationException;
 import org.apache.kafka.common.internals.KafkaFutureImpl;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
@@ -219,6 +220,7 @@ public class SandboxedKafkaTopicClientTest {
     }
 
     @Test
+    @Ignore // Not supported in MapR (admin.describeCluster)
     public void shouldCreateTopicWithBrokerDefaultReplicationFactor() {
       // Given:
       final short defaultReplicationFactor = 5;

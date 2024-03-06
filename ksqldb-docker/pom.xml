@@ -22,7 +22,7 @@
   <parent>
     <artifactId>ksqldb-parent</artifactId>
     <groupId>io.confluent.ksql</groupId>
-    <version>7.6.0</version>
+    <version>7.6.0.0-eep-930-SNAPSHOT</version>
   </parent>
 
   <artifactId>ksqldb-docker</artifactId>
@@ -65,7 +65,7 @@
       <artifactId>kafka-clients</artifactId>
       <version>${kafka.version}</version>
       <classifier>test</classifier>
-      <scope>compile</scope>
+      <scope>provided</scope>
     </dependency>
 
     <dependency>

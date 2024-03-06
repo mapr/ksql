@@ -31,6 +31,7 @@ import org.apache.kafka.streams.KafkaClientSupplier;
  */
 public class DefaultServiceContext implements ServiceContext {
 
+  private final KsqlConfig ksqlConfig;
   private final KafkaClientSupplier kafkaClientSupplier;
   private final MemoizedSupplier<Admin> adminClientSupplier;
   private final MemoizedSupplier<Admin> topicAdminClientSupplier;
@@ -42,6 +43,7 @@ public class DefaultServiceContext implements ServiceContext {
   private final MemoizedSupplier<KafkaConsumerGroupClient> consumerGroupClientSupplier;
 
   public DefaultServiceContext(
+      final KsqlConfig ksqlConfig,
       final KafkaClientSupplier kafkaClientSupplier,
       final Supplier<Admin> adminClientSupplier,
       final Supplier<Admin> topicAdminClientSupplier,
@@ -50,10 +52,12 @@ public class DefaultServiceContext implements ServiceContext {
       final Supplier<SimpleKsqlClient> ksqlClientSupplier
   ) {
     this(
+        ksqlConfig,
         kafkaClientSupplier,
         adminClientSupplier,
         topicAdminClientSupplier,
-        KafkaTopicClientImpl::new,
+        adminSupplier ->
+                new KafkaTopicClientImpl(adminClientSupplier, ksqlConfig.getKsqlDefaultStream()),
         srClientSupplier,
         connectClientSupplier,
         ksqlClientSupplier,
@@ -63,6 +67,7 @@ public class DefaultServiceContext implements ServiceContext {
 
   @VisibleForTesting
   public DefaultServiceContext(
+      final KsqlConfig ksqlConfig,
       final KafkaClientSupplier kafkaClientSupplier,
       final Supplier<Admin> adminClientSupplier,
       final Supplier<Admin> topicAdminClientSupplier,
@@ -73,6 +78,7 @@ public class DefaultServiceContext implements ServiceContext {
       final KafkaConsumerGroupClient consumerGroupClient
   ) {
     this(
+        ksqlConfig,
         kafkaClientSupplier,
         adminClientSupplier,
         topicAdminClientSupplier,
@@ -85,6 +91,7 @@ public class DefaultServiceContext implements ServiceContext {
   }
 
   private DefaultServiceContext(
+      final KsqlConfig ksqlConfig,
       final KafkaClientSupplier kafkaClientSupplier,
       final Supplier<Admin> adminClientSupplier,
       final Supplier<Admin> topicAdminClientSupplier,
@@ -94,6 +101,7 @@ public class DefaultServiceContext implements ServiceContext {
       final Supplier<SimpleKsqlClient> ksqlClientSupplier,
       final Function<Supplier<Admin>, KafkaConsumerGroupClient> consumerGroupClientProvider
   ) {
+    this.ksqlConfig = ksqlConfig;
     requireNonNull(adminClientSupplier, "adminClientSupplier");
     this.adminClientSupplier = new MemoizedSupplier<>(adminClientSupplier);
     this.topicAdminClientSupplier = new MemoizedSupplier<>(topicAdminClientSupplier);
@@ -159,6 +167,11 @@ public class DefaultServiceContext implements ServiceContext {
   }
 
   @Override
+  public KsqlConfig getKsqlConfig() {
+    return new KsqlConfig(ksqlConfig.originals());
+  }
+
+  @Override
   public void close() {
     if (adminClientSupplier.isInitialized()) {
       adminClientSupplier.get().close();
@@ -169,6 +182,8 @@ public class DefaultServiceContext implements ServiceContext {
     if (ksqlClientSupplier.isInitialized()) {
       ksqlClientSupplier.get().close();
     }
+    // In fact supplier just returns already created object so it will always be initialized
+    connectClientSupplier.get().close();
   }
 
   static final class MemoizedSupplier<T> implements Supplier<T> {

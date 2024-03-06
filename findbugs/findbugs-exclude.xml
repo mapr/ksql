@@ -61,4 +61,19 @@ For a detailed description of findbugs bug categories, see http://findbugs.sourc
 
       If you really MUST suppress an error warning, do so using the @SuppressFBWarnings annotation.
   -->
+
+<!--
+[ERROR] Return value of io.confluent.ksql.execution.windows.WindowTimeClause.toDuration() ignored, but method has no side effect [io.confluent.ksql.execution.streams.StreamAggregateBuilderTest, io.confluent.ksql.execution.streams.StreamAggregateBuilderTest] At StreamAggregateBuilderTest.java:[line 470]Another occurrence at StreamAggregateBuilderTest.java:[line 471] RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT
+
+[ERROR] Return value of io.confluent.ksql.execution.windows.WindowTimeClause.toDuration() ignored, but method has no side effect [io.confluent.ksql.execution.streams.StreamAggregateBuilderTest, io.confluent.ksql.execution.streams.StreamAggregateBuilderTest] At StreamAggregateBuilderTest.java:[line 500]Another occurrence at StreamAggregateBuilderTest.java:[line 501] RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT
+
+[ERROR] Return value of io.confluent.ksql.execution.windows.WindowTimeClause.toDuration() ignored, but method has no side effect [io.confluent.ksql.execution.streams.StreamAggregateBuilderTest, io.confluent.ksql.execution.streams.StreamAggregateBuilderTest] At StreamAggregateBuilderTest.java:[line 441]Another occurrence at StreamAggregateBuilderTest.java:[line 442] RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT
+-->
+    <Match>
+        <Class name="~io.confluent.ksql.execution.streams.StreamAggregateBuilderTest"/>
+    </Match>
+    <Match>
+        <Class name="~io.confluent.ksql.api.auth.MaprAuthenticationPlugin"/>
+        <Bug pattern="NP_NULL_ON_SOME_PATH"/>
+    </Match>
 </FindBugsFilter>

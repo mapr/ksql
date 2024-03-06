@@ -42,6 +42,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -72,10 +73,12 @@ import io.confluent.ksql.parser.tree.Query;
 import io.confluent.ksql.query.QueryId;
 import io.confluent.ksql.schema.ksql.SystemColumns;
 import io.confluent.ksql.services.FakeKafkaConsumerGroupClient;
+import io.confluent.ksql.test.util.UserGroupInformationMockPolicy;
 import io.confluent.ksql.services.FakeKafkaTopicClient;
 import io.confluent.ksql.services.ServiceContext;
 import io.confluent.ksql.services.TestServiceContext;
 import io.confluent.ksql.statement.ConfiguredStatement;
+import io.confluent.ksql.testutils.AvoidMaprFSAppDirCreation;
 import io.confluent.ksql.util.KsqlConfig;
 import io.confluent.ksql.util.KsqlConstants;
 import io.confluent.ksql.util.KsqlException;
@@ -112,13 +115,19 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.core.classloader.annotations.MockPolicy;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.modules.junit4.PowerMockRunner;
+
 
 @SuppressWarnings({"OptionalGetWithoutIsPresent", "SameParameterValue"})
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(PowerMockRunner.class)
+@MockPolicy({AvoidMaprFSAppDirCreation.class, UserGroupInformationMockPolicy.class})
+@PowerMockIgnore({"javax.management.*", "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "org.w3c.*", "javax.net.ssl*"})
+
 public class KsqlEngineTest {
   private static final MutableFunctionRegistry functionRegistry = new InternalFunctionRegistry();
 
@@ -126,16 +135,14 @@ public class KsqlEngineTest {
   private final Map<String, Object> sharedRuntimeEnabled = new HashMap<>();
   private final Map<String, Object> sharedRuntimeDisabled = new HashMap<>();
   private MutableMetaStore metaStore;
-  @Spy
-  private final SchemaRegistryClient schemaRegistryClient = new MockSchemaRegistryClient();
+  private final SchemaRegistryClient schemaRegistryClient = spy(MockSchemaRegistryClient.class);
   private final Supplier<SchemaRegistryClient> schemaRegistryClientFactory =
       () -> schemaRegistryClient;
 
   private KsqlEngine ksqlEngine;
   private ServiceContext serviceContext;
   private ServiceContext sandboxServiceContext;
-  @Spy
-  private final FakeKafkaTopicClient topicClient = new FakeKafkaTopicClient();
+  private FakeKafkaTopicClient topicClient;
   private KsqlExecutionContext sandbox;
 
   @BeforeClass
@@ -150,8 +157,11 @@ public class KsqlEngineTest {
         ReservedInternalTopics.KSQL_INTERNAL_TOPIC_PREFIX
             + "default_"
             + "query");
+    sharedRuntimeEnabled.put(KsqlConfig.KSQL_DEFAULT_STREAM_CONFIG, "/default-stream");
+    sharedRuntimeDisabled.put(KsqlConfig.KSQL_DEFAULT_STREAM_CONFIG, "/default-stream");
     sharedRuntimeDisabled.put(KsqlConfig.KSQL_SHARED_RUNTIME_ENABLED, false);
     ksqlConfig = KsqlConfigTestUtil.create("what-eva", sharedRuntimeEnabled);
+    topicClient = spy(new FakeKafkaTopicClient(ksqlConfig));
 
 
     metaStore = MetaStoreFixture.getNewMetaStore(functionRegistry);
@@ -1136,7 +1146,7 @@ public class KsqlEngineTest {
     // Given:
     final ParsedStatement stmt = parse(
         "CREATE STREAM S1_NOTEXIST (COL1 BIGINT, COL2 VARCHAR) "
-            + "WITH  (KAFKA_TOPIC = 'S1_NOTEXIST', VALUE_FORMAT = 'JSON', KEY_FORMAT = 'KAFKA');").get(0);
+            + "WITH  (KAFKA_TOPIC = '/s:S1_NOTEXIST', VALUE_FORMAT = 'JSON', KEY_FORMAT = 'KAFKA');").get(0);
 
     final PreparedStatement<?> prepared = prepare(stmt);
 
@@ -1150,7 +1160,7 @@ public class KsqlEngineTest {
     );
 
     // Then:
-    assertThat(e.getMessage(), containsString("Kafka topic does not exist: S1_NOTEXIST"));
+    assertThat(e.getMessage(), containsString("Kafka topic does not exist: /s:S1_NOTEXIST"));
   }
 
   @Test
@@ -1199,7 +1209,7 @@ public class KsqlEngineTest {
     // Given:
     final PreparedStatement<?> statement = prepare(parse(
         "CREATE STREAM S1 (COL1 BIGINT) "
-            + "WITH (KAFKA_TOPIC = 'i_do_not_exist', VALUE_FORMAT = 'JSON', KEY_FORMAT = 'KAFKA');").get(0));
+            + "WITH (KAFKA_TOPIC = '/s:i_do_not_exist', VALUE_FORMAT = 'JSON', KEY_FORMAT = 'KAFKA');").get(0));
 
     // When:
     final KsqlStatementException e = assertThrows(
@@ -1212,10 +1222,10 @@ public class KsqlEngineTest {
 
     // Then:
     assertThat(e, rawMessage(is(
-        "Kafka topic does not exist: i_do_not_exist")));
+        "Kafka topic does not exist: /s:i_do_not_exist")));
     assertThat(e, statementText(is(
         "CREATE STREAM S1 (COL1 BIGINT)"
-            + " WITH (KAFKA_TOPIC = 'i_do_not_exist', VALUE_FORMAT = 'JSON', KEY_FORMAT = 'KAFKA');")));
+            + " WITH (KAFKA_TOPIC = '/s:i_do_not_exist', VALUE_FORMAT = 'JSON', KEY_FORMAT = 'KAFKA');")));
   }
 
   @Test
@@ -1223,7 +1233,7 @@ public class KsqlEngineTest {
     // Given:
     final PreparedStatement<?> statement = prepare(parse(
         "CREATE STREAM S1 (COL1 BIGINT) "
-            + "WITH (KAFKA_TOPIC = 'i_do_not_exist', VALUE_FORMAT = 'JSON', KEY_FORMAT = 'KAFKA');").get(0));
+            + "WITH (KAFKA_TOPIC = '/s:i_do_not_exist', VALUE_FORMAT = 'JSON', KEY_FORMAT = 'KAFKA');").get(0));
 
     // When:
     final KsqlStatementException e = assertThrows(
@@ -1235,7 +1245,7 @@ public class KsqlEngineTest {
     );
 
     // Then:
-    assertThat(e, rawMessage(is("Kafka topic does not exist: i_do_not_exist")));
+    assertThat(e, rawMessage(is("Kafka topic does not exist: /s:i_do_not_exist")));
   }
 
   @Test
@@ -1618,6 +1628,7 @@ public class KsqlEngineTest {
   }
 
   @Test
+  @Ignore // deleteConsumerGroups API not implemented
   public void shouldCleanUpConsumerGroupsOnClose() {
     // Given:
     ksqlConfig = KsqlConfigTestUtil.create("what-eva", sharedRuntimeDisabled);
@@ -1650,6 +1661,7 @@ public class KsqlEngineTest {
   }
 
   @Test
+  @Ignore // deleteConsumerGroups API not implemented
   public void shouldCleanUpTransientConsumerGroupsOnClose() {
     // Given:
     ksqlConfig = KsqlConfigTestUtil.create("what-eva", sharedRuntimeDisabled);
@@ -1682,6 +1694,7 @@ public class KsqlEngineTest {
   }
 
   @Test
+  @Ignore // deleteConsumerGroups API not implemented
   public void shouldCleanUpPersistentConsumerGroupsOnClose() {
     // Given:
     ksqlConfig = KsqlConfigTestUtil.create("what-eva", sharedRuntimeDisabled);
@@ -1714,6 +1727,7 @@ public class KsqlEngineTest {
   }
 
   @Test
+  @Ignore // deleteConsumerGroups API not implemented
   public void shouldCleanUpTransientConsumerGroupsOnCloseSharedRuntimes() {
     // Given:
     ksqlConfig = KsqlConfigTestUtil.create("what-eva", sharedRuntimeEnabled);
@@ -1742,6 +1756,7 @@ public class KsqlEngineTest {
   }
 
   @Test
+  @Ignore // deleteConsumerGroups API not implemented
   public void shouldCleanUpPersistentConsumerGroupsOnCloseSharedRuntimes() {
     // Given:
     ksqlConfig = KsqlConfigTestUtil.create("what-eva", sharedRuntimeEnabled);
