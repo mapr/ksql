@@ -534,6 +534,9 @@ final class QueryBuilder {
     final Map<String, Object> newStreamsProperties
         = new HashMap<>(config.getKsqlStreamConfigProps(applicationId));
     newStreamsProperties.put(StreamsConfig.APPLICATION_ID_CONFIG, applicationId);
+    // After https://github.com/confluentinc/ksql/pull/7785 total topic length became longer than the maximum allowed (259)
+    // To shorten it, exclude app id from topic name (it is still in a stream name)
+    newStreamsProperties.put(StreamsConfig.INTERNAL_TOPIC_EXCLUDE_APPID_CONFIG, true);
 
     // get logger
     final String id;
