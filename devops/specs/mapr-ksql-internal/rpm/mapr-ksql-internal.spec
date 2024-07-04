@@ -10,7 +10,7 @@ prefix:      /
 group:       MapR
 buildarch:   noarch
 requires:    mapr-kafka >= 3.6.1
-conflicts:   mapr-core < 7.7.0, mapr-kafka < 3.6.1
+conflicts:   mapr-core < 7.2.0, mapr-kafka < 3.6.1
 AutoReqProv: no
 
 
