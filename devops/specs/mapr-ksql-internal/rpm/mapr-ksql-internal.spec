@@ -44,8 +44,20 @@ if [ "$1" = "2" ]; then
       rm -rf __PREFIX__/ksql/ksql-__VERSION_3DIGIT__/logs
    fi
    #Saving of old configurations
-   OLD_TIMESTAMP=$(rpm -qi mapr-ksql | awk -F': ' '/Version/ {print $2}')
-   OLD_VERSION=$( echo $OLD_TIMESTAMP | cut -d'.' -f1-3 )
+   OLD_TIMESTAMP=$(rpm --queryformat='%%{VERSION}' -q mapr-ksql)
+   OLD_VERSION=$(echo "$OLD_TIMESTAMP" | grep -o '^[0-9]*\.[0-9]*\.[0-9]*')
+
+   OLD_TIMESTAMP_FILE="%{_localstatedir}/lib/rpm-state/mapr-ksql-old-timestamp"
+   OLD_VERSION_FILE="%{_localstatedir}/lib/rpm-state/mapr-ksql-old-version"
+
+   STATE_DIR="$(dirname $OLD_TIMESTAMP_FILE)"
+   if [ ! -d "$STATE_DIR" ]; then
+       mkdir -p "$STATE_DIR"
+   fi
+
+   echo "$OLD_TIMESTAMP" > "$OLD_TIMESTAMP_FILE"
+   echo "$OLD_VERSION" > "$OLD_VERSION_FILE"
+
    mkdir -p __PREFIX__/ksql/ksql-${OLD_TIMESTAMP}/etc/ksql
    cp __PREFIX__/ksql/ksql-${OLD_VERSION}/etc/ksql/* __PREFIX__/ksql/ksql-${OLD_TIMESTAMP}/etc/ksql
 
@@ -120,3 +132,20 @@ fi
 [ -n "$VERBOSE" ] && set -x ; :
 
 
+OLD_TIMESTAMP_FILE="%{_localstatedir}/lib/rpm-state/mapr-ksql-old-timestamp"
+OLD_VERSION_FILE="%{_localstatedir}/lib/rpm-state/mapr-ksql-old-version"
+
+# This files will exist only on upgrade
+if [ -e "$OLD_TIMESTAMP_FILE" ] && [ -e "$OLD_VERSION_FILE" ]; then
+    OLD_TIMESTAMP=$(cat "$OLD_TIMESTAMP_FILE")
+    OLD_VERSION=$(cat "$OLD_VERSION_FILE")
+
+    rm "$OLD_TIMESTAMP_FILE" "$OLD_VERSION_FILE"
+
+    # Remove directory with old version
+    NEW_VERSION=$(cat __PREFIX__/ksql/ksqlversion)
+
+    if [ "$OLD_VERSION" != "$NEW_VERSION" ]; then
+        rm -rf "__PREFIX__/ksql/ksql-${OLD_VERSION}"
+    fi
+fi

@@ -7,8 +7,8 @@ if [ "$1" = "upgrade" ]; then
    #Saving of old configurations
    OLD_TIMESTAMP="$2"
    OLD_VERSION=$( echo $OLD_TIMESTAMP | cut -d'.' -f1-3 )
-   mkdir -p __PREFIX__/ksql/ksql-${OLD_TIMESTAMP}/etc/ksql
-   cp __PREFIX__/ksql/ksql-${OLD_VERSION}/etc/ksql/* __PREFIX__/ksql/ksql-${OLD_TIMESTAMP}/etc/ksql
+   mkdir -p __PREFIX__/ksql/ksql-${OLD_TIMESTAMP}/
+   mv __PREFIX__/ksql/ksql-${OLD_VERSION}/etc __PREFIX__/ksql/ksql-${OLD_TIMESTAMP}/etc
 
    DAEMON_CONF=__PREFIX__/conf/daemon.conf
    if [ -f "$DAEMON_CONF" ]; then
