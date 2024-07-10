@@ -36,7 +36,7 @@
     <artifactId>ksqldb-parent</artifactId>
     <packaging>pom</packaging>
     <name>ksqldb-parent</name>
-    <version>7.6.0.0-eep-930-SNAPSHOT</version>
+    <version>7.6.0.0-eep-930</version>
 
     <licenses>
         <license>
@@ -149,8 +149,8 @@
         <jetty.version>9.4.54.v20240208</jetty.version>
         <git-commit-id-plugin.version>4.9.10</git-commit-id-plugin.version>
         <apache.io.version>2.7</apache.io.version>
-        <io.confluent.ksql.version>7.6.0.0-eep-930-SNAPSHOT</io.confluent.ksql.version>
-        <io.confluent.schema-registry.version>7.6.0.0-eep-930-SNAPSHOT</io.confluent.schema-registry.version>
+        <io.confluent.ksql.version>7.6.0.0-eep-930</io.confluent.ksql.version>
+        <io.confluent.schema-registry.version>7.6.0.0-eep-930</io.confluent.schema-registry.version>
         <netty-tcnative-version>2.0.61.Final</netty-tcnative-version>
         <!-- We normally get this from common, but Vertx is built against this -->
         <!-- Note: `netty` depends on `tcnative` and if we bump `netty`
@@ -162,15 +162,15 @@
         <netty-codec-http2-version>4.1.100.Final</netty-codec-http2-version>
         <jersey-common>2.39.1</jersey-common>
         <multi-threaded-testing.forkCount>3</multi-threaded-testing.forkCount>
-        <kafka.version>3.6.1.0-eep-930-SNAPSHOT</kafka.version>
+        <kafka.version>3.6.1.0-eep-930</kafka.version>
         <scala.version>2.13.2</scala.version>
         <jackson.version>2.13.3</jackson.version>
         <jackson.databind.version>2.13.4.2</jackson.databind.version>
         <jackson.asl.version>1.9.14-atlassian-6</jackson.asl.version>
-        <restutils.version>7.6.0.0-eep-930-SNAPSHOT</restutils.version>
+        <restutils.version>7.6.0.0-eep-930</restutils.version>
         <mapr.version>7.6.0.0-mapr</mapr.version>
         <junit.version>4.13.2</junit.version>
-        <hadoop.version>3.3.4.200-eep-911-SNAPSHOT</hadoop.version>
+        <hadoop.version>3.3.5.400-eep-930</hadoop.version>
         <version.3digit>7.6.0</version.3digit>
         <powermock.version>2.0.2</powermock.version>
         <junit.integration.categories>
@@ -977,7 +977,7 @@
         <dependency>
             <groupId>org.apache.zookeeper</groupId>
             <artifactId>zookeeper</artifactId>
-            <version>3.5.6.0-mapr-SNAPSHOT</version>
+            <version>3.8.3.0-mapr-2407</version>
             <scope>provided</scope>
         </dependency>
 
