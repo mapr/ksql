@@ -61,7 +61,8 @@ public final class VertxSslOptionsFactory {
   }
 
   private static String getKeyManagerAlgorithm(final Map<String, String> props) {
-    return props.get(SslConfigs.SSL_KEYMANAGER_ALGORITHM_CONFIG);
+    return props.getOrDefault(SslConfigs.SSL_KEYMANAGER_ALGORITHM_CONFIG,
+        SslConfigs.DEFAULT_SSL_KEYMANGER_ALGORITHM);
   }
 
   private static String getTrustManagerAlgorithm(final Map<String, String> props) {
@@ -181,7 +182,11 @@ public final class VertxSslOptionsFactory {
     final String keyManagerAlgorithm = getKeyManagerAlgorithm(props);
 
     final String keyPassword = getKeyPassword(props);
-    final String securityProviders = getSecurityProviders(props);
+    String securityProviders = getSecurityProviders(props);
+    if (securityProviders == null) {
+      securityProviders = "org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider,"
+            + "org.bouncycastle.jsse.provider.BouncyCastleJsseProvider";
+    }
 
     if (Strings.isNullOrEmpty(location)
         || Strings.isNullOrEmpty(password)

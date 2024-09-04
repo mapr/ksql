@@ -92,6 +92,9 @@
             <excludes>
                 <exclude>io.confluent:common-config</exclude>
                 <exclude>io.confluent:common-metrics</exclude>
+
+		<!-- I think generally it's not the best solution to exclude the files themselves from the package, but excluding each transitive dependency one by one in poms is such a hell with bouncycastle artifacts coming from everywhere so it's much easier just to put this line here... -->
+                <exclude>org.bouncycastle</exclude>
             </excludes>
         </dependencySet>
     </dependencySets>
