@@ -120,7 +120,6 @@
         <csv.version>1.4</csv.version>
         <commons.compress.version>1.21</commons.compress.version>
         <lang3.version>3.5</lang3.version>
-        <guava.version>24.1.1-jre</guava.version>
         <protobuf.version>3.21.12</protobuf.version>
         <retrying.version>2.0.0</retrying.version>
         <inject.version>1</inject.version>
@@ -148,7 +147,7 @@
         <!-- Only used to provide login module implementation for tests -->
         <jetty.version>9.4.54.v20240208</jetty.version>
         <git-commit-id-plugin.version>4.9.10</git-commit-id-plugin.version>
-        <apache.io.version>2.7</apache.io.version>
+        <apache.io.version>2.18.0</apache.io.version>
         <io.confluent.ksql.version>7.6.0.100-eep-932-SNAPSHOT</io.confluent.ksql.version>
         <io.confluent.schema-registry.version>7.6.0.100-eep-932-SNAPSHOT</io.confluent.schema-registry.version>
         <netty-tcnative-version>2.0.61.Final</netty-tcnative-version>
@@ -163,14 +162,17 @@
         <jersey-common>2.39.1</jersey-common>
         <multi-threaded-testing.forkCount>3</multi-threaded-testing.forkCount>
         <kafka.version>3.6.1.100-eep-932-SNAPSHOT</kafka.version>
-        <scala.version>2.13.2</scala.version>
+        <scala.version>2.13.12</scala.version>
         <jackson.version>2.13.3</jackson.version>
         <jackson.databind.version>2.13.4.2</jackson.databind.version>
         <jackson.asl.version>1.9.14-atlassian-6</jackson.asl.version>
         <restutils.version>7.6.0.100-eep-932-SNAPSHOT</restutils.version>
-        <mapr.version>7.6.0.0-mapr</mapr.version>
+        <mapr.version>7.9.0.0-mapr</mapr.version>
         <junit.version>4.13.2</junit.version>
         <hadoop.version>3.3.5.600-eep-932-SNAPSHOT</hadoop.version>
+        <jose4j.version>0.9.6</jose4j.version>
+        <avro.version>1.11.4</avro.version>
+        <classgraph.version>4.8.179</classgraph.version>
         <version.3digit>7.6.0</version.3digit>
         <powermock.version>2.0.2</powermock.version>
         <junit.integration.categories>
@@ -222,6 +224,7 @@
                 <groupId>org.bouncycastle</groupId>
                 <artifactId>bctls-fips</artifactId>
                 <version>1.0.12.2</version>
+                <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.apache.kafka</groupId>
@@ -512,6 +515,20 @@
                 <groupId>io.confluent</groupId>
                 <artifactId>broker-plugins</artifactId>
                 <version>7.6.0-ce</version>
+		<exclusions>
+		    <exclusion>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcpkix-jdk18on</artifactId>
+		    </exclusion>
+		    <exclusion>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcpkix-fips</artifactId>
+		    </exclusion>
+		    <exclusion>
+			<groupId>io.spiffe</groupId>
+			<artifactId>*</artifactId>
+		    </exclusion>
+		</exclusions>
             </dependency>
 
             <!-- End Confluent dependencies -->
