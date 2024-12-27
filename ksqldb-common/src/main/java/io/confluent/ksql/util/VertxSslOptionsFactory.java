@@ -66,7 +66,8 @@ public final class VertxSslOptionsFactory {
   }
 
   private static String getTrustManagerAlgorithm(final Map<String, String> props) {
-    return props.get(SslConfigs.SSL_TRUSTMANAGER_ALGORITHM_CONFIG);
+    return props.getOrDefault(SslConfigs.SSL_TRUSTMANAGER_ALGORITHM_CONFIG,
+            SslConfigs.DEFAULT_SSL_TRUSTMANAGER_ALGORITHM);
   }
 
   private static JksOptions buildJksOptions(final String path, final String password) {
@@ -234,7 +235,11 @@ public final class VertxSslOptionsFactory {
     final String password = getTrustStorePassword(props);
     final String trustManagerAlgorithm = getTrustManagerAlgorithm(props);
 
-    final String securityProviders = getSecurityProviders(props);
+    String securityProviders = getSecurityProviders(props);
+    if (securityProviders == null) {
+      securityProviders = "org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider,"
+              + "org.bouncycastle.jsse.provider.BouncyCastleJsseProvider";
+    }
 
     if (Strings.isNullOrEmpty(location)
         || Strings.isNullOrEmpty(password)
