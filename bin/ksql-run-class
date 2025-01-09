@@ -20,6 +20,7 @@ fi
 # create logs directory
 if [ ! -d "$LOG_DIR" ]; then
   mkdir -p "$LOG_DIR"
+  chmod 1777 "$LOG_DIR"
 fi
 
 : "${KSQL_CLASSPATH:=""}"
