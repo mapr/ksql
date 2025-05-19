@@ -95,6 +95,17 @@ copyFilesToTargetConfigDir() {
     fi
 }
 
+maybeDisableSecurityManager() {
+    JAVA_MAJOR_VERSION=$(${JAVA_HOME}/bin/java -version 2>&1 | sed -E -n 's/.* version "([0-9]*).*$/\1/p')
+    if [[ -f "$KSQL_CONF_DIR/.not_configured_yet" && "$JAVA_MAJOR_VERSION" -ge "18" ]] ; then
+	cat <<- EOF >> $KSQL_CONF_DIR/ksql-server.properties
+
+	# Security Manager is deprecated since Java 18
+	ksql.udf.enable.security.manager=false
+	EOF
+    fi
+}
+
 createSymlink() {
     rm -f  /usr/bin/ksql
     ln -sf "$KSQL_BIN"/ksql-cli-start.sh /usr/bin/ksql
@@ -148,6 +159,7 @@ if [ ! -f "$KSQL_CONF_DIR/.not_configured_yet" ]; then
 fi
 copyFilesToTargetConfigDir
 changeKSQLPermission
+maybeDisableSecurityManager
 setupWardenConfFile
 createSymlink
 
