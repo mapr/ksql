@@ -1129,7 +1129,9 @@ public class KsqlConfig extends AbstractConfig {
         ).define(
             KSQL_UDF_SECURITY_MANAGER_ENABLED,
             ConfigDef.Type.BOOLEAN,
-            true,
+            // Security Manager is disallowed by default since Java 18
+            // See https://bugs.openjdk.org/browse/JDK-8270380
+            JavaUtils.getMajorJavaVersion() < 18,
             ConfigDef.Importance.LOW,
             "Enable the security manager for UDFs. Default is true and will stop UDFs from"
                + " calling System.exit or executing processes"
