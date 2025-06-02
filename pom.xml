@@ -118,7 +118,7 @@
         <antlr.version>4.9.3</antlr.version>
         <commons-text.version>1.10.0</commons-text.version>
         <csv.version>1.4</csv.version>
-        <commons.compress.version>1.21</commons.compress.version>
+        <commons.compress.version>1.27.1</commons.compress.version>
         <lang3.version>3.5</lang3.version>
         <protobuf.version>3.25.5</protobuf.version>
         <retrying.version>2.0.0</retrying.version>
@@ -131,6 +131,7 @@
         <reload4j.version>1.2.20</reload4j.version>
         <slf4j.version>1.7.36</slf4j.version>
         <maven.plugins.version>3.0.0-M1</maven.plugins.version>
+        <mina.version>2.2.4</mina.version>
         <really.executable.jar.version>1.5.0</really.executable.jar.version>
         <generext.version>1.0.2</generext.version>
         <avro.random.generator.version>0.2.2</avro.random.generator.version>
@@ -138,7 +139,7 @@
         <wiremock.version>2.24.0</wiremock.version>
         <clearspring-analytics.version>2.9.5</clearspring-analytics.version>
         <icu.version>67.1</icu.version>
-        <vertx.version>4.4.6</vertx.version>
+        <vertx.version>4.4.9</vertx.version>
         <reactive-streams.version>1.0.3</reactive-streams.version>
         <skip.docker.build>true</skip.docker.build>
         <skip.docker.test>true</skip.docker.test>
@@ -149,24 +150,24 @@
         <git-commit-id-plugin.version>4.9.10</git-commit-id-plugin.version>
         <apache.io.version>2.18.0</apache.io.version>
         <io.confluent.ksql.version>7.6.0.200-eep-941-SNAPSHOT</io.confluent.ksql.version>
-        <io.confluent.schema-registry.version>7.6.0.100-eep-932-SNAPSHOT</io.confluent.schema-registry.version>
-        <netty-tcnative-version>2.0.61.Final</netty-tcnative-version>
+        <io.confluent.schema-registry.version>7.6.0.300-eep-941-SNAPSHOT</io.confluent.schema-registry.version>
+        <netty-tcnative-version>2.0.71.Final</netty-tcnative-version>
         <!-- We normally get this from common, but Vertx is built against this -->
         <!-- Note: `netty` depends on `tcnative` and if we bump `netty`
              we might need to bump `tcnative`, too.
              Please check top level `pom.xml` at https://github.com/netty/netty
              for the netty version we bump to (ie, corresponding git tag),
              to find the correct `tcnative` version. -->
-        <netty.version>4.1.100.Final</netty.version>
+        <netty.version>4.1.121.Final</netty.version>
         <netty-codec-http2-version>4.1.100.Final</netty-codec-http2-version>
         <jersey-common>2.39.1</jersey-common>
         <multi-threaded-testing.forkCount>3</multi-threaded-testing.forkCount>
-        <kafka.version>3.6.1.100-eep-932-SNAPSHOT</kafka.version>
+        <kafka.version>3.6.1.200-eep-940-SNAPSHOT</kafka.version>
         <scala.version>2.13.12</scala.version>
         <jackson.version>2.13.3</jackson.version>
         <jackson.databind.version>2.13.4.2</jackson.databind.version>
         <jackson.asl.version>1.9.14-atlassian-6</jackson.asl.version>
-        <restutils.version>7.6.0.100-eep-932-SNAPSHOT</restutils.version>
+        <restutils.version>7.6.0.200-eep-940-SNAPSHOT</restutils.version>
         <mapr.version>7.9.0.0-mapr</mapr.version>
         <junit.version>4.13.2</junit.version>
         <hadoop.version>3.4.1.100-eep-941-SNAPSHOT</hadoop.version>
@@ -247,6 +248,11 @@
                 <groupId>org.apache.kafka</groupId>
                 <artifactId>connect-api</artifactId>
                 <version>${kafka.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.mina</groupId>
+                <artifactId>mina-core</artifactId>
+                <version>${mina.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.kafka</groupId>
