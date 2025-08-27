@@ -19,6 +19,6 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.confluent</groupId>
     <artifactId>build-tools</artifactId>
-    <version>7.6.0.200-eep-941-SNAPSHOT</version>
+    <version>7.6.0.300-dep-1000-SNAPSHOT</version>
     <name>Build Tools</name>
 </project>
