@@ -1,6 +1,6 @@
 %undefine __check_files
 
-summary:     HPE DataFabric Ecosystem Pack: KSQL
+summary:     HPE DataFabric Ecosystem Pack: Confluent KSQL
 license:     Hewlett Packard Enterprise, CopyRight
 Vendor:      Hewlett Packard Enterprise
 name:        mapr-ksql-internal
