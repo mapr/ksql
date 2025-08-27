@@ -1,13 +1,13 @@
 %undefine __check_files
 
-summary:     Ezmeral Ecosystem Pack: KSQL internal
+summary:     HPE DataFabric Ecosystem Pack: KSQL
 license:     Hewlett Packard Enterprise, CopyRight
-Vendor:      Hewlett Packard Enterprise, <ezmeral_software_support@hpe.com>
+Vendor:      Hewlett Packard Enterprise
 name:        mapr-ksql-internal
 version:     __RELEASE_VERSION__
 release:     1
 prefix:      /
-group:       MapR
+group:       HPE
 buildarch:   noarch
 requires:    mapr-kafka >= 3.6.1
 conflicts:   mapr-core < 7.2.0, mapr-kafka < 3.6.1
@@ -15,7 +15,7 @@ AutoReqProv: no
 
 
 %description
-Ezmeral Ecosystem Pack: KSQL internal package
+Confluent KSQL distribution included in HPE DataFabric Software Ecosystem Pack
 Tag: __RELEASE_BRANCH__
 Commit: __GIT_COMMIT__
 
