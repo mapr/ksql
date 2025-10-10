@@ -79,11 +79,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bctls-fips</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>io.confluent.ksql</groupId>
             <artifactId>ksqldb-version-metrics-client</artifactId>
             <version>${io.confluent.ksql.version}</version>
