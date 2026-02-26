@@ -139,14 +139,14 @@
         <wiremock.version>2.24.0</wiremock.version>
         <clearspring-analytics.version>2.9.5</clearspring-analytics.version>
         <icu.version>67.1</icu.version>
-        <vertx.version>4.4.9</vertx.version>
+        <vertx.version>4.5.25</vertx.version>
         <reactive-streams.version>1.0.3</reactive-streams.version>
         <skip.docker.build>true</skip.docker.build>
         <skip.docker.test>true</skip.docker.test>
         <!-- Temporarily disabling this because it is causing failures in packaging but not CI builds. -->
         <!-- <compile.warnings-flag>-Werror</compile.warnings-flag> -->
         <!-- Only used to provide login module implementation for tests -->
-        <jetty.version>9.4.57.v20241219</jetty.version>
+        <jetty.version>9.4.58.v20250814</jetty.version>
         <git-commit-id-plugin.version>4.9.10</git-commit-id-plugin.version>
         <apache.io.version>2.18.0</apache.io.version>
         <io.confluent.ksql.version>7.6.0.400-dep-1010-SNAPSHOT</io.confluent.ksql.version>
@@ -158,8 +158,8 @@
              Please check top level `pom.xml` at https://github.com/netty/netty
              for the netty version we bump to (ie, corresponding git tag),
              to find the correct `tcnative` version. -->
-        <netty.version>4.1.121.Final</netty.version>
-        <netty-codec-http2-version>4.1.100.Final</netty-codec-http2-version>
+        <netty.version>4.1.131.Final</netty.version>
+        <netty-codec-http2-version>4.1.131.Final</netty-codec-http2-version>
         <jersey-common>2.39.1</jersey-common>
         <multi-threaded-testing.forkCount>3</multi-threaded-testing.forkCount>
         <kafka.version>3.6.1.300-dep-1000-SNAPSHOT</kafka.version>
@@ -301,13 +301,6 @@
                 <artifactId>kafka-server-common</artifactId>
                 <version>${kafka.version}</version>
                 <classifier>test</classifier>
-                <scope>compile</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>io.confluent</groupId>
-                <artifactId>ce-sbk_${kafka.scala.version}</artifactId>
-                <version>7.6.0-ce</version>
                 <scope>compile</scope>
             </dependency>
 
