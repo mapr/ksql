@@ -80,7 +80,7 @@
     <repositories>
         <repository>
             <id>mapr-releases</id>
-            <url>http://df-mvn-dev.ftc.hcocto.hpecorp.net/nexus/content/groups/public/</url>
+	    <url>${env.MAPR_MAVEN_REPO}</url>
         </repository>
         <repository>
             <id>confluent</id>
